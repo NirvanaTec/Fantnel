@@ -1,0 +1,154 @@
+﻿using System.Text.Json;
+using Codexus.Game.Launcher.Utils;
+using Codexus.Game.Launcher.Utils.Progress;
+using NirvanaPublic.Entities.Codexus;
+using NirvanaPublic.Entities.Nirvana;
+using NirvanaPublic.Entities.Plugin;
+using NirvanaPublic.Manager;
+using NirvanaPublic.Utils.ViewLogger;
+
+namespace NirvanaPublic.Message;
+
+public static class PlugInstoreMessage
+{
+    // 插件列表 - 缓存
+    private static readonly List<EntityComponents> PluginList = [];
+
+    public static EntityComponents[] GetPluginList(int offset = 0, int limit = 10)
+    {
+        // PluginList 有 就用缓存
+        lock (LockManager.PluginListLock)
+        {
+            var size = (offset == 0 ? 1 : offset) * limit;
+            if (PluginList.Count > 0 && PluginList.Count >= size)
+                return PluginList.Skip(size - limit).Take(limit).ToArray();
+        }
+
+        // 没有 就从 插件商店 获取
+        HttpClient client = new();
+        var response = client
+            .GetAsync($"https://api.codexus.today/api/components/get/all?offset={offset}&limit={limit}").Result;
+        var json = response.Content.ReadAsStringAsync().Result;
+        var plugins = JsonSerializer.Deserialize<EntityComponentsAll>(json);
+        if (plugins?.Items == null) throw new Code.ErrorCodeException(Code.ErrorCode.FormatError);
+        AddServerList(plugins.Items);
+        return plugins.Items;
+    }
+
+    // 插件列表 - 添加
+    private static void AddServerList(EntityComponents[] entities)
+    {
+        foreach (var entity in entities)
+            AddServerList(entity);
+    }
+
+    // 插件列表 - 添加
+    private static void AddServerList(EntityComponents entity)
+    {
+        lock (LockManager.PluginListLock)
+        {
+            // 插件列表 没有 就添加
+            if (PluginList.All(plugin => plugin.Id != entity.Id))
+                PluginList.Add(entity);
+        }
+    }
+
+    public static EntityResponse<EntityPlugin>? GetPluginDetail(string id)
+    {
+        HttpClient client = new();
+        var response = client.GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get/by-id?id={id}").Result;
+        var json = response.Content.ReadAsStringAsync().Result;
+        return JsonSerializer.Deserialize<EntityResponse<EntityPlugin>>(json);
+    }
+
+    public static EntityResponse<EntityPluginDownResponse>? GetDownloadInfoUrl(string id)
+    {
+        HttpClient client = new();
+        var response = client.GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get/download?id={id}").Result;
+        var json = response.Content.ReadAsStringAsync().Result;
+        return JsonSerializer.Deserialize<EntityResponse<EntityPluginDownResponse>>(json);
+    }
+
+    private static string GetDownloadUrl(string id)
+    {
+        return $"http://110.42.70.32:13423/api/fantnel/plugin/download?id={id}";
+    }
+
+    /**
+     * 插件列表 - 自动更新检测
+     */
+    public static void AutoUpdateCheck()
+    {
+        var plugins = PluginMessage.GetPluginList(false);
+        foreach (var plugin in plugins)
+        {
+            var downloadInfo = GetDownloadInfoUrl(plugin.Id);
+            if (downloadInfo?.Data == null || downloadInfo.Code != 1) continue;
+            lock (plugin.Id)
+            {
+                // 检测 插件 是否需要更新
+                if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize)) Download(plugin.Id);
+            }
+
+            // 依赖插件 为空 则 跳过，不检测依赖插件
+            if (downloadInfo.Data?.Dependencies == null) continue;
+
+            // 检测 依赖插件 是否需要更新
+            foreach (var item in downloadInfo.Data.Dependencies)
+                lock (plugin.Id)
+                {
+                    if (NoEqualsPlugin(item.FileHash, item.FileSize)) Download(item.Id);
+                }
+        }
+    }
+
+    // 插件列表 - 下载
+    public static void Download(string id)
+    {
+        var detail = GetPluginDetail(id);
+        if (detail?.Data?.Name == null) throw new Code.ErrorCodeException(Code.ErrorCode.NotFound);
+        // 下载插件 进度条 初始化
+        var progress = new SyncProgressBarUtil.ProgressBar(100);
+        // 下载插件 进度条 回调
+        var uiProgress =
+            new SyncCallback<SyncProgressBarUtil.ProgressReport>(update =>
+                progress.Update(update.Percent, update.Message));
+        // 下载插件 保存路径
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
+        // 自动插件 插件 文件夹
+        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        // 自动插件 插件 文件名
+        path = Path.Combine(path, detail.Data.Name + " [" + detail.Data.Version + "].dll");
+        // 下载插件 执行 异步
+        DownloadUtil.DownloadAsync(GetDownloadUrl(id), path, (Action<uint>)(dp =>
+        {
+            uiProgress.Report(new SyncProgressBarUtil.ProgressReport
+            {
+                Percent = (int)dp,
+                Message = $"Downloading Plugin {detail.Data.Name} [{detail.Data.Version}]"
+            });
+        }));
+    }
+
+    /**
+     * 检测 插件/依赖 (存在且[md5]匹配)
+     * @param fileMd5 文件md5，为空则不校验
+     * @param fileSize 文件大小，为空则不校验
+     * @return 不匹配:true，匹配:false
+     */
+    public static bool NoEqualsPlugin(string? fileMd5, long? fileSize)
+    {
+        // 获取 插件目录数组 和 md5数组
+        var filesPath = PluginMessage.GetPluginDirectoryAndMd5List();
+        for (var i = 0; i < filesPath.Item2.Length; i++)
+        {
+            // MD5 不匹配 则跳过
+            if (fileMd5 is { Length: > 31 } && !filesPath.Item2[i].Equals(fileMd5)) continue;
+            // 文件大小 匹配 则返回
+            var file = new FileInfo(filesPath.Item1[i]);
+            if (fileSize != null && fileSize == file.Length) return false;
+        }
+
+        return true;
+    }
+}

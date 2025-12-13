@@ -1,0 +1,24 @@
+﻿using System.Text.Json.Serialization;
+
+namespace NirvanaPublic.Entities.NEL;
+
+public class EntityPluginState
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("version")]
+    public string? Version { get; set; }
+
+    [JsonPropertyName("author")]
+    public string? Author { get; set; }
+
+    [JsonPropertyName("status")]
+    public string? Status { get; set; }
+    
+    [JsonPropertyName("path")]
+    public string? Path { get; set; }
+}

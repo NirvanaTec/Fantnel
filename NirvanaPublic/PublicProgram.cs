@@ -1,0 +1,146 @@
+﻿using System.Text.Json;
+using Codexus.Cipher.Protocol;
+using Codexus.Cipher.Utils.Http;
+using Codexus.OpenSDK;
+using Codexus.OpenSDK.Entities.Yggdrasil;
+using Codexus.OpenSDK.Yggdrasil;
+using NirvanaPublic.Entities;
+using NirvanaPublic.Entities.Nirvana;
+using NirvanaPublic.Message;
+using NirvanaPublic.Utils;
+using NirvanaPublic.Utils.ViewLogger;
+using Serilog;
+using Serilog.Events;
+
+namespace NirvanaPublic;
+
+public static class PublicProgram
+{
+    public static Services? Services { get; private set; }
+
+    public static void LogoInit()
+    {
+        // 清空框架信息
+        Console.Clear();
+
+        // 配置 Serilog 日志记录
+        var logger = new Logger();
+        logger.MinimumLevel.Information();
+        logger.SetColor(LogEventLevel.Information, ConsoleColor.Yellow);
+        logger.SetColor(LogEventLevel.Warning, ConsoleColor.DarkYellow);
+        logger.SetColor(LogEventLevel.Error, ConsoleColor.Red);
+        logger.SetColor(LogEventLevel.Fatal, ConsoleColor.DarkRed);
+        Log.Logger = logger.CreateLogger();
+    }
+
+    public static async Task NelInit()
+    {
+        // Fantnel 服务器信息 初始化
+        FantnelInit().Wait();
+
+        // 插件初始化
+        // 避免插件过早的加载，因为这是没必要的
+        // await InitializeSystemComponentsAsync();
+                
+        // 版本安全检测
+        VersionCheck();
+
+        // 创建服务
+        Services = CreateServices();
+        await Services.X19.InitializeDeviceAsync();
+        Log.Information("------  完成 ------");
+
+        // 默认登录
+        AccountMessage.DefaultLogin(AccountMessage.GetAccountList());
+
+        // 插件管理器初始化
+        PluginMessage.Initialize();
+        
+        // 在线检测
+        var onlineThread = new Thread(Online);
+        onlineThread.Start();
+    }
+
+    /**
+     * 版本安全检测
+    */
+    private static void VersionCheck()
+    {
+        if (InfoManager.FantnelInfo?.Versions == null)
+        {
+            Log.Error("该版本已被禁用，请前往 https://npyyds.top/ 查看最新版本");
+            Environment.Exit(1);
+        }
+
+        if (InfoManager.FantnelInfo.Versions.Any(version => version == InfoManager.FantnelVersion))
+        {
+            return;
+        }
+        Log.Error("该版本已被禁用，请前往 https://npyyds.top/ 查看最新版本");
+        Environment.Exit(1);
+    }
+
+    // Fantnel 在线检测
+    private static async void Online(object? o)
+    {
+        try
+        {
+            while (true)
+            {
+                // 60 * 3 = 180 秒 (3分钟)
+                for (var i = 0; i < 180; i++) await Task.Delay(1000);
+                var http = new HttpWrapper("http://110.42.70.32:13423");
+                await http.GetAsync("/api/tick?mode=fantnel");
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Warning(" 在线检测异常! 错误信息: {Exception}", e);
+        }
+    }
+
+    // 将FantnelInit定义为类的静态方法
+    private static async Task FantnelInit(bool exitOnError = true)
+    {
+        var http = new HttpWrapper("http://110.42.70.32:13423");
+        var response = await http.GetAsync("/fantnel.json");
+        var json = await response.Content.ReadAsStringAsync();
+        var entity = JsonSerializer.Deserialize<EntityInfo>(json);
+        if (entity == null)
+        {
+            if (!exitOnError) return;
+            Log.Error("连接服务器失败!");
+            Environment.Exit(1);
+            return;
+        }
+
+        InfoManager.FantnelInfo = entity;
+    }
+
+    // 创建服务
+    private static Services CreateServices()
+    {
+        var x19 = new X19();
+
+        if (InfoManager.FantnelInfo == null || InfoManager.FantnelInfo.CrcSalt == null ||
+            InfoManager.FantnelInfo.GameVersion == null)
+        {
+            Log.Error("CRC Salt 计算失败!");
+            Environment.Exit(1);
+        }
+
+        Log.Information("CRC Salt 当前版本: {Version}", InfoManager.FantnelInfo.GameVersion);
+        Log.Information("CRC Salt 计算完成: {CrcSalt}....", InfoManager.FantnelInfo.CrcSalt[..6]);
+
+        var yggdrasil = new StandardYggdrasil(new YggdrasilData
+        {
+            LauncherVersion = x19.GameVersion,
+            Channel = "netease",
+            CrcSalt = InfoManager.FantnelInfo.CrcSalt
+        });
+
+        return new Services(new C4399(), x19, new WPFLauncher(), yggdrasil);
+    }
+
+ 
+}

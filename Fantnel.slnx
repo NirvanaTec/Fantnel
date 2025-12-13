@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ConsoleAppTest/ConsoleAppTest.csproj" />
+  <Project Path="Fantnel/Fantnel.csproj" />
+  <Project Path="NirvanaPublic/NirvanaPublic.csproj" />
+</Solution>
