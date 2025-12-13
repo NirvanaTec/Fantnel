@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Fantnel.Servlet;
 using Microsoft.Extensions.FileProviders;
 using NirvanaPublic;
@@ -27,10 +27,14 @@ public static class Program
 
         var app = builder.Build();
 
+        // 没有配置时，默认监听 13521 端口
+        if (app.Urls.Count == 0) app.Urls.Add("http://localhost:13521");
+
         // 配置 HTTP 请求管道。
         if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
-        app.UseHttpsRedirection();
+        // 用户可能未配置证书，所以不启用HTTPS重定向
+        // app.UseHttpsRedirection();
 
         // 获取运行目录路径
         var resourcesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources", "static");
@@ -42,9 +46,21 @@ public static class Program
                 FileProvider = new PhysicalFileProvider(resourcesPath),
                 RequestPath = ""
             });
-
+        
         app.MapControllers();
 
+        // 处理 404 错误，将请求重定向到首页
+        app.Use(async (context, next) =>
+        {
+            await next();
+            if (context.Response.StatusCode == 404)
+            {
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "text/html";
+                await context.Response.WriteAsync(HomeController.GetIndexHtml());
+            }
+        });
+        
         // 在应用启动前清空控制台并输出访问地址
         app.Lifetime.ApplicationStarted.Register(() =>
         {
@@ -56,19 +72,12 @@ public static class Program
             Log.Information("版本: {ver}", InfoManager.FantnelVersion);
 
             // 分割显示多个URL
-            var urls = app.Configuration["ASPNETCORE_URLS"]?.Split(';');
-            if (urls != null)
-            {
-                Log.Information("访问地址:");
-                foreach (var url in urls) Log.Information("  {Url}", url);
-            }
-            else
-            {
-                Log.Information("访问地址: 未配置");
-            }
+            Log.Information("访问地址:");
+            foreach (var url in app.Urls) Log.Information("  {Url}", url);
 
             Log.Information("本项目遵循 GNU GPL 3.0 协议开源");
             Log.Information("------");
+            // Log.Information("静态文件: {Path}", resourcesPath);
             Log.Information("官方网址: https://npyyds.top/");
             Log.Information("最终解释权归于 涅槃科技 所有!");
             Log.Information("---------- 涅槃科技 & Codexus.OpenSDK ----------");
