@@ -23,5 +23,5 @@
 
 ### 联系方式
 - 官网: https://npyyds.top/
-- Gitee: https://gitee.com/newNP/Fantnel/
-- GitHub: https://github.com/NirvanaTec/Fantnel/
+- Gitee: https://gitee.com/newNP/fantnel/
+- GitHub: https://github.com/NirvanaTec/fantnel/
