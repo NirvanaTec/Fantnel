@@ -1,5 +1,5 @@
 # Fantnel
-## 本项目基于 [Codexus.OpenSDK](https://github.com/denetease/OpenSDK.NEL) 进行 重写/修改，后二次开发的 Web Api (C# 10) 完全脱离盒子 项目
+## 本项目基于 [Codexus.OpenSDK](https://github.com/denetease/OpenSDK.NEL) 进行 重写/修改，后二次开发的 Web Api (C#) 完全脱离盒子 项目
 
 ### 如何参与
 ```text
