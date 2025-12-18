@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Copyright>涅槃科技 © 版权所有</Copyright>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="Codexus.Cipher">
+            <HintPath>..\SDK\Codexus.Cipher.dll</HintPath>
+        </Reference>
+        <Reference Include="Codexus.Development.SDK">
+            <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
+        </Reference>
+        <Reference Include="Codexus.Game.Launcher">
+            <HintPath>..\SDK\Codexus.Game.Launcher.dll</HintPath>
+        </Reference>
+        <Reference Include="Codexus.Interceptors">
+            <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
+        </Reference>
+        <Reference Include="Codexus.OpenSDK">
+            <HintPath>..\SDK\Codexus.OpenSDK.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Update="resources\heypixel\enum-struct.json">
+            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0-beta.98"/>
+        <PackageReference Include="DotNetty.Buffers" Version="0.7.6"/>
+        <PackageReference Include="DotNetty.Codecs" Version="0.7.6"/>
+        <PackageReference Include="DotNetty.Common" Version="0.7.6"/>
+        <PackageReference Include="DotNetty.Handlers" Version="0.7.6"/>
+        <PackageReference Include="DotNetty.Transport" Version="0.7.6"/>
+        <PackageReference Include="Downloader" Version="4.0.3"/>
+        <PackageReference Include="OpenTl.Netty.Socks" Version="1.0.2"/>
+        <PackageReference Include="Serilog" Version="4.3.1-dev-02395"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
+        <PackageReference Include="Serilog.Sinks.Console.LogThemes" Version="0.4.0"/>
+        <PackageReference Include="SharpCompress" Version="0.42.0"/>
+        <PackageReference Include="SharpZipLib" Version="1.4.2"/>
+        <PackageReference Include="System.IO.Hashing" Version="10.0.0"/>
+        <PackageReference Include="YamlDotNet" Version="16.3.0"/>
+    </ItemGroup>
+
+</Project>
