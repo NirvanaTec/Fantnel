@@ -1,0 +1,219 @@
+﻿using System.Net;
+using System.Text.Json;
+using Codexus.OpenSDK.Entities.C4399;
+using Codexus.OpenSDK.Entities.MgbSdk;
+using Codexus.OpenSDK.Http;
+using NirvanaPublic.Utils.ViewLogger;
+
+namespace NirvanaPublic.Utils;
+
+public class N4399
+{
+    public string LoginWithPasswordAsync(
+        string username,
+        string password,
+        string sessionId,
+        string captcha)
+    {
+        // 构建登录参数
+        var parameters = BuildLoginParameters();
+        parameters.Add("username", username);
+        parameters.Add("password", password);
+        parameters.Add("sessionId", sessionId);
+        parameters.Add("inputCaptcha", captcha);
+
+        var client = new HttpClient(new HttpClientHandler
+        {
+            UseCookies = true,
+            CookieContainer = new CookieContainer()
+        });
+
+        // 执行登录请求
+        var loginResponse = client.PostAsync("https://ptlogin.4399.com/ptlogin/login.do?v=1",
+            new FormUrlEncodedContent(parameters));
+
+        if (!loginResponse.Result.IsSuccessStatusCode)
+            throw new Exception("登录请求失败");
+
+        var loginText = loginResponse.Result.Content.ReadAsStringAsync().Result;
+
+        // 找到错误信息
+        var errText = ExtractErrorTip(loginText);
+        if (errText.Length > 0)
+        {
+            var code = new Code.ErrorCodeException(Code.ErrorCode.Failure)
+            {
+                Entity =
+                {
+                    Msg = errText
+                }
+            };
+            throw code;
+        }
+
+        var cookieString = string.Join("; ", loginResponse.Result.Headers.GetValues("Set-Cookie")
+            .Select(cookie => cookie.Split(';')[0].Trim())
+            .ToArray());
+
+        // 生成SAuth令牌
+        var sAuthToken = GenerateSAuthAsync(client, cookieString);
+        return sAuthToken.Result;
+    }
+
+    private static string ExtractErrorTip(string html)
+    {
+        const string startMarker = "login_err_tip\">";
+        const string endMarker = "</div>";
+
+        var startIndex = html.IndexOf(startMarker, StringComparison.Ordinal);
+        if (startIndex == -1) return string.Empty;
+
+        startIndex += startMarker.Length;
+        var endIndex = html.IndexOf(endMarker, startIndex, StringComparison.Ordinal);
+
+        if (endIndex == -1) return string.Empty;
+
+        // 提取内容并删除前后空格
+        var content = html.Substring(startIndex, endIndex - startIndex);
+        return content.Trim();
+    }
+
+    private async Task<string> GenerateSAuthAsync(HttpClient client, string cookieString)
+    {
+        var unixTimeSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        // 检查登录状态
+        var checkUrl = "https://ptlogin.4399.com/ptlogin/checkKidLoginUserCookie.do?" +
+                       "appId=kid_wdsj&gameUrl=http://cdn.h5wan.4399sj.com/microterminal-h5-frame?" +
+                       "game_id=500352&rand_time=" + unixTimeSeconds + "&nick=null&onLineStart=false&" +
+                       "show=1&isCrossDomain=1&retUrl=http%253A%252F%252Fptlogin.4399.com" +
+                       "%252Fresource%252Fucenter.html%253Faction%253Dlogin%2526appId%253Dkid_wdsj%2526" +
+                       "loginLevel%253D8%2526regLevel%253D8%2526bizId%253D2100001792%2526externalLogin%253D" +
+                       "qq%2526qrLogin%253Dtrue%2526layout%253Dvertical%2526level%253D101%2526" +
+                       "css%253Dhttp%253A%252F%252Fmicrogame.5054399.net%252Fv2%252Fresource%252F" +
+                       "cssSdk%252Fdefault%252Flogin.css%2526v%253D2018_11_26_16%2526" +
+                       "postLoginHandler%253Dredirect%2526checkLoginUserCookie%253Dtrue%2526" +
+                       "redirectUrl%253Dhttp%25253A%25252F%25252Fcdn.h5wan.4399sj.com%25252F" +
+                       "microterminal-h5-frame%25253Fgame_id%25253D500352%252526rand_time%25253D" + unixTimeSeconds;
+
+
+        HttpResponseMessage checkResponse;
+        while (true)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, checkUrl);
+            request.Headers.Add("Cookie", cookieString);
+            checkResponse = await client.SendAsync(request);
+            if (checkResponse.Headers.Location == null) break;
+            checkUrl = checkResponse.Headers.Location.ToString();
+        }
+
+        if (checkResponse.RequestMessage?.RequestUri == null)
+            throw new Exception("登录状态检查失败");
+
+        var redirectUri = checkResponse.RequestMessage.RequestUri.ToString();
+        var queryParams = ExtractQueryParameters(redirectUri);
+
+        // 获取统一认证信息
+        var uniAuth = await GetUniAuthAsync(queryParams, client);
+
+        // 生成SAuth令牌
+        return GenerateSAuth(
+            uniAuth.Get("username"),
+            uniAuth.Get("uid"),
+            uniAuth.Get("token"),
+            uniAuth.Get("time"),
+            "4399pc"
+        );
+    }
+
+    private static string GenerateSAuth(
+        string userId,
+        string sdkUid,
+        string sessionId,
+        string timestamp,
+        string channel,
+        string platform = "pc")
+    {
+        var str = Guid.NewGuid().ToString("N");
+        return JsonSerializer.Serialize(new MgbSdkSAuthJson
+        {
+            AppChannel = channel,
+            ClientLoginSn = str,
+            DeviceId = str,
+            GameId = "x19",
+            LoginChannel = channel,
+            SdkUid = sdkUid,
+            SessionId = sessionId,
+            Timestamp = timestamp,
+            Platform = platform,
+            SourcePlatform = platform,
+            Udid = str,
+            UserId = userId
+        });
+    }
+
+    private async Task<QueryBuilder> GetUniAuthAsync(QueryBuilder queryParams, HttpClient client)
+    {
+        var sdkUrl = "https://microgame.5054399.net/v2/service/sdk/info?" +
+                     "callback=&queryStr=game_id%3D500352%26nick%3Dnull%26sig%3D" + queryParams.Get("sig") + "%26" +
+                     "uid%3D" + queryParams.Get("uid") + "%26fcm%3D0%26show%3D1%26isCrossDomain%3D1%26rand_time%3D" +
+                     queryParams.Get("rand_time") + "%26" +
+                     "ptusertype%3D4399%26time%3D" + queryParams.Get("time") + "%26validateState%3D" +
+                     queryParams.Get("validateState") + "%26" +
+                     "username%3D" + queryParams.Get("username") + "&_=" + queryParams.Get("time");
+
+        var response = await client.GetAsync(sdkUrl);
+
+        if (!response.IsSuccessStatusCode)
+            throw new Exception("获取统一认证信息失败");
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        var uniAuthData = JsonSerializer.Deserialize<C4399UniAuth>(responseText) ?? throw new Exception("解析统一认证数据失败");
+
+        return new QueryBuilder(uniAuthData.Data.SdkLoginData);
+    }
+
+    private static QueryBuilder ExtractQueryParameters(string url)
+    {
+        var queryBuilder = new QueryBuilder();
+        var queryStart = url.IndexOf('?');
+        if (queryStart == -1) return queryBuilder;
+
+        var queryString = url[(queryStart + 1)..];
+        var parameters = queryString.Split('&');
+
+        foreach (var param in parameters)
+        {
+            var parts = param.Split('=');
+            if (parts.Length == 2) queryBuilder.Add(parts[0], Uri.UnescapeDataString(parts[1]));
+        }
+
+        return queryBuilder;
+    }
+
+    private static Dictionary<string, string> BuildLoginParameters()
+    {
+        return new Dictionary<string, string>
+        {
+            { "loginFrom", "uframe" },
+            { "postLoginHandler", "default" },
+            { "layoutSelfAdapting", "true" },
+            { "externalLogin", "qq" },
+            { "displayMode", "popup" },
+            { "layout", "vertical" },
+            { "bizId", "2100001792" },
+            { "appId", "kid_wdsj" },
+            { "gameId", "wd" },
+            { "css", "http://microgame.5054399.net/v2/resource/cssSdk/default/login.css" },
+            { "redirectUrl", "" },
+            { "mainDivId", "popup_login_div" },
+            { "includeFcmInfo", "false" },
+            { "level", "8" },
+            { "regLevel", "8" },
+            { "userNameLabel", "4399用户名" },
+            { "userNameTip", "请输入4399用户名" },
+            { "welcomeTip", "欢迎回到4399" },
+            { "sec", "1" }
+        };
+    }
+}
