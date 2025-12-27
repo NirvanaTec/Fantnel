@@ -18,26 +18,20 @@
     </div>
 
     <!-- 使用Alert组件 -->
-    <Alert 
-      :show="showNotice" 
-      :message="noticeText" 
-      title="注意事项"
-      :location="noticeLocation"
-      @ok="handleNoticeOk"
-      @close="showNotice = false"
-    />
+    <Alert :show="showNotice" :message="noticeText" title="注意事项" :location="noticeLocation" @ok="handleNoticeOk"
+      @close="showNotice = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 // import { useRouter } from 'vue-router'
 import { getServerList } from '../utils/Tools'
 // const router = useRouter()
 import Alert from '../components/Alert.vue'
 
 const searchQuery = ref('')
-const servers = ref()
+const servers = ref([])
 
 const offset = ref(0)
 
@@ -52,25 +46,41 @@ const noticeLocation = ref("")
 //   { entity_id: 3, name: '服务器3', brief_summary: '这是第三个很棒的服务器', title_image_url: 'https://via.placeholder.com/307x173' }
 // ]
 
-getServerList().then(res => {
-  if(res.code !== 1){
-    noticeText.value = res.msg;
-    showNotice.value = true;
-    noticeLocation.value = "/game-accounts";
-    return;
-  }
-  servers.value = res.data
+const isActive = ref(true)
+
+onMounted(() => {
+  isActive.value = true
 })
 
-new Promise(() => {
-  let isLoading = setInterval(() => {
-    loadMoreServers().then(ok => {
-      if(ok){
-        clearInterval(isLoading);
-      }
-    })
-  }, 500)
+onUnmounted(() => {
+  isActive.value = false
 })
+
+// 初始加载服务器列表
+async function loadServersInBatches() {
+  // 只有第一次加载错误时，才抛出异常
+  let loading = true;
+  while (true) {
+
+    // 是否在当前页
+    if (!isActive.value) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      continue;
+    }
+
+    const ok = await loadMoreServers(15, loading)
+    loading = false;
+    // 如果没有更多服务器可加载，则跳出循环
+    if (!ok || offset.value >= 150) {
+      break
+    }
+    // 每次加载完服务器后，等待 600 毫秒
+    await new Promise(resolve => setTimeout(resolve, 700))
+  }
+}
+
+// 启动批量加载
+loadServersInBatches()
 
 const filteredServers = computed(() => {
   if (!searchQuery.value) return servers.value;
@@ -93,18 +103,31 @@ function handleScroll(event) {
   // }
 }
 
-function loadMoreServers(pageSize = 10) {
+function loadMoreServers(pageSize = 10, throwError = true) {
   // const newServers = [
   //   { entity_id: servers.value.length + 1, name: `服务器${servers.value.length + 1}`, describrief_summarytion: `这是第${servers.value.length + 1}个服务器`, title_image_url: 'https://via.placeholder.com/307x173' },
   //   { entity_id: servers.value.length + 2, name: `服务器${servers.value.length + 2}`, brief_summary: `这是第${servers.value.length + 2}个服务器`, title_image_url: 'https://via.placeholder.com/307x173' }
   // ]
   // servers.value = [...servers.value, ...newServers]
-  offset.value += 10
   return getServerList(offset.value, pageSize).then(res => {
-    if (res.data.length === 0) {
-      return true;
+    if (res.code !== 1) {
+      if (throwError) {
+        noticeText.value = res.msg || "获取服务器列表失败"
+        showNotice.value = true
+        noticeLocation.value = "/game-accounts";
+      }
+      return false;
+    }
+    if (!res || !res.data || !res.data.length) {
+      return false;
     }
     servers.value = [...servers.value, ...res.data]
+    offset.value += pageSize
+    return true;
+  }).catch(err => {
+    noticeText.value = err.message || "获取服务器列表异常"
+    showNotice.value = true
+    noticeLocation.value = "/game-accounts";
     return false;
   })
 }
@@ -139,7 +162,7 @@ function handleNoticeOk() {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
-  max-height: 600px;
+  max-height: 80vh;
   overflow-y: auto;
   padding: 10px;
 }
@@ -177,6 +200,4 @@ function handleNoticeOk() {
   color: #666;
   font-size: 14px;
 }
-
-
 </style>

@@ -11,7 +11,7 @@ namespace Fantnel.Servlet.GameController;
 public class GameServerController : ControllerBase
 {
     [HttpGet("/api/gameserver/get")]
-    public IActionResult GetServerHttp(int offset = 0, int pageSize = 10)
+    public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10)
     {
         var entity = ServersGameMessage.GetServerList(offset, pageSize);
         return Content(Code.ToJson(Code.ErrorCode.Success, entity), "application/json");
@@ -31,7 +31,7 @@ public class GameServerController : ControllerBase
     public IActionResult GetLaunchInfo([FromQuery] string id)
     {
         // 全部账号
-        var accounts = AccountMessage.GetAccountList();
+        var accounts = AccountMessage.GetLoginAccountList();
         // 全部游戏角色
         var games = ServerInfoMessage.GetUserName(id).Result;
         // 合并

@@ -27,8 +27,8 @@ public static class PlugInstoreMessage
         }
 
         // 没有 就从 插件商店 获取
-        HttpClient client = new();
-        var response = client
+        var httpClient = new HttpClient();
+        var response = httpClient
             .GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get?offset={offset}&limit={limit}").Result;
         var json = response.Content.ReadAsStringAsync().Result;
         var plugins = JsonSerializer.Deserialize<EntityResponse<EntityComponents[]>>(json);
@@ -57,16 +57,16 @@ public static class PlugInstoreMessage
 
     public static EntityResponse<EntityPlugin>? GetPluginDetail(string id)
     {
-        HttpClient client = new();
-        var response = client.GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get/by-id?id={id}").Result;
+        var httpClient = new HttpClient();
+        var response = httpClient.GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get/by-id?id={id}").Result;
         var json = response.Content.ReadAsStringAsync().Result;
         return JsonSerializer.Deserialize<EntityResponse<EntityPlugin>>(json);
     }
 
     private static EntityResponse<EntityPluginDownResponse>? GetDownloadInfoUrl(string id)
     {
-        HttpClient client = new();
-        var response = client.GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get/download?id={id}").Result;
+        HttpClient httpClient = new();
+        var response = httpClient.GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get/download?id={id}").Result;
         var json = response.Content.ReadAsStringAsync().Result;
         return JsonSerializer.Deserialize<EntityResponse<EntityPluginDownResponse>>(json);
     }
@@ -89,7 +89,11 @@ public static class PlugInstoreMessage
             lock (plugin.Id)
             {
                 // 检测 插件 是否需要更新
-                if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize)) Download(plugin.Id);
+                if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize))
+                {
+                    PluginMessage.DeletePlugin(plugin.Id);
+                    Download(plugin.Id);
+                }
             }
 
             // 依赖插件 为空 则 跳过，不检测依赖插件
@@ -99,7 +103,9 @@ public static class PlugInstoreMessage
             foreach (var item in downloadInfo.Data.Dependencies)
                 lock (plugin.Id)
                 {
-                    if (NoEqualsPlugin(item.FileHash, item.FileSize)) Download(item.Id);
+                    if (!NoEqualsPlugin(item.FileHash, item.FileSize)) continue;
+                    PluginMessage.DeletePlugin(plugin.Id);
+                    Download(item.Id);
                 }
         }
     }

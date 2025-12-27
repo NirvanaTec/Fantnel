@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Nodes;
+using Codexus.Cipher.Entities;
 using Codexus.Cipher.Entities.WPFLauncher.NetGame;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
@@ -11,17 +12,19 @@ namespace NirvanaPublic.Message;
 public static class ServerInfoMessage
 {
     // 详细信息
-    public static Task<EntityQueryNetGameDetailItem?> GetServerId2(string id)
+    public static Task<Entity<EntityQueryNetGameDetailItem>> GetServerId2(string id)
     {
         return Task.FromResult(InitProgram.GetServices().Wpf
-            .QueryNetGameDetailById(InfoManager.GetGameUser().UserId, InfoManager.GetGameUser().AccessToken, id).Data);
+            .QueryNetGameDetailById(InfoManager.GetGameAccount().GetUserId(), InfoManager.GetGameAccount().GetToken(),
+                id));
     }
 
     // 获取服务器地址
-    public static Task<EntityNetGameServerAddress?> GetServerAddress(string id)
+    public static Task<Entity<EntityNetGameServerAddress>> GetServerAddress(string id)
     {
         return Task.FromResult(InitProgram.GetServices().Wpf
-            .GetNetGameServerAddress(InfoManager.GetGameUser().UserId, InfoManager.GetGameUser().AccessToken, id).Data);
+            .GetNetGameServerAddress(InfoManager.GetGameAccount().GetUserId(), InfoManager.GetGameAccount().GetToken(),
+                id));
     }
 
     /**
@@ -31,8 +34,9 @@ public static class ServerInfoMessage
      */
     public static Task<EntityGameCharacter[]> GetUserName(string serverId)
     {
-        return Task.FromResult(InitProgram.GetServices().Wpf.QueryNetGameCharacters(InfoManager.GetGameUser().UserId,
-            InfoManager.GetGameUser().AccessToken, serverId).Data);
+        return Task.FromResult(InitProgram.GetServices().Wpf.QueryNetGameCharacters(
+            InfoManager.GetGameAccount().GetUserId(),
+            InfoManager.GetGameAccount().GetToken(), serverId).Data);
     }
 
     /**
@@ -77,7 +81,7 @@ public static class ServerInfoMessage
             new EntityCreateCharacter
             {
                 GameId = serverId,
-                UserId = InfoManager.GetGameUser().UserId,
+                UserId = InfoManager.GetGameAccount().GetUserId(),
                 Name = name
             }).Result;
         // 检查创建结果

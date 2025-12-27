@@ -36,8 +36,8 @@ public static class Program
         Log.Information("登录中...");
         AccountMessage.Login(cookie);
 
-        while (InfoManager.GameUser == null || InfoManager.GameUser.UserId == null ||
-               InfoManager.GameUser.AccessToken == null)
+        while (InfoManager.GameAccount == null || InfoManager.GameAccount.UserId == null ||
+               InfoManager.GameAccount.Token == null)
         {
             Log.Information("请输入cookie内容: ");
             cookie.Password = Console.ReadLine();
@@ -45,7 +45,7 @@ public static class Program
             AccountMessage.Login(cookie);
         }
 
-        Log.Information("登录成功! 用户ID: {UserId}", InfoManager.GetGameUser().UserId);
+        Log.Information("登录成功! 用户ID: {UserId}", InfoManager.GetGameAccount().GetUserId());
 
         // 创建角色名称
         const string serverId = "77114517833647104";
@@ -65,8 +65,8 @@ public static class Program
                 characters = item;
 
         if (characters == null)
-            InitProgram.GetServices().Wpf.CreateCharacter(InfoManager.GetGameUser().UserId,
-                InfoManager.GetGameUser().AccessToken,
+            InitProgram.GetServices().Wpf.CreateCharacter(InfoManager.GetGameAccount().GetUserId(),
+                InfoManager.GetGameAccount().GetToken(),
                 serverId, gameName);
 
         Log.Information("角色名称: {GameName}", gameName);

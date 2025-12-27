@@ -18,14 +18,16 @@ public static class ServersGameMessage
      * @return 服务器列表[普通信息]
      */
     public static EntityNetGameItem[] GetServerList(int offset = 0, int pageSize = 10,
-        bool safeImage = true)
+        bool safeImage = true, bool refresh = true)
     {
         // ServerList 有 就用缓存
         lock (LockManager.GameServerListLock)
         {
             // 分页 异常顺序 检测
             var size = offset + (pageSize - 10);
-            if (ServerList.Count < size) GetServerList(0, size, false);
+            if (ServerList.Count < size && refresh)
+                // safeImage 加快速度 | refresh 防止递归
+                GetServerList(ServerList.Count, size, false, false);
             // 分页
             size = (offset == 0 ? 1 : offset) * pageSize;
             if (ServerList.Count >= size)
@@ -43,10 +45,12 @@ public static class ServersGameMessage
             }
         }
 
-        var result = InitProgram.GetServices().Wpf.GetAvailableNetGames(InfoManager.GetGameUser().UserId,
-            InfoManager.GetGameUser().AccessToken, offset, pageSize);
+        var result = InitProgram.GetServices().Wpf.GetAvailableNetGames(InfoManager.GetGameAccount().GetUserId(),
+            InfoManager.GetGameAccount().GetToken(), offset, pageSize);
 
         if (result == null) throw new Code.ErrorCodeException(Code.ErrorCode.NotFound);
+        // 成功检测
+        Tools.EntitySafe(result);
 
         // safeImage: 没有图片的游戏项 就从 详情页 获取图片
         var items = result.Data;
@@ -62,7 +66,7 @@ public static class ServersGameMessage
     // 获取 第一张 图片
     private static string GetFirstImage(string id)
     {
-        var details = ServerInfoMessage.GetServerId2(id).Result;
+        var details = ServerInfoMessage.GetServerId2(id).Result.Data;
         // if (details != null && details.BriefImageUrls.Length > 0)
         return details is { BriefImageUrls.Length: > 0 } ? details.BriefImageUrls[0] : "";
     }

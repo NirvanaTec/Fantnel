@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using Codexus.Cipher.Protocol;
-using Codexus.Cipher.Utils.Http;
 using Codexus.OpenSDK;
 using Codexus.OpenSDK.Entities.Yggdrasil;
 using Codexus.OpenSDK.Yggdrasil;
@@ -65,6 +64,8 @@ public static class InitProgram
         // 在线检测
         var onlineThread = new Thread(Online);
         onlineThread.Start();
+
+        for (var i = 0; i < 4 && !PublicProgram.LatestVersion; i++) Log.Warning("当前版本不是最新版本，建议更新至最新版本，以获得更好的体验！");
     }
 
     /**
@@ -72,6 +73,13 @@ public static class InitProgram
     */
     private static void VersionCheck()
     {
+        // 检查是否为发布版本
+        if (!PublicProgram.Release)
+        {
+            Log.Error("调试版，已跳过版本检测！");
+            return;
+        }
+
         if (InfoManager.FantnelInfo?.Versions == null)
         {
             Log.Error("该版本已被禁用，请前往 https://npyyds.top/ 查看最新版本！");
@@ -81,7 +89,7 @@ public static class InitProgram
 
         var isVersion = false; // 版本 是否存在
         foreach (var version in InfoManager.FantnelInfo.Versions)
-            if (version == PublicProgram.Mode + PublicProgram.Version)
+            if (version == PublicProgram.Mode + PublicProgram.Version || version == "All" + PublicProgram.Version)
                 isVersion = true;
 
         if (!isVersion)
@@ -92,8 +100,8 @@ public static class InitProgram
         }
 
         // 检查是否为最新版本
-        if (!InfoManager.FantnelInfo.Versions.Last().EndsWith(PublicProgram.Version))
-            Log.Warning("当前版本不是最新版本，建议更新至最新版本，以获得更好的体验！");
+        if (InfoManager.FantnelInfo.Versions.Last().EndsWith(PublicProgram.Version)) return;
+        PublicProgram.LatestVersion = false;
     }
 
     // Fantnel 在线检测
@@ -105,8 +113,16 @@ public static class InitProgram
             {
                 // 60 * 3 = 180 秒 (3分钟)
                 for (var i = 0; i < 180; i++) await Task.Delay(1000);
-                var http = new HttpWrapper("http://110.42.70.32:13423");
-                await http.GetAsync("/api/tick?mode=fantnel");
+                var httpClient = new HttpClient();
+                await httpClient.PostAsync("http://110.42.70.32:13423/api/tick?mode=fantnel",
+                    new FormUrlEncodedContent(
+                        new Dictionary<string, string>
+                        {
+                            { "system", PublicProgram.Mode },
+                            { "version", PublicProgram.Version },
+                            { "versionId", PublicProgram.VersionId.ToString() }
+                        }
+                    ));
             }
         }
         catch (Exception e)
@@ -118,8 +134,8 @@ public static class InitProgram
     // 将FantnelInit定义为类的静态方法
     private static async Task FantnelInit(bool exitOnError = true)
     {
-        var http = new HttpWrapper("http://110.42.70.32:13423");
-        var response = await http.GetAsync("/fantnel.json");
+        var httpClient = new HttpClient();
+        var response = await httpClient.GetAsync("http://110.42.70.32:13423/fantnel.json");
         var json = await response.Content.ReadAsStringAsync();
         var entity = JsonSerializer.Deserialize<EntityInfo>(json);
         if (entity == null)

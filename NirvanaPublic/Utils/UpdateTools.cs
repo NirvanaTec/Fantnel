@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
-using Codexus.Cipher.Utils.Http;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
 using Serilog;
@@ -21,8 +20,10 @@ public static class UpdateTools
      */
     private static async Task CheckUpdate(string mode)
     {
-        var http = new HttpWrapper("http://110.42.70.32:13423");
-        var response = await http.GetAsync($"/api/fantnel/update/get?mode={mode}");
+        var httpClient = new HttpClient();
+        var response =
+            await httpClient.GetAsync(
+                $"http://110.42.70.32:13423/api/fantnel/update/get?mode={mode}&verId={PublicProgram.VersionId}");
         var json = await response.Content.ReadAsStringAsync();
         var jsonObj = JsonSerializer.Deserialize<JsonObject>(json);
         if (jsonObj == null)

@@ -132,7 +132,7 @@
       cancelText="取消" @ok="handleConfirmDelete" @cancel="handleCancelDelete" />
 
     <!-- 登录中提示 -->
-    <Alert :show="loggingIn" message="登录中，请稍候..." title="登录中" :closable="false" :showCancel="false"/>
+    <Alert :show="loggingIn" message="登录中，请稍候..." title="登录中" :closable="false" :showCancel="false" />
 
     <!-- 验证码输入弹窗 -->
     <div v-if="showCaptchaModal" class="modal">
@@ -148,7 +148,7 @@
           <div class="captcha-image-container">
             <img v-if="captchaImage" :src="captchaImage" alt="验证码" class="captcha-image" @click="loadCaptcha">
             <div v-else-if="captchaLoading" class="captcha-loading">加载中...</div>
-            <div v-else class="captcha-error">无法加载验证码</div>
+            <div v-else class="captcha-error" @click="loadCaptcha">无法加载验证码</div>
           </div>
 
           <div class="captcha-hint">点击验证码图片可刷新</div>
@@ -175,7 +175,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { getAccounts, addAccount, selectAccount, deleteAccount, updateAccount, getCaptcha4399, verifyCaptcha4399 } from '../utils/Tools'
+import { getAccounts, addAccount, selectAccount, deleteAccount, updateAccount, getCaptcha4399Url, verifyCaptcha4399, getCaptcha4399Content, isVersionSafe } from '../utils/Tools'
 import Alert from '../components/Alert.vue'
 
 const accounts = ref([])
@@ -188,6 +188,12 @@ const accountToDelete = ref(null)
 
 getAccounts().then(data => {
   accounts.value = data.data || []
+}).catch((err) => {
+  if (err.status === 500) {
+    error.value = '连接服务器失败，请检查应用状态。'
+  } else {
+    error.value = err.message || '获取账号列表失败，请稍后重试'
+  }
 })
 
 const showEditModal = ref(false)
@@ -197,7 +203,7 @@ const editingAccount = ref({ id: null, name: null, account: null, password: null
 const newAccount = ref({ name: null, account: null, password: null, type: "4399" })
 
 // 验证码相关状态
-const captchaImage = ref();
+const captchaImage = ref(null);
 const captchaInput = ref('')
 const accountToLogin = ref(null)
 const captchaLoading = ref(false)
@@ -210,7 +216,9 @@ function selectAccount1(id) {
   if (account && account.type === '4399') {
     // 4399账号需要验证码
     accountToLogin.value = id;
-    loadCaptcha();
+    if (!captchaImage.value) {
+      loadCaptcha();
+    }
     showCaptchaModal.value = true;
   } else {
     selectAccount2(id);
@@ -220,7 +228,7 @@ function selectAccount1(id) {
 function selectAccount2(id) {
   // 显示登录中提示
   loggingIn.value = true;
-  
+
   // 非4399账号直接登录
   selectAccount(id).then(data => {
     if (data.code === 1) {
@@ -241,19 +249,36 @@ function selectAccount2(id) {
 function loadCaptcha() {
   captchaLoading.value = true;
   captchaError.value = '';
-  getCaptcha4399()
-    .then(response => {
-      // 添加时间戳防止浏览器缓存
-      const timestamp = new Date().getTime();
-      captchaImage.value = response.config.url + '?t=' + timestamp;
-    })
-    .catch(err => {
-      console.error('获取验证码失败:', err);
-      captchaError.value = '网络错误，请检查连接后重试';
-    })
-    .finally(() => {
+  // 添加时间戳防止浏览器缓存
+  const timestamp = new Date().getTime();
+  getCaptcha4399Url().then(url => {
+    const imgUrl = url + '?t=' + timestamp;
+    captchaImage.value = imgUrl;
+
+    // 创建临时图片对象监听加载完成事件
+    const img = new Image();
+    img.onload = () => {
+      // 确保图片加载完成
       captchaLoading.value = false;
-    });
+      // 版本安全检查
+      if (isVersionSafe(2, false)) {
+        // 获取验证码内容
+        getCaptcha4399Content().then(data => {
+          if (data.code === 1) {
+            captchaInput.value = data.data || '';
+          } else {
+            captchaInput.value = '';
+          }
+        })
+      }
+    };
+    img.onerror = () => {
+      // 图片加载失败也需要更新状态
+      captchaLoading.value = false;
+      captchaError.value = '验证码图片加载失败，请点击重试';
+    };
+    img.src = imgUrl;
+  });
 }
 
 // 验证码错误信息
@@ -297,7 +322,9 @@ function submitCaptcha() {
 // 关闭验证码模态框
 function closeCaptchaModal() {
   showCaptchaModal.value = false;
-  captchaInput.value = '';
+  if (captchaInput.value.length > 10) {
+    captchaInput.value = '';
+  }
   captchaError.value = '';
 }
 
@@ -591,8 +618,8 @@ tr:hover {
 }
 
 .captcha-image {
-  width: 60px;
-  height: 30px;
+  width: 100px;
+  height: 50px;
   object-fit: cover;
   border: 1px solid var(--border-color);
   border-radius: 3px;
