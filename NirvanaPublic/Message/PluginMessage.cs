@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.Loader;
 using Codexus.Development.SDK.Attributes;
 using Codexus.Development.SDK.Enums;
 using Codexus.Development.SDK.Manager;
@@ -84,14 +85,21 @@ public static class PluginMessage
      * @param path 插件文件路径
      * @return 插件信息数组
      */
-    private static (List<Plugin>, List<Assembly>, List<IPlugin>) GetPluginToPath1(string path)
+    private static (List<Plugin>, List<Assembly>, List<IPlugin>) GetPluginToPath1(string pluginPath)
     {
         List<Plugin> plugins = [];
         List<Assembly> assemblies = [];
         List<IPlugin> instances = [];
         try
         {
-            var assembly = Assembly.LoadFrom(path);
+            // 检查是否已经加载了相同名称的程序集
+            var assemblyName = AssemblyName.GetAssemblyName(pluginPath);
+            var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => a.GetName().Name == assemblyName.Name &&
+                                     a.GetName().Version == assemblyName.Version);
+            if (assembly == null)
+                // 如果未加载，从路径加载
+                assembly = Assembly.LoadFrom(pluginPath);
             foreach (var type in assembly.GetTypes().Where((Func<Type, bool>)(type =>
                          typeof(IPlugin).IsAssignableFrom(type) &&
                          type is { IsAbstract: false, IsInterface: false })))
@@ -126,7 +134,7 @@ public static class PluginMessage
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to load plugin from {File}", path);
+            Log.Error("无法加载插件: {Message}", ex.Message);
         }
 
         return (plugins, assemblies, instances);
@@ -200,6 +208,15 @@ public static class PluginMessage
      */
     private static void ClearPlugin()
     {
+        // 卸载所有插件
+        foreach (var plugin in PluginManager.Instance.Plugins)
+        {
+            if (plugin.Value.Assembly == null) continue;
+            var loadContext = AssemblyLoadContext.GetLoadContext(plugin.Value.Assembly);
+            if (loadContext is { IsCollectible: true }) loadContext.Unload();
+        }
+
+        // 清空插件状态
         PluginManager.Instance.Plugins.Clear();
         // PluginManager.Instance._loadedFiles
         var loadedFilesField = typeof(PluginManager).GetField("_loadedFiles",

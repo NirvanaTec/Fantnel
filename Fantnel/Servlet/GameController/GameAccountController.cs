@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Entities.Login;
+using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils.ViewLogger;
 using Serilog;
@@ -33,6 +34,13 @@ public class GameAccountController : ControllerBase
     {
         AccountMessage.Captcha4399 = text.Captcha;
         return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+    }
+
+    [HttpGet("/api/gameaccount/captcha4399/content")]
+    public IActionResult GetCaptcha4399ContentHttp()
+    {
+        var captcha = AccountMessage.GetCaptcha4399Content();
+        return Content(Code.ToJson(Code.ErrorCode.Success, captcha), "application/json");
     }
 
     [HttpGet("/api/gameaccount/select")]
@@ -79,5 +87,18 @@ public class GameAccountController : ControllerBase
     {
         AccountMessage.UpdateAccount(account);
         return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+    }
+
+    [HttpGet("/api/gameaccount/switch")]
+    public IActionResult SwitchAccountHttp([FromQuery] int id)
+    {
+        AccountMessage.SwitchAccount(id);
+        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+    }
+
+    [HttpGet("/api/gameaccount/current")]
+    public IActionResult GetGameAccountHttp()
+    {
+        return Content(Code.ToJson(Code.ErrorCode.Success, InfoManager.GetGameAccount()), "application/json");
     }
 }

@@ -1,5 +1,4 @@
-﻿using Codexus.Development.SDK.Entities;
-using NirvanaPublic.Entities.Config;
+﻿using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Utils.ViewLogger;
 
@@ -7,17 +6,7 @@ namespace NirvanaPublic.Manager;
 
 public static class InfoManager
 {
-    // 涅槃 服务器 信息
-    public static EntityInfo? FantnelInfo;
-
-    // 游戏账号
-    public static EntityAccount? GameAccount;
-    public static EntityAvailableUser? GameUser;
-
-    public static EntityAvailableUser GetGameUser()
-    {
-        return GameUser?.UserId == null ? throw new Code.ErrorCodeException(Code.ErrorCode.LogInNot) : GameUser;
-    }
+    public static readonly List<EntityAccount> GameAccountList = [];
 
     public static EntityAccount GetGameAccount()
     {
@@ -29,6 +18,26 @@ public static class InfoManager
         // GameAccount == null || GameAccount.UserId == null
         return GameAccount?.UserId == null;
     }
+
+    public static void AddAccount(EntityAccount account)
+    {
+        // 账号已存在 | 移除旧账号
+        foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account)))
+        {
+            GameAccountList.Remove(gameAccount);
+            break;
+        }
+
+        GameAccountList.Add(account);
+        GameAccount ??= account;
+    }
+    // 涅槃 服务器 信息
+#pragma warning disable CA2211
+    public static EntityInfo? FantnelInfo;
+
+    // 游戏账号
+    public static EntityAccount? GameAccount;
+#pragma warning restore CA2211
 
     // public static X19AuthenticationOtp GetX19Au()
     // {

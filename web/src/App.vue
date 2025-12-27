@@ -38,16 +38,19 @@ provide('theme', theme)
             <router-link to="/game-accounts" active-class="active">游戏账号</router-link>
           </li>
           <li>
-            <router-link to="/servers" active-class="active" class="divider">服务器</router-link>
+            <router-link to="/servers" active-class="active">服务器</router-link>
+          </li>
+          <li>
+            <router-link to="/skins" active-class="active" class="divider">我的皮肤</router-link>
           </li>
           <li>
             <router-link to="/plugins" active-class="active">插件管理</router-link>
           </li>
           <li>
-            <router-link to="/plugin-store" active-class="active" class="divider">插件商城</router-link>
+            <router-link to="/plugin-store" active-class="active">插件商城</router-link>
           </li>
           <li>
-            <router-link to="/proxy-manager" active-class="active">代理管理</router-link>
+            <router-link to="/proxy-manager" active-class="active" class="divider">代理管理</router-link>
           </li>
         </ul>
 

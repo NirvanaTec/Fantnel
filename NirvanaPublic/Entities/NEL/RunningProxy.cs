@@ -1,5 +1,5 @@
-﻿using Codexus.Development.SDK.Entities;
-using Codexus.Interceptors;
+﻿using Codexus.Interceptors;
+using NirvanaPublic.Entities.Config;
 
 namespace NirvanaPublic.Entities.NEL;
 
@@ -18,9 +18,9 @@ public class RunningProxy(Interceptor interceptor)
      * @param nickname 昵称
      * @return 是否为同一个用户
      */
-    public bool Equals(EntityAvailableUser? gameUser, string? serverId, string? nickname)
+    public bool Equals(EntityAccount? gameAccount, string? serverId, string? nickname)
     {
-        return Equals(gameUser?.UserId, serverId, nickname) || Equals(gameUser);
+        return Equals(gameAccount?.UserId, serverId, nickname) || Equals(gameAccount);
     }
 
     /**
@@ -43,9 +43,9 @@ public class RunningProxy(Interceptor interceptor)
      * @param userToken 用户Token
      * @return 是否为同一个用户
      */
-    private bool Equals(EntityAvailableUser? gameUser)
+    private bool Equals(EntityAccount? gameUser)
     {
-        return gameUser?.UserId == UserId && gameUser?.AccessToken != UserToken;
+        return gameUser?.UserId == UserId && gameUser?.Token != UserToken;
     }
 
     /**

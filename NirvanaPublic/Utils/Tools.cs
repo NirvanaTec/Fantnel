@@ -1,9 +1,13 @@
 ﻿using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Codexus.Cipher.Entities;
+using NirvanaPublic.Entities.NEL;
+using NirvanaPublic.Utils.ViewLogger;
 
 namespace NirvanaPublic.Utils;
 
@@ -126,5 +130,66 @@ public static class Tools
             if (ip.AddressFamily == AddressFamily.InterNetwork)
                 return ip.ToString();
         return "localhost";
+    }
+
+    /**
+     * 检测当前操作系统并返回对应的模式
+     * @return win64G | linux64 | mac64
+     */
+    public static string DetectOperatingSystemMode()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return "win64G";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return "linux64";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return "mac64";
+        // 根据环境变量判断
+        var platform = Environment.OSVersion.Platform;
+        return platform switch
+        {
+            PlatformID.Unix => "linux64",
+            PlatformID.MacOSX => "mac64",
+            _ => "win64G"
+        };
+    }
+
+    public static bool IsReleaseVersion()
+    {
+#if DEBUG
+        return false;
+#else
+            return true;
+#endif
+    }
+
+    /**
+     * 检查实体是否成功
+     * @param entity 实体对象
+     */
+    private static void EntitySafe(int code, string msg, string data)
+    {
+        if (code is 0) return;
+        var exception = new Code.ErrorCodeException(Code.ErrorCode.LoginError)
+        {
+            Entity =
+            {
+                Data = data,
+                Msg = msg
+            }
+        };
+        throw exception;
+    }
+
+    public static void EntitySafe<T>(Entity<T> entity)
+    {
+        EntitySafe(entity.Code, entity.Message, entity.Data?.ToString() ?? string.Empty);
+    }
+
+    public static void EntitySafe<T>(Entity1<T> entity)
+    {
+        EntitySafe(entity.Code, entity.Message, entity.Data?.ToString() ?? string.Empty);
+    }
+
+    public static void EntitySafe<T>(Entities<T> entity)
+    {
+        EntitySafe(entity.Code, entity.Message, entity.Data.ToString() ?? string.Empty);
     }
 }

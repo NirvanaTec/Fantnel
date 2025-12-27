@@ -1,9 +1,8 @@
 ﻿using System.Text;
 using System.Text.Json;
 using Codexus.Cipher.Entities.WPFLauncher;
-using Codexus.Cipher.Utils.Http;
-using Codexus.Development.SDK.Entities;
 using NirvanaPublic.Entities.Config;
+using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
 using NirvanaPublic.Utils.ViewLogger;
@@ -27,8 +26,8 @@ public static class AccountMessage
     {
         var captchaId = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
         captchaId = captchaId[..8];
-        var http = new HttpWrapper("https://ptlogin.4399.com");
-        var response = http.GetAsync("/ptlogin/captcha.do?captchaId=" + captchaId).Result;
+        var http = new HttpClient();
+        var response = http.GetAsync("https://ptlogin.4399.com/ptlogin/captcha.do?captchaId=" + captchaId).Result;
         _session4399Id = captchaId;
         Captcha4399Bytes = response.Content.ReadAsByteArrayAsync().Result;
     }
@@ -45,6 +44,31 @@ public static class AccountMessage
             if (item.Id == id)
                 return item;
         throw new Code.ErrorCodeException(Code.ErrorCode.NotFound);
+    }
+
+    /**
+     * 切换账号
+     * @param id 账号Id
+     */
+    public static void SwitchAccount(int id)
+    {
+        var account = GetAccount(id);
+        foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(account)))
+        {
+            InfoManager.GameAccount = gameAccount;
+            break;
+        }
+    }
+
+    /**
+     * 获取登录成功后的账号列表
+     * @return 账号实体数组
+     */
+    public static EntityAccount[] GetLoginAccountList()
+    {
+        var accountList = GetAccountList();
+        return accountList.Where(account => InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(account)))
+            .ToArray();
     }
 
     /**
@@ -72,9 +96,12 @@ public static class AccountMessage
             item.Id = index;
             item.UserId = null;
             // 登录成功 同步 UserId
-            if (InfoManager.GameAccount != null && InfoManager.GameAccount.Equals(item))
-                // 避免 引用赋值，导致 后续登录 失败
-                item.UserId = InfoManager.GameAccount.UserId;
+            foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(item)))
+            {
+                // item.Token = gameAccount.Token;
+                item.UserId = gameAccount.UserId;
+                break;
+            }
         }
 
         DefaultLogin(entity);
@@ -133,15 +160,10 @@ public static class AccountMessage
             // if (saveAccount) SaveAccount(account);
 
             if (result.Item1.EntityId.Length < 1) return;
-            InfoManager.GameAccount = account;
-            InfoManager.GameAccount.UserId = result.Item1.EntityId;
-            InfoManager.GameUser = new EntityAvailableUser
-            {
-                UserId = result.Item1.EntityId,
-                AccessToken = result.Item1.Token,
-                LastLoginTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-            };
-            Log.Information("登录成功! 用户ID: {UserId}", InfoManager.GetGameUser().UserId);
+            account.UserId = result.Item1.EntityId;
+            account.Token = result.Item1.Token;
+            InfoManager.AddAccount(account);
+            Log.Information("登录成功! 用户ID: {UserId}", InfoManager.GetGameAccount().UserId);
         }
     }
 
@@ -281,5 +303,23 @@ public static class AccountMessage
             if (disabled) continue;
             AutoLogin(item);
         }
+    }
+
+    /**
+     * 获取4399验证码内容
+     * @return 4399验证码内容
+     */
+    public static string GetCaptcha4399Content()
+    {
+        if (Captcha4399Bytes == null)
+            throw new Code.ErrorCodeException(Code.ErrorCode.Failure);
+        var httpClient = new HttpClient();
+        var response = httpClient
+            .PostAsync("http://110.42.70.32:13423/api/fantnel/captcha", new ByteArrayContent(Captcha4399Bytes)).Result;
+        if (!response.IsSuccessStatusCode)
+            throw new Code.ErrorCodeException(Code.ErrorCode.Failure);
+        var resultJson = response.Content.ReadAsStringAsync().Result;
+        var captcha = JsonSerializer.Deserialize<EntityResponse<string>>(resultJson);
+        return captcha?.Data ?? throw new Code.ErrorCodeException(Code.ErrorCode.Failure);
     }
 }

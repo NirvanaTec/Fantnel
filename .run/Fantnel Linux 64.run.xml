@@ -1,0 +1,10 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Fantnel Linux 64" type="DotNetFolderPublish" factoryName="Publish to folder">
+    <riderPublish configuration="Release" platform="Any CPU" target_folder="$PROJECT_DIR$/Fantnel/bin/Release/net10.0/linux-x64/publish" target_framework="net10.0" uuid_high="2853784112223568270" uuid_low="-2049921471476716077">
+      <runtimes>
+        <item value="linux-x64" />
+      </runtimes>
+    </riderPublish>
+    <method v="2" />
+  </configuration>
+</component>

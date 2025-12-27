@@ -22,6 +22,16 @@ const routes = [
     component: () => import('../views/ServerDetail.vue')
   },
   {
+    path: '/skins',
+    name: 'Skins',
+    component: () => import('../views/Skins.vue')
+  },
+  {
+    path: '/skin/:id',
+    name: 'SkinDetail',
+    component: () => import('../views/SkinDetail.vue')
+  },
+  {
     path: '/plugins',
     name: 'Plugins',
     component: () => import('../views/Plugins.vue')

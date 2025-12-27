@@ -44,16 +44,19 @@
     <div v-if="showLaunchModal" class="modal">
       <div class="modal-content">
         <h2>Launch 游戏</h2>
-        <b><h6>部分服务器可能需要安装 插件 才能正常进入游戏。</h6></b>
+        <b>
+          <h6>部分服务器可能需要安装 插件 才能正常进入游戏。</h6>
+        </b>
         <form @submit.prevent="launchGame1">
           <div class="form-group">
-            <label>账号:</label>
+            <label><b>账号: <h6 style="display: inline;">登录成功后的账号才会显示在账号列表中。</h6></b></label>
             <select v-model="selectedAccount" @change="selectAccount1">
               <option v-for="account in accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
             </select>
+            
           </div>
           <div class="form-group">
-            <label>游戏名称:</label>
+            <label><b>游戏名称: <h6 style="display: inline;">请先 添加 / 选择 游戏名称，才能启动游戏。</h6></b></label>
             <div class="select-with-add" v-if="games.length > 0">
               <select v-model="selectedGame">
                 <option v-for="game in games" :key="game.id" :value="game.name">{{ game.name }}</option>
@@ -85,7 +88,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { selectServer, getLaunchInfo, addLaunchGame, selectAccount, launchGame } from '../utils/Tools'
+import { selectServer, getLaunchInfo, addLaunchGame, selectAccount, launchGame, isVersionSafe, switchAccount, getGameAccount } from '../utils/Tools'
 import Alert from '../components/Alert.vue'
 
 const route = useRoute()
@@ -149,12 +152,20 @@ onMounted(() => {
 })
 
 function selectAccount1(event) {
-  selectAccount(event.target.value).then(data => {
+  var account;
+  if (isVersionSafe(2, false)) {
+    account = switchAccount(event.target.value);
+  } else {
+    account = selectAccount(event.target.value);
+  }
+  account.then(data => {
     if (data.code === 1) {
       getLaunchInfo1();
     } else {
       noticeText.value = data.msg;
       showNotice.value = true;
+      // 刷新账号选中
+      refreshSelectedAccount();
     }
   });
 }
@@ -165,12 +176,7 @@ function getLaunchInfo1() {
     games.value = data.data.games
 
     // 账号默认选中
-    for (let account of accounts.value) {
-      if (account.userId !== null) {
-        selectedAccount.value = account.id;
-        break
-      }
-    }
+    refreshSelectedAccount()
 
     // 名称默认选中
     if (games.value && games.value.length > 0) {
@@ -179,6 +185,25 @@ function getLaunchInfo1() {
       showAddGameInput.value = true
     }
   })
+}
+
+// 刷新当前选择账号
+function refreshSelectedAccount() {
+  if (isVersionSafe(2, false)) {
+    getGameAccount().then(data => {
+      if (data.code === 1) {
+        selectedAccount.value = data.data.id;
+      }
+    });
+    return;
+  }
+  // 旧版默认选中
+  for (let account of accounts.value) {
+    if (account.userId !== null) {
+      selectedAccount.value = account.id;
+      break
+    }
+  }
 }
 
 function switchImage(img) {

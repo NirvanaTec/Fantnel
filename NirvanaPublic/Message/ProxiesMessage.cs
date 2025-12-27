@@ -7,6 +7,7 @@ using Codexus.Game.Launcher.Utils;
 using Codexus.Interceptors;
 using Codexus.OpenSDK;
 using Codexus.OpenSDK.Entities.Yggdrasil;
+using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
@@ -39,7 +40,7 @@ public static class ProxiesMessage
                 // 关闭老代理
                 var log = 0;
                 foreach (var proxy in ActiveProxies.ToList()
-                             .Where(proxy => proxy.Equals(InfoManager.GetGameUser(), id, name)))
+                             .Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name)))
                 {
                     log++;
                     proxy.Interceptor.ShutdownAsync();
@@ -55,19 +56,19 @@ public static class ProxiesMessage
 
             // 服务器详细信息
             var details = await ServerInfoMessage.GetServerId2(server.EntityId);
-            if (details == null) throw new Code.ErrorCodeException(Code.ErrorCode.DetailError);
+            if (details.Data == null) throw new Code.ErrorCodeException(Code.ErrorCode.DetailError);
 
             // 服务器地址
             var address = await ServerInfoMessage.GetServerAddress(server.EntityId);
-            if (address == null) throw new Code.ErrorCodeException(Code.ErrorCode.AddressError);
+            if (address.Data == null) throw new Code.ErrorCodeException(Code.ErrorCode.AddressError);
 
             // 服务器版本
-            var version = details.McVersionList[0]; // 1.20
+            var version = details.Data.McVersionList[0]; // 1.20
             var gameVersion = GameVersionUtil.GetEnumFromGameVersion(version.Name);
 
             var serverModInfo = await InstallerService.InstallGameMods(
-                InfoManager.GetGameUser().UserId,
-                InfoManager.GetGameUser().AccessToken,
+                InfoManager.GetGameAccount().GetUserId(),
+                InfoManager.GetGameAccount().GetToken(),
                 gameVersion,
                 new WPFLauncher(),
                 server.EntityId,
@@ -80,17 +81,18 @@ public static class ProxiesMessage
             if (character == null) throw new Code.ErrorCodeException(Code.ErrorCode.NotFoundName);
 
             // 前往游戏
-            InterConn.LoginStart(InfoManager.GetGameUser().UserId, InfoManager.GetGameUser().AccessToken).Wait();
-            InterConn.GameStart(InfoManager.GetGameUser().UserId, InfoManager.GetGameUser().AccessToken,
+            InterConn.LoginStart(InfoManager.GetGameAccount().GetUserId(), InfoManager.GetGameAccount().GetToken())
+                .Wait();
+            InterConn.GameStart(InfoManager.GetGameAccount().GetUserId(), InfoManager.GetGameAccount().GetToken(),
                 server.EntityId).Wait();
 
             // 创建代理 并 下载资源
             var interceptor =
-                CreateProxyInterceptor(server, character, version, address, InfoManager.GetGameUser(), mods);
+                CreateProxyInterceptor(server, character, version, address.Data, InfoManager.GetGameAccount(), mods);
 
             // 启动游戏
-            await X19.InterconnectionApi.GameStartAsync(InfoManager.GetGameUser().UserId,
-                InfoManager.GetGameUser().AccessToken, server.EntityId);
+            await X19.InterconnectionApi.GameStartAsync(InfoManager.GetGameAccount().GetUserId(),
+                InfoManager.GetGameAccount().GetToken(), server.EntityId);
 
             // 增加代理
             lock (LockManager.ActiveProxiesLock)
@@ -99,7 +101,7 @@ public static class ProxiesMessage
                 {
                     Id = ActiveProxies.Count + 1,
                     UserId = InfoManager.GetGameAccount().UserId,
-                    UserToken = InfoManager.GetGameUser().AccessToken,
+                    UserToken = InfoManager.GetGameAccount().Token,
                     ServerId = server.EntityId
                 };
                 ActiveProxies.Add(proxy);
@@ -117,7 +119,7 @@ public static class ProxiesMessage
         EntityGameCharacter character,
         EntityMcVersion version,
         EntityNetGameServerAddress address,
-        EntityAvailableUser availableUser,
+        EntityAccount availableUser,
         string mods)
     {
         return Interceptor.CreateInterceptor(
@@ -129,8 +131,8 @@ public static class ProxiesMessage
             address.Ip,
             address.Port,
             character.Name,
-            availableUser.UserId,
-            availableUser.AccessToken,
+            availableUser.GetUserId(),
+            availableUser.GetToken(),
             YggdrasilCallback
         );
 
@@ -155,7 +157,7 @@ public static class ProxiesMessage
                         DatFileMd5 = pair.DatFileMd5,
                         Mods = modsJson,
                         User = new UserProfile
-                            { UserId = int.Parse(availableUser.UserId), UserToken = availableUser.AccessToken }
+                            { UserId = int.Parse(availableUser.GetUserId()), UserToken = availableUser.GetToken() }
                     }, serverId);
 
                     if (success.IsSuccess)

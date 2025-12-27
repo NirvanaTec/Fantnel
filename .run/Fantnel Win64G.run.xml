@@ -1,0 +1,10 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Fantnel Win64G" type="DotNetFolderPublish" factoryName="Publish to folder">
+    <riderPublish configuration="Release" platform="Any CPU" target_folder="$PROJECT_DIR$/Fantnel/bin/Release/net10.0/win-x64G/publish" target_framework="net10.0" uuid_high="2853784112223568270" uuid_low="-2049921471476716077">
+      <runtimes>
+        <item value="win-x64" />
+      </runtimes>
+    </riderPublish>
+    <method v="2" />
+  </configuration>
+</component>

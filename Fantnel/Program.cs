@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using Fantnel.Servlet;
 using Microsoft.Extensions.FileProviders;
 using NirvanaPublic;
@@ -15,7 +14,7 @@ public static class Program
         // Fantnel 日志初始化
         LogoInit();
 
-        if (!Debugger.IsAttached)
+        if (PublicProgram.Release)
         {
             // 检查更新
             Log.Information("{Path}", Path.Combine(Directory.GetCurrentDirectory(), "resources"));
