@@ -3,7 +3,8 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NirvanaPublic.Entities.Nirvana;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Entities;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet;
 
@@ -12,42 +13,75 @@ public class WebApiExceptionFilter : ExceptionFilterAttribute
     // 异常处理
     public override Task OnExceptionAsync(ExceptionContext context)
     {
-        EntityResponse<object>? response;
-        if (context.Exception is Code.ErrorCodeException errorCodeException)
+        EntityResponse<object>? response; // 信息
+        var array = new JsonArray(); // 异常追踪
+        if (context.Exception is ErrorCodeException errorCodeException)
+        {
             response = errorCodeException.GetJson();
+        }
         else
+        {
             response = new EntityResponse<object>
             {
                 Code = -1,
-                Msg = context.Exception.Message
+                Msg = GetMessage(context.Exception)
             };
-
-        // 异常详情
-        var array = new JsonArray();
-        var stackTrace = new StackTrace(context.Exception, true);
-        var index = 0;
-        foreach (var frame in stackTrace.GetFrames())
-        {
-            if (index++ > 10) break;
-            array.Add(new EntityStackTrace(frame).ToJsonDocument());
+            var stack = GetStackTrace(context.Exception);
+            if (stack != null) array.Add(stack);
         }
 
-        // 聚合异常，合并异常信息
-        if (context.Exception is AggregateException aggregateException)
+        var index = array.Count;
+        var stackTrace = new StackTrace(context.Exception, true);
+        foreach (var frame in stackTrace.GetFrames())
         {
-            response.Msg = "";
-            foreach (var innerException in aggregateException.InnerExceptions)
-                if (context.Exception is Code.ErrorCodeException errorCodeException1)
-                    response.Msg += errorCodeException1.Entity.Msg + ", ";
-                else
-                    response.Msg += innerException.Message + ", ";
-
-            response.Msg = response.Msg.TrimEnd(',', ' ');
+            if (index++ > 8) break;
+            array.Add(new EntityStackTrace(frame).ToJsonDocument());
         }
 
         response.Data = array;
         context.Result = new JsonResult(response);
         context.ExceptionHandled = true;
         return Task.CompletedTask;
+    }
+
+    private static object? GetStackTrace(Exception exception)
+    {
+        switch (exception)
+        {
+            case AggregateException aggregateException:
+            {
+                var jsonArray = new JsonArray();
+                foreach (var innerException in aggregateException.InnerExceptions)
+                {
+                    var stackTrace = GetStackTrace(innerException);
+                    if (stackTrace != null) jsonArray.Add(stackTrace);
+                }
+
+                return jsonArray.Count == 0 ? null : jsonArray;
+            }
+            case EntityX19Exception entityX19Exception:
+                return entityX19Exception.Data;
+            case ErrorCodeException errorCodeException:
+                return errorCodeException.Entity.Data;
+            default:
+                return null;
+        }
+    }
+
+    private static string GetMessage(Exception exception)
+    {
+        if (exception is AggregateException aggregateException)
+        {
+            var message = aggregateException.InnerExceptions.Aggregate("",
+                (current, innerException) => current + GetMessage(innerException) + ", ");
+            return message.TrimEnd(',', ' ');
+        }
+
+        if (exception is not ErrorCodeException errorCodeException) return exception.Message;
+        {
+            var message = errorCodeException.Entity.Msg;
+            if (message != null) return message;
+        }
+        return exception.Message;
     }
 }

@@ -1,11 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using Codexus.Cipher.Entities.WPFLauncher.NetGame;
 using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils;
 using Serilog;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
+using WPFLauncherApi.Protocol;
 
 namespace ConsoleAppTest;
 
@@ -21,7 +22,7 @@ public static class Program
         // Fantnel 日志初始化
         InitProgram.LogoInit();
         // Fantnel 初始化
-        InitProgram.NelInit().Wait();
+        InitProgram.NelInit();
 
         Log.Information("请输入cookie内容: ");
 
@@ -57,7 +58,7 @@ public static class Program
             gameName = Console.ReadLine();
         }
 
-        var list = ServerInfoMessage.GetUserName(serverId).Result;
+        var list = WPFLauncher.QueryNetGameCharactersAsync(serverId).Result;
         EntityGameCharacter? characters = null;
 
         foreach (var item in list)
@@ -65,9 +66,7 @@ public static class Program
                 characters = item;
 
         if (characters == null)
-            InitProgram.GetServices().Wpf.CreateCharacter(InfoManager.GetGameAccount().GetUserId(),
-                InfoManager.GetGameAccount().GetToken(),
-                serverId, gameName);
+            WPFLauncher.CreateCharacterAsync(serverId, gameName).Wait();
 
         Log.Information("角色名称: {GameName}", gameName);
 

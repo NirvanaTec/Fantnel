@@ -1,15 +1,15 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using Codexus.Cipher.Protocol;
-using Codexus.OpenSDK;
-using Codexus.OpenSDK.Entities.Yggdrasil;
-using Codexus.OpenSDK.Yggdrasil;
-using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils.ViewLogger;
+using OpenSDK.Entities.Yggdrasil;
+using OpenSDK.Yggdrasil;
 using Serilog;
 using Serilog.Events;
+using WPFLauncherApi.Entities;
+using WPFLauncherApi.Protocol;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Utils;
 
@@ -19,7 +19,7 @@ public static class InitProgram
 
     public static Services GetServices()
     {
-        return Services ?? throw new Code.ErrorCodeException(Code.ErrorCode.ServicesNotInitialized);
+        return Services ?? throw new ErrorCodeException(ErrorCode.ServicesNotInitialized);
     }
 
     public static void LogoInit()
@@ -37,7 +37,7 @@ public static class InitProgram
         Log.Logger = logger.CreateLogger();
     }
 
-    public static async Task NelInit()
+    public static void NelInit()
     {
         // Fantnel 服务器信息 初始化
         FantnelInit().Wait();
@@ -51,7 +51,6 @@ public static class InitProgram
 
         // 创建服务
         Services = CreateServices();
-        await Services.X19.InitializeDeviceAsync();
         Log.Information("------  完成 ------");
 
         // 默认登录
@@ -153,8 +152,6 @@ public static class InitProgram
     // 创建服务
     private static Services CreateServices()
     {
-        var x19 = new X19();
-
         if (InfoManager.FantnelInfo == null || InfoManager.FantnelInfo.CrcSalt == null ||
             InfoManager.FantnelInfo.GameVersion == null)
         {
@@ -167,27 +164,13 @@ public static class InitProgram
         Log.Information("CRC Salt 当前版本: {Version}", InfoManager.FantnelInfo.GameVersion);
         Log.Information("CRC Salt 计算完成: {CrcSalt}....", InfoManager.FantnelInfo.CrcSalt[..6]);
 
-
-        WPFLauncher wpfLauncher;
-        try
-        {
-            wpfLauncher = new WPFLauncher();
-        }
-        catch (Exception ex)
-        {
-            Log.Error("WPFLauncher 初始化失败: {Message}", ex.Message);
-            Thread.Sleep(6000);
-            Environment.Exit(1);
-            return null;
-        }
-
         var yggdrasil = new StandardYggdrasil(new YggdrasilData
         {
-            LauncherVersion = x19.GameVersion,
+            LauncherVersion = X19.GameVersion,
             Channel = "netease",
             CrcSalt = InfoManager.FantnelInfo.CrcSalt
         });
 
-        return new Services(new N4399(), x19, wpfLauncher, yggdrasil);
+        return new Services(yggdrasil);
     }
 }

@@ -1,12 +1,13 @@
 ﻿using System.Text;
 using System.Text.Json;
-using Codexus.Cipher.Entities.WPFLauncher;
 using NirvanaPublic.Entities.Config;
-using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
-using NirvanaPublic.Utils.ViewLogger;
 using Serilog;
+using WPFLauncherApi.Entities;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
+using WPFLauncherApi.Protocol;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
@@ -43,7 +44,7 @@ public static class AccountMessage
         foreach (var item in entity)
             if (item.Id == id)
                 return item;
-        throw new Code.ErrorCodeException(Code.ErrorCode.NotFound);
+        throw new ErrorCodeException(ErrorCode.NotFound);
     }
 
     /**
@@ -119,26 +120,26 @@ public static class AccountMessage
     {
         lock (LockManager.LoginLock)
         {
-            if (account.Password == null) throw new Code.ErrorCodeException(Code.ErrorCode.PasswordError);
+            if (account.Password == null) throw new ErrorCodeException(ErrorCode.PasswordError);
 
-            (EntityAuthenticationOtp?, string?) result = (null, null); // 登录结果
+            EntityAuthenticationOtp? result = null; // 登录结果
 
             switch (account.Type)
             {
                 // cookie
                 case "cookie":
-                    result = GetCookieLogin(account.Password);
+                    result = WPFLauncher.LoginWithCookieAsync(account.Password).Result;
                     break;
                 case "4399":
                 {
                     if (_session4399Id == null || Captcha4399 == null)
-                        throw new Code.ErrorCodeException(Code.ErrorCode.CaptchaNot);
+                        throw new ErrorCodeException(ErrorCode.CaptchaNot);
 
-                    if (account.Account == null) throw new Code.ErrorCodeException(Code.ErrorCode.AccountError);
+                    if (account.Account == null) throw new ErrorCodeException(ErrorCode.AccountError);
 
-                    var cookie = InitProgram.GetServices().N4399
-                        .LoginWithPasswordAsync(account.Account, account.Password, _session4399Id, Captcha4399);
-                    result = GetCookieLogin(cookie);
+                    var cookie = N4399.LoginWithPasswordAsync(account.Account, account.Password, _session4399Id,
+                        Captcha4399);
+                    result = WPFLauncher.LoginWithCookieAsync(cookie).Result;
                     UpdateCaptcha();
                     break;
                 }
@@ -148,41 +149,23 @@ public static class AccountMessage
             //             var mpay = new UniSdkMPay(Projects.DesktopMinecraft, "2.1.0");
             //             await mpay.InitializeDeviceAsync();
             //             var user = await mpay.LoginWithEmailAsync(account.Account, account.Password);
-            //             if (user == null) throw new Code.ErrorCodeException(Code.ErrorCode.EmailOrPasswordError);
+            //             if (user == null) throw new ErrorCodeException(ErrorCode.EmailOrPasswordError);
             //             result = await NirvanaPublic.Services.X19.ContinueAsync(user, mpay.Device);
             //             break;
 
 
             // 登录完成
 
-            if (result.Item1 == null || result.Item2 == null)
-                throw new Code.ErrorCodeException(Code.ErrorCode.LoginError);
+            if (result == null)
+                throw new ErrorCodeException(ErrorCode.LoginError);
             // if (saveAccount) SaveAccount(account);
 
-            if (result.Item1.EntityId.Length < 1) return;
-            account.UserId = result.Item1.EntityId;
-            account.Token = result.Item1.Token;
+            if (result.EntityId.Length < 1) return;
+            account.UserId = result.EntityId;
+            account.Token = result.Token;
             InfoManager.AddAccount(account);
             Log.Information("登录成功! 用户ID: {UserId}", InfoManager.GetGameAccount().UserId);
         }
-    }
-
-    // 获取 cookie 登录信息
-    private static (EntityAuthenticationOtp, string) GetCookieLogin(string cookie)
-    {
-        EntityX19CookieRequest? req;
-        try
-        {
-            req = JsonSerializer.Deserialize<EntityX19CookieRequest>(cookie);
-        }
-        catch
-        {
-            req = new EntityX19CookieRequest { Json = cookie };
-        }
-
-        return req == null
-            ? throw new Code.ErrorCodeException(Code.ErrorCode.Failure)
-            : InitProgram.GetServices().Wpf.LoginWithCookie(req);
     }
 
     // 保存账号到文件
@@ -193,7 +176,7 @@ public static class AccountMessage
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
 
-            if (account.Id == null) throw new Code.ErrorCodeException(Code.ErrorCode.IdError);
+            if (account.Id == null) throw new ErrorCodeException(ErrorCode.IdError);
 
             // 修改账号
             accountList[account.Id.Value] = account;
@@ -207,7 +190,7 @@ public static class AccountMessage
             // 创建目录
             var directory = Path.GetDirectoryName(accountPath);
             if (directory == null)
-                throw new Code.ErrorCodeException(Code.ErrorCode.DirectoryCreateError);
+                throw new ErrorCodeException(ErrorCode.DirectoryCreateError);
             Directory.CreateDirectory(directory);
 
             // 写入文件
@@ -243,7 +226,7 @@ public static class AccountMessage
             // 创建目录
             var directory = Path.GetDirectoryName(accountPath);
             if (directory == null)
-                throw new Code.ErrorCodeException(Code.ErrorCode.DirectoryCreateError);
+                throw new ErrorCodeException(ErrorCode.DirectoryCreateError);
             Directory.CreateDirectory(directory);
 
             // 写入文件
@@ -283,7 +266,7 @@ public static class AccountMessage
             // 创建目录
             var directory = Path.GetDirectoryName(accountPath);
             if (directory == null)
-                throw new Code.ErrorCodeException(Code.ErrorCode.DirectoryCreateError);
+                throw new ErrorCodeException(ErrorCode.DirectoryCreateError);
             Directory.CreateDirectory(directory);
 
             // 写入文件
@@ -312,14 +295,14 @@ public static class AccountMessage
     public static string GetCaptcha4399Content()
     {
         if (Captcha4399Bytes == null)
-            throw new Code.ErrorCodeException(Code.ErrorCode.Failure);
+            throw new ErrorCodeException(ErrorCode.Failure);
         var httpClient = new HttpClient();
         var response = httpClient
             .PostAsync("http://110.42.70.32:13423/api/fantnel/captcha", new ByteArrayContent(Captcha4399Bytes)).Result;
         if (!response.IsSuccessStatusCode)
-            throw new Code.ErrorCodeException(Code.ErrorCode.Failure);
+            throw new ErrorCodeException(ErrorCode.Failure);
         var resultJson = response.Content.ReadAsStringAsync().Result;
         var captcha = JsonSerializer.Deserialize<EntityResponse<string>>(resultJson);
-        return captcha?.Data ?? throw new Code.ErrorCodeException(Code.ErrorCode.Failure);
+        return captcha?.Data ?? throw new ErrorCodeException(ErrorCode.Failure);
     }
 }

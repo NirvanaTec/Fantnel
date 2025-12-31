@@ -1,0 +1,30 @@
+﻿namespace WPFLauncherApi.Utils.CodeTools;
+
+public enum ErrorCode
+{
+    Failure = 0,
+    Success = 1,
+    FileExists = 2,
+    FileFormat = 3,
+    GetExecutingAssemblyLocation = 4,
+    ServicesNotInitialized = 5,
+    AccountError = 6,
+    PasswordError = 7,
+    EmailOrPasswordError = 8,
+    LoginError = 9,
+    LoadAccountError = 10,
+    DirectoryCreateError = 11,
+    CaptchaError = 12,
+    NotFound = 13,
+    IdError = 14,
+    LogInNot = 15,
+    ServerInNot = 16,
+    NameInNot = 17,
+    DetailError = 18,
+    AddressError = 19,
+    NotFoundName = 20,
+    ModsError = 21,
+    PluginNotFound = 22,
+    FormatError = 23,
+    CaptchaNot = 24
+}

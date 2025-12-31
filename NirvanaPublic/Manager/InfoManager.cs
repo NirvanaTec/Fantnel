@@ -1,6 +1,6 @@
 ﻿using NirvanaPublic.Entities.Config;
-using NirvanaPublic.Entities.Nirvana;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Entities;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Manager;
 
@@ -10,7 +10,7 @@ public static class InfoManager
 
     public static EntityAccount GetGameAccount()
     {
-        return GameAccount?.UserId == null ? throw new Code.ErrorCodeException(Code.ErrorCode.LogInNot) : GameAccount;
+        return GameAccount?.UserId == null ? throw new ErrorCodeException(ErrorCode.LogInNot) : GameAccount;
     }
 
     public static bool IsNotLogin()
@@ -42,7 +42,7 @@ public static class InfoManager
     // public static X19AuthenticationOtp GetX19Au()
     // {
     //     return GameUser == null
-    //         ? throw new Code.ErrorCodeException(Code.ErrorCode.LogInNot)
+    //         ? throw new ErrorCodeException(ErrorCode.LogInNot)
     //         : new X19AuthenticationOtp { EntityId = GameUser.UserId, Token = GameUser.AccessToken };
     // }
 }

@@ -3,8 +3,8 @@ using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Entities.Login;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
-using NirvanaPublic.Utils.ViewLogger;
 using Serilog;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
@@ -17,7 +17,7 @@ public class GameAccountController : ControllerBase
     public IActionResult GetAccountHttp()
     {
         var entity = AccountMessage.GetAccountList();
-        return Content(Code.ToJson(Code.ErrorCode.Success, entity), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
     }
 
     [HttpGet("/api/gameaccount/captcha4399")]
@@ -25,7 +25,7 @@ public class GameAccountController : ControllerBase
     {
         AccountMessage.UpdateCaptcha();
         return AccountMessage.Captcha4399Bytes == null
-            ? throw new Code.ErrorCodeException(Code.ErrorCode.Failure)
+            ? throw new ErrorCodeException(ErrorCode.Failure)
             : File(AccountMessage.Captcha4399Bytes, "image/png");
     }
 
@@ -33,14 +33,14 @@ public class GameAccountController : ControllerBase
     public IActionResult VerifyCaptcha4399Http([FromBody] Entity4399CaptchaOk text)
     {
         AccountMessage.Captcha4399 = text.Captcha;
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     [HttpGet("/api/gameaccount/captcha4399/content")]
     public IActionResult GetCaptcha4399ContentHttp()
     {
         var captcha = AccountMessage.GetCaptcha4399Content();
-        return Content(Code.ToJson(Code.ErrorCode.Success, captcha), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success, captcha), "application/json");
     }
 
     [HttpGet("/api/gameaccount/select")]
@@ -56,7 +56,7 @@ public class GameAccountController : ControllerBase
             throw;
         }
 
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     [HttpGet("/api/gameaccount/delete")]
@@ -72,33 +72,33 @@ public class GameAccountController : ControllerBase
             throw;
         }
 
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     [HttpPost("/api/gameaccount/save")]
     public IActionResult SaveAccountHttp([FromBody] EntityAccount account)
     {
         AccountMessage.SaveAccount(account);
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     [HttpPost("/api/gameaccount/update")]
     public IActionResult UpdateAccountHttp([FromBody] EntityAccount account)
     {
         AccountMessage.UpdateAccount(account);
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     [HttpGet("/api/gameaccount/switch")]
     public IActionResult SwitchAccountHttp([FromQuery] int id)
     {
         AccountMessage.SwitchAccount(id);
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     [HttpGet("/api/gameaccount/current")]
     public IActionResult GetGameAccountHttp()
     {
-        return Content(Code.ToJson(Code.ErrorCode.Success, InfoManager.GetGameAccount()), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success, InfoManager.GetGameAccount()), "application/json");
     }
 }

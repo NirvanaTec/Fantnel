@@ -11,7 +11,7 @@ public static class UpdateTools
     // 检查更新
     public static async Task CheckUpdate()
     {
-        await CheckUpdate(PublicProgram.Mode);
+        if (PublicProgram.Release) await CheckUpdate(PublicProgram.Mode);
         await CheckUpdate("static");
     }
 

@@ -12,24 +12,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Reference Include="Codexus.Cipher">
-            <HintPath>..\SDK\Codexus.Cipher.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.Development.SDK">
-            <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.Game.Launcher">
-            <HintPath>..\SDK\Codexus.Game.Launcher.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.Interceptors">
-            <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.OpenSDK">
-            <HintPath>..\SDK\Codexus.OpenSDK.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
         <Content Update="resources\heypixel\enum-struct.json">
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -53,6 +35,24 @@
         <PackageReference Include="SharpZipLib" Version="1.4.2"/>
         <PackageReference Include="System.IO.Hashing" Version="10.0.0"/>
         <PackageReference Include="YamlDotNet" Version="16.3.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Codexus.Game.Launcher\Codexus.Game.Launcher.csproj" />
+        <ProjectReference Include="..\OpenSDK\OpenSDK.csproj"/>
+        <ProjectReference Include="..\WPFLauncherApi\WPFLauncherApi.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Codexus.Cipher">
+        <HintPath>..\SDK\Codexus.Cipher.dll</HintPath>
+      </Reference>
+      <Reference Include="Codexus.Development.SDK">
+        <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
+      </Reference>
+      <Reference Include="Codexus.Interceptors">
+        <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

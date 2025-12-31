@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Message;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Protocol;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
@@ -13,8 +14,8 @@ public class GameServerController : ControllerBase
     [HttpGet("/api/gameserver/get")]
     public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10)
     {
-        var entity = ServersGameMessage.GetServerList(offset, pageSize);
-        return Content(Code.ToJson(Code.ErrorCode.Success, entity), "application/json");
+        var entity = ServersGameMessage.GetServerList(offset, pageSize).Result;
+        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
     }
 
     [HttpGet("/api/gameserver/id")]
@@ -22,9 +23,9 @@ public class GameServerController : ControllerBase
     {
         var serverDetail = new EntityServerDetail();
         serverDetail.Set(ServersGameMessage.GetServerId(id));
-        serverDetail.Set(ServerInfoMessage.GetServerId2(id).Result);
-        serverDetail.Set(ServerInfoMessage.GetServerAddress(id).Result);
-        return Content(Code.ToJson(Code.ErrorCode.Success, serverDetail), "application/json");
+        serverDetail.Set(WPFLauncher.QueryNetGameDetailByIdAsync(id).Result);
+        serverDetail.Set(WPFLauncher.GetNetGameServerAddressAsync(id).Result);
+        return Content(Code.ToJson(ErrorCode.Success, serverDetail), "application/json");
     }
 
     [HttpGet("/api/gameserver/getlaunch")]
@@ -33,23 +34,23 @@ public class GameServerController : ControllerBase
         // 全部账号
         var accounts = AccountMessage.GetLoginAccountList();
         // 全部游戏角色
-        var games = ServerInfoMessage.GetUserName(id).Result;
+        var games = WPFLauncher.QueryNetGameCharactersAsync(id).Result;
         // 合并
         var text = new
         {
             accounts,
             games
         };
-        return Content(Code.ToJson(Code.ErrorCode.Success, text), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success, text), "application/json");
     }
 
     [HttpPost("/api/gameserver/createname")]
     public IActionResult CreateGameName([FromBody] EntityNewName name)
     {
-        if (name.Id == null) throw new Code.ErrorCodeException(Code.ErrorCode.ServerInNot);
-        if (name.Name == null) throw new Code.ErrorCodeException(Code.ErrorCode.NameInNot);
+        if (name.Id == null) throw new ErrorCodeException(ErrorCode.ServerInNot);
+        if (name.Name == null) throw new ErrorCodeException(ErrorCode.NameInNot);
         // 创建游戏角色
         ServerInfoMessage.CreateCharacter(name.Id, name.Name);
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 }

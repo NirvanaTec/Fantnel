@@ -1,39 +1,10 @@
 using System.Text.Json;
-using NirvanaPublic.Entities.Nirvana;
+using WPFLauncherApi.Entities;
 
-namespace NirvanaPublic.Utils.ViewLogger;
+namespace WPFLauncherApi.Utils.CodeTools;
 
 public static class Code
 {
-    public enum ErrorCode
-    {
-        Failure = 0,
-        Success = 1,
-        FileExists = 2,
-        FileFormat = 3,
-        GetExecutingAssemblyLocation = 4,
-        ServicesNotInitialized = 5,
-        AccountError = 6,
-        PasswordError = 7,
-        EmailOrPasswordError = 8,
-        LoginError = 9,
-        LoadAccountError = 10,
-        DirectoryCreateError = 11,
-        CaptchaError = 12,
-        NotFound = 13,
-        IdError = 14,
-        LogInNot = 15,
-        ServerInNot = 16,
-        NameInNot = 17,
-        DetailError = 18,
-        AddressError = 19,
-        NotFoundName = 20,
-        ModsError = 21,
-        PluginNotFound = 22,
-        FormatError = 23,
-        CaptchaNot = 24
-    }
-
     public static EntityResponse<string> ToJson(Exception t)
     {
         var json = new EntityResponse<string>
@@ -46,7 +17,7 @@ public static class Code
 
     public static string ToJson(ErrorCode code, object? data = null)
     {
-        return JsonSerializer.Serialize(ToJson1(code, new EntityResponse<object>(), data));
+        return JsonSerializer.Serialize(ToJson1(code, data));
     }
 
     public static string ToJson<T>(EntityResponse<T> json)
@@ -59,7 +30,7 @@ public static class Code
         return ToJson1(code, new EntityResponse<object>(), data);
     }
 
-    public static EntityResponse<object> ToJson1(ErrorCode code, EntityResponse<object> json, object? data = null)
+    private static EntityResponse<object> ToJson1(ErrorCode code, EntityResponse<object> json, object? data = null)
     {
         json.Code = (int)code;
         json.Msg = GetMessage(code);
@@ -67,7 +38,7 @@ public static class Code
         return json;
     }
 
-    private static string GetMessage(ErrorCode code)
+    public static string GetMessage(ErrorCode code)
     {
         return code switch
         {
@@ -98,25 +69,5 @@ public static class Code
             ErrorCode.CaptchaNot => "没有验证",
             _ => "未知错误"
         };
-    }
-
-    public class ErrorCodeException : Exception
-    {
-        public readonly EntityResponse<object> Entity;
-
-        public ErrorCodeException(ErrorCode code, object? data = null) : base(GetMessage(code))
-        {
-            Code = code;
-            Data = data;
-            Entity = ToJson1(Code, Data);
-        }
-
-        private new object? Data { get; }
-        private ErrorCode Code { get; }
-
-        public EntityResponse<object> GetJson()
-        {
-            return Entity;
-        }
     }
 }

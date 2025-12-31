@@ -8,9 +8,6 @@ public static class LockManager
     // 登录游戏 锁
     public static readonly Lock LoginLock = new();
 
-    // 保存/修改 游戏服务器列表 | 皮肤列表缓存 锁
-    public static readonly Lock GameServerListLock = new();
-
     // 已启动代理 锁
     public static readonly Lock ActiveProxiesLock = new();
 

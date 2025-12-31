@@ -14,12 +14,9 @@ public static class Program
         // Fantnel 日志初始化
         LogoInit();
 
-        if (PublicProgram.Release)
-        {
-            // 检查更新
-            Log.Information("{Path}", Path.Combine(Directory.GetCurrentDirectory(), "resources"));
-            UpdateTools.CheckUpdate().Wait();
-        }
+        // 检查更新
+        Log.Information("{Path}", Path.Combine(Directory.GetCurrentDirectory(), "resources"));
+        UpdateTools.CheckUpdate().Wait();
 
         var builder = WebApplication.CreateBuilder(args);
 
@@ -92,7 +89,7 @@ public static class Program
             Log.Information("---------- 涅槃科技 & Codexus (OpenSDK) ----------");
 
             // Fantnel 初始化
-            InitProgram.NelInit().Wait();
+            InitProgram.NelInit();
 
             Log.Information("{Path}", resourcesPath);
         });
