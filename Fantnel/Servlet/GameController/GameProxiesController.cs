@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
@@ -15,7 +15,7 @@ public class GameProxiesController : ControllerBase
     public IActionResult LaunchGame([FromQuery] string id, [FromQuery] string name)
     {
         ProxiesMessage.StartProxyAsync(id, name).Wait();
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     [HttpGet("/api/server/get")]
@@ -28,13 +28,13 @@ public class GameProxiesController : ControllerBase
             ["ip"] = ip,
             ["proxies"] = JsonSerializer.SerializeToNode(proxies)
         };
-        return Content(Code.ToJson(Code.ErrorCode.Success, data), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success, data), "application/json");
     }
 
     [HttpGet("/api/server/close")]
     public IActionResult CloseGame([FromQuery] int id)
     {
         ProxiesMessage.CloseProxy(id);
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 }

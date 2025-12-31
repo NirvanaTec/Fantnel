@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-using Codexus.Cipher.Entities.WPFLauncher.NetGame.Skin;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Entities.NEL;
 
@@ -22,7 +22,7 @@ public class EntitySkinDetail
 
     public void Set(EntityQueryNetSkinItem? skinItem)
     {
-        if (skinItem == null) throw new Code.ErrorCodeException(Code.ErrorCode.IdError);
+        if (skinItem == null) throw new ErrorCodeException(ErrorCode.IdError);
         DeveloperName = skinItem.DeveloperName;
         // unix 时间戳 转换为 文本
         PublishTime = DateTimeOffset.FromUnixTimeSeconds(skinItem.PublishTime).ToString("yyyy-MM-dd");
@@ -31,7 +31,7 @@ public class EntitySkinDetail
 
     public void Set(EntitySkin? skinDetails)
     {
-        if (skinDetails == null) throw new Code.ErrorCodeException(Code.ErrorCode.IdError);
+        if (skinDetails == null) throw new ErrorCodeException(ErrorCode.IdError);
         EntityId = skinDetails.EntityId;
         BriefSummary = skinDetails.BriefSummary;
         Name = skinDetails.Name;

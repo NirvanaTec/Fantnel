@@ -1,5 +1,9 @@
 <Solution>
-    <Project Path="ConsoleAppTest/ConsoleAppTest.csproj"/>
-    <Project Path="Fantnel/Fantnel.csproj"/>
-    <Project Path="NirvanaPublic/NirvanaPublic.csproj"/>
+    <Project Path="Codexus.Game.Launcher/Codexus.Game.Launcher.csproj" />
+    <Project Path="ConsoleAppTest/ConsoleAppTest.csproj" />
+    <Project Path="Fantnel/Fantnel.csproj" />
+    <Project Path="GameLauncher/GameLauncher.csproj" />
+    <Project Path="NirvanaPublic/NirvanaPublic.csproj" />
+    <Project Path="OpenSDK/OpenSDK.csproj" />
+    <Project Path="WPFLauncherApi/WPFLauncherApi.csproj" />
 </Solution>

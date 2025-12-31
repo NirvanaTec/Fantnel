@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Message;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Protocol;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
@@ -15,8 +16,8 @@ public class GameSkinController : ControllerBase
     {
         var entity = name == null
             ? SkinMessage.GetSkinList(offset, pageSize)
-            : SkinMessage.GetSkinListByName(name, offset, pageSize);
-        return Content(Code.ToJson(Code.ErrorCode.Success, entity), "application/json");
+            : SkinMessage.GetSkinListByName(name, offset, pageSize).Result;
+        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
     }
 
     [HttpGet("/api/gameskin/detail")]
@@ -24,14 +25,14 @@ public class GameSkinController : ControllerBase
     {
         var skinDetail = new EntitySkinDetail();
         skinDetail.Set(SkinMessage.GetSkinId(id));
-        skinDetail.Set(SkinMessage.GetSkinDetails(id));
-        return Content(Code.ToJson(Code.ErrorCode.Success, skinDetail), "application/json");
+        skinDetail.Set(WPFLauncher.GetSkinDetailsAsync(id).Result);
+        return Content(Code.ToJson(ErrorCode.Success, skinDetail), "application/json");
     }
 
     [HttpGet("/api/gameskin/set")]
     public IActionResult SetSkinHttp([FromQuery] string id)
     {
-        SkinMessage.SetSkin(id);
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        WPFLauncher.SetSkinAsync(id).Wait();
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 }

@@ -1,44 +1,15 @@
 ﻿using System.Text.Json.Nodes;
-using Codexus.Cipher.Entities;
-using Codexus.Cipher.Entities.WPFLauncher.NetGame;
 using NirvanaPublic.Manager;
-using NirvanaPublic.Utils;
-using NirvanaPublic.Utils.ViewLogger;
 using Serilog;
-using EntityNetGameServerAddress = Codexus.Cipher.Entities.WPFLauncher.NetGame.EntityNetGameServerAddress;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
+using WPFLauncherApi.Http;
+using WPFLauncherApi.Protocol;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
 public static class ServerInfoMessage
 {
-    // 详细信息
-    public static Task<Entity<EntityQueryNetGameDetailItem>> GetServerId2(string id)
-    {
-        return Task.FromResult(InitProgram.GetServices().Wpf
-            .QueryNetGameDetailById(InfoManager.GetGameAccount().GetUserId(), InfoManager.GetGameAccount().GetToken(),
-                id));
-    }
-
-    // 获取服务器地址
-    public static Task<Entity<EntityNetGameServerAddress>> GetServerAddress(string id)
-    {
-        return Task.FromResult(InitProgram.GetServices().Wpf
-            .GetNetGameServerAddress(InfoManager.GetGameAccount().GetUserId(), InfoManager.GetGameAccount().GetToken(),
-                id));
-    }
-
-    /**
-     * 获取服务器上的所有游戏角色
-     * @param serverId 服务器ID
-     * @return 服务器上的所有游戏角色
-     */
-    public static Task<EntityGameCharacter[]> GetUserName(string serverId)
-    {
-        return Task.FromResult(InitProgram.GetServices().Wpf.QueryNetGameCharacters(
-            InfoManager.GetGameAccount().GetUserId(),
-            InfoManager.GetGameAccount().GetToken(), serverId).Data);
-    }
-
     /**
      * 获取服务器上的指定游戏角色
      * @param serverId 服务器ID
@@ -51,8 +22,8 @@ public static class ServerInfoMessage
         {
             try
             {
-                var games = await GetUserName(serverId);
-                if (games == null) throw new Code.ErrorCodeException(Code.ErrorCode.NotFound);
+                var games = await WPFLauncher.QueryNetGameCharactersAsync(serverId);
+                if (games == null) throw new ErrorCodeException(ErrorCode.NotFound);
                 foreach (var game in games)
                     if (game.Name == name)
                         return game;
@@ -65,7 +36,7 @@ public static class ServerInfoMessage
             Thread.Sleep(800);
         }
 
-        throw new Code.ErrorCodeException(Code.ErrorCode.NotFoundName);
+        throw new ErrorCodeException(ErrorCode.NotFoundName);
     }
 
     /**
@@ -77,20 +48,20 @@ public static class ServerInfoMessage
     public static void CreateCharacter(string serverId, string name)
     {
         // 检查登录状态
-        var createCharacter = X19Extensions.Api<EntityCreateCharacter, JsonObject>("/game-character",
-            new EntityCreateCharacter
+        var createCharacter = X19Extensions.Api<EntityGameCharacter, JsonObject>("/game-character",
+            new EntityGameCharacter
             {
                 GameId = serverId,
                 UserId = InfoManager.GetGameAccount().GetUserId(),
                 Name = name
             }).Result;
         // 检查创建结果
-        if (createCharacter == null) throw new Code.ErrorCodeException(Code.ErrorCode.Failure);
+        if (createCharacter == null) throw new ErrorCodeException(ErrorCode.Failure);
         var code = createCharacter["code"];
         if (code == null || code.ToString() != "0")
         {
             // 创建失败
-            var error = new Code.ErrorCodeException(Code.ErrorCode.Failure, createCharacter);
+            var error = new ErrorCodeException(ErrorCode.Failure, createCharacter);
             // 创建失败，同步错误信息
             var msg = createCharacter["message"];
             if (msg != null) error.Entity.Msg = msg.ToString();

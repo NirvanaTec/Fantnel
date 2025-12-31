@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NirvanaPublic.Message;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.PluginsController;
 
@@ -13,14 +13,14 @@ public class PluginsShopController : ControllerBase
     public IActionResult GetPluginListHttp()
     {
         var pluginList = PlugInstoreMessage.GetPluginList();
-        return Content(Code.ToJson(Code.ErrorCode.Success, pluginList), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success, pluginList), "application/json");
     }
 
     [HttpGet("/api/pluginstore/detail")]
     public IActionResult GetPluginDetailHttp([FromQuery] string id)
     {
         var pluginDetail = PlugInstoreMessage.GetPluginDetail(id);
-        return Content(pluginDetail == null ? Code.ToJson(Code.ErrorCode.NotFound) : Code.ToJson(pluginDetail),
+        return Content(pluginDetail == null ? Code.ToJson(ErrorCode.NotFound) : Code.ToJson(pluginDetail),
             "application/json");
     }
 
@@ -28,6 +28,6 @@ public class PluginsShopController : ControllerBase
     public IActionResult DownloadHttp([FromQuery] string id)
     {
         PlugInstoreMessage.Install(id);
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 }

@@ -1,8 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using Codexus.Cipher.Entities;
-using Codexus.Cipher.Entities.WPFLauncher.NetGame;
-using NirvanaPublic.Utils;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Entities.NEL;
 
@@ -26,17 +25,15 @@ public class EntityServerDetail
 
     public void Set(EntityNetGameItem? server)
     {
-        if (server == null) throw new Code.ErrorCodeException(Code.ErrorCode.IdError);
+        if (server == null) throw new ErrorCodeException(ErrorCode.IdError);
         Id = server.EntityId;
         Name = server.Name;
     }
 
-    public void Set(Entity<EntityQueryNetGameDetailItem> server)
+    public void Set(EntityQueryNetGameDetailItem data)
     {
         // 成功检测
-        Tools.EntitySafe(server);
-        var data = server.Data;
-        if (data == null) throw new Code.ErrorCodeException(Code.ErrorCode.LogInNot);
+        if (data == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         Author = data.DeveloperName;
         // unix 时间戳 转换为 文本
         CreatedAt = DateTimeOffset.FromUnixTimeSeconds(data.PublishTime).ToString("yyyy-MM-dd");
@@ -48,11 +45,10 @@ public class EntityServerDetail
         BriefImageUrls = data.BriefImageUrls;
     }
 
-    public void Set(Entity<EntityNetGameServerAddress> server)
+    public void Set(EntityNetGameServerAddress data)
     {
-        Tools.EntitySafe(server);
-        if (server.Data == null) throw new Code.ErrorCodeException(Code.ErrorCode.AddressError);
-        Address = server.Data.Ip;
-        if (server.Data.Port != 25565) Address += $":{server.Data.Port}";
+        if (data == null) throw new ErrorCodeException(ErrorCode.AddressError);
+        Address = data.Host;
+        if (data.Port != 25565) Address += $":{data.Port}";
     }
 }

@@ -9,8 +9,8 @@ using Codexus.Interceptors;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
-using NirvanaPublic.Utils.ViewLogger;
 using Serilog;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
@@ -351,7 +351,7 @@ public static class PluginMessage
         lock (LockManager.PluginStatesLock)
         {
             var plugin = GetPluginToId(id);
-            if (plugin?.Path == null) throw new Code.ErrorCodeException(Code.ErrorCode.PluginNotFound);
+            if (plugin?.Path == null) throw new ErrorCodeException(ErrorCode.PluginNotFound);
             switch (auto)
             {
                 case -1:
@@ -410,7 +410,7 @@ public static class PluginMessage
         lock (LockManager.PluginStatesLock)
         {
             var plugin = GetPluginToId(id);
-            if (plugin?.Path == null) throw new Code.ErrorCodeException(Code.ErrorCode.PluginNotFound);
+            if (plugin?.Path == null) throw new ErrorCodeException(ErrorCode.PluginNotFound);
 
             // 插件路径
             var path = plugin.Path;

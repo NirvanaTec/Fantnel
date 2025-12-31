@@ -1,18 +1,18 @@
 ﻿using System.Text.Json;
-using Codexus.Cipher.Entities.WPFLauncher.NetGame;
-using Codexus.Cipher.Protocol;
 using Codexus.Development.SDK.Entities;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Interceptors;
-using Codexus.OpenSDK;
-using Codexus.OpenSDK.Entities.Yggdrasil;
 using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
-using NirvanaPublic.Utils.ViewLogger;
+using OpenSDK.Entities.Yggdrasil;
 using Serilog;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
+using WPFLauncherApi.Protocol;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
@@ -52,25 +52,23 @@ public static class ProxiesMessage
 
             // 服务器普通信息
             var server = ServersGameMessage.GetServerId(id);
-            if (server == null) throw new Code.ErrorCodeException(Code.ErrorCode.ServerInNot);
+            if (server == null) throw new ErrorCodeException(ErrorCode.ServerInNot);
 
             // 服务器详细信息
-            var details = await ServerInfoMessage.GetServerId2(server.EntityId);
-            if (details.Data == null) throw new Code.ErrorCodeException(Code.ErrorCode.DetailError);
+            var details = await WPFLauncher.QueryNetGameDetailByIdAsync(server.EntityId);
 
             // 服务器地址
-            var address = await ServerInfoMessage.GetServerAddress(server.EntityId);
-            if (address.Data == null) throw new Code.ErrorCodeException(Code.ErrorCode.AddressError);
+            var address = await WPFLauncher.GetNetGameServerAddressAsync(server.EntityId);
 
             // 服务器版本
-            var version = details.Data.McVersionList[0]; // 1.20
+            var version = details.McVersionList[0]; // 1.20
             var gameVersion = GameVersionUtil.GetEnumFromGameVersion(version.Name);
 
             var serverModInfo = await InstallerService.InstallGameMods(
                 InfoManager.GetGameAccount().GetUserId(),
                 InfoManager.GetGameAccount().GetToken(),
                 gameVersion,
-                new WPFLauncher(),
+                new Codexus.Cipher.Protocol.WPFLauncher(),
                 server.EntityId,
                 false);
 
@@ -78,21 +76,18 @@ public static class ProxiesMessage
 
             // 服务器角色信息
             var character = await ServerInfoMessage.GetUserName(server.EntityId, name);
-            if (character == null) throw new Code.ErrorCodeException(Code.ErrorCode.NotFoundName);
+            if (character == null) throw new ErrorCodeException(ErrorCode.NotFoundName);
 
             // 前往游戏
-            InterConn.LoginStart(InfoManager.GetGameAccount().GetUserId(), InfoManager.GetGameAccount().GetToken())
-                .Wait();
-            InterConn.GameStart(InfoManager.GetGameAccount().GetUserId(), InfoManager.GetGameAccount().GetToken(),
-                server.EntityId).Wait();
+            InterConn.LoginStart().Wait();
+
+            // 启动游戏
+            InterConn.GameStart(server.EntityId).Wait();
+            // await X19.InterconnectionApi.GameStartAsync(server.EntityId);
 
             // 创建代理 并 下载资源
             var interceptor =
-                CreateProxyInterceptor(server, character, version, address.Data, InfoManager.GetGameAccount(), mods);
-
-            // 启动游戏
-            await X19.InterconnectionApi.GameStartAsync(InfoManager.GetGameAccount().GetUserId(),
-                InfoManager.GetGameAccount().GetToken(), server.EntityId);
+                CreateProxyInterceptor(server, character, version, address, InfoManager.GetGameAccount(), mods);
 
             // 增加代理
             lock (LockManager.ActiveProxiesLock)
@@ -128,7 +123,7 @@ public static class ProxiesMessage
             server.EntityId,
             server.Name,
             version.Name,
-            address.Ip,
+            address.Host,
             address.Port,
             character.Name,
             availableUser.GetUserId(),
@@ -147,7 +142,7 @@ public static class ProxiesMessage
                     var pair = Md5Mapping.GetMd5FromGameVersion(version.Name);
 
                     var modsJson = JsonSerializer.Deserialize<ModList>(mods);
-                    if (modsJson == null) throw new Code.ErrorCodeException(Code.ErrorCode.ModsError);
+                    if (modsJson == null) throw new ErrorCodeException(ErrorCode.ModsError);
 
                     var success = await InitProgram.GetServices().Yggdrasil.JoinServerAsync(new GameProfile
                     {

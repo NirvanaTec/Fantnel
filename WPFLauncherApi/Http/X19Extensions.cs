@@ -1,15 +1,21 @@
 ﻿using System.Text.Json;
-using Codexus.OpenSDK;
-using NirvanaPublic.Manager;
+using WPFLauncherApi.Protocol;
+using WPFLauncherApi.Utils.CodeTools;
 
-namespace NirvanaPublic.Utils;
+namespace WPFLauncherApi.Http;
 
 public static class X19Extensions
 {
     private static async Task<HttpResponseMessage> Api(string url, string body)
     {
-        return await X19.ApiPostAsync(url, body, InfoManager.GetGameAccount().GetUserId(),
-            InfoManager.GetGameAccount().GetToken());
+        if (PublicProgram.User.UserId == null || PublicProgram.User.Token == null)
+            throw new ErrorCodeException(ErrorCode.LogInNot);
+        return await X19.PostAsync(url, body);
+    }
+
+    public static async Task<T?> Api<T>(string url, object? body)
+    {
+        return await Api<T>(url, JsonSerializer.Serialize(body, WPFLauncher.DefaultOptions));
     }
 
     public static async Task<T?> Api<T>(string url, string body)
@@ -29,9 +35,6 @@ public static class X19Extensions
 
     public static async Task<TResult?> Api<TBody, TResult>(string url, TBody body)
     {
-        var response = await ApiRaw(url, JsonSerializer.Serialize(body));
-        if (response == null) return default;
-        if (typeof(TResult) == typeof(JsonDocument)) return (TResult)(object)JsonDocument.Parse(response);
-        return JsonSerializer.Deserialize<TResult>(response);
+        return await Api<TResult>(url, body);
     }
 }

@@ -39,22 +39,4 @@
         <_ContentIncludedByDefault Remove="resources\heypixel\enum-struct.json"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Reference Include="Codexus.Cipher">
-            <HintPath>..\SDK\Codexus.Cipher.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.Development.SDK">
-            <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.Game.Launcher">
-            <HintPath>..\SDK\Codexus.Game.Launcher.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.Interceptors">
-            <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.OpenSDK">
-            <HintPath>..\SDK\Codexus.OpenSDK.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
 </Project>

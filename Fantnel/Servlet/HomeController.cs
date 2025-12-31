@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using NirvanaPublic;
 using NirvanaPublic.Manager;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet;
 
@@ -16,7 +16,7 @@ public class HomeController : ControllerBase
     public IActionResult SetTheme(string name)
     {
         SaveConfig("theme", name);
-        return Content(Code.ToJson(Code.ErrorCode.Success), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     // 获取主题
@@ -25,7 +25,7 @@ public class HomeController : ControllerBase
     {
         // 从配置中获取主题
         var theme = GetConfig()["theme"] ?? "default";
-        return Content(Code.ToJson(Code.ErrorCode.Success, theme), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success, theme), "application/json");
     }
 
     // 获取首页信息
@@ -45,7 +45,7 @@ public class HomeController : ControllerBase
             ["id"] = PublicProgram.VersionId,
             ["mode"] = PublicProgram.Mode
         };
-        return Content(Code.ToJson(Code.ErrorCode.Success, version), "application/json");
+        return Content(Code.ToJson(ErrorCode.Success, version), "application/json");
     }
 
     public static string GetIndexHtml()

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace NirvanaPublic.Entities.Nirvana;
+namespace WPFLauncherApi.Entities;
 
 public class EntityResponse<T>
 {

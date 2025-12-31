@@ -5,9 +5,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Codexus.Cipher.Entities;
-using NirvanaPublic.Entities.NEL;
-using NirvanaPublic.Utils.ViewLogger;
 
 namespace NirvanaPublic.Utils;
 
@@ -15,7 +12,7 @@ public static class Tools
 {
     public static (T[], string) GetValueOrDefault<T>(string fileName)
     {
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "resources", fileName);
+        var path = Path.Combine(AppContext.BaseDirectory, "resources", fileName);
         List<T>? entity = [];
         if (!File.Exists(path)) return (entity.ToArray(), path);
 
@@ -158,38 +155,5 @@ public static class Tools
 #else
             return true;
 #endif
-    }
-
-    /**
-     * 检查实体是否成功
-     * @param entity 实体对象
-     */
-    private static void EntitySafe(int code, string msg, string data)
-    {
-        if (code is 0) return;
-        var exception = new Code.ErrorCodeException(Code.ErrorCode.LoginError)
-        {
-            Entity =
-            {
-                Data = data,
-                Msg = msg
-            }
-        };
-        throw exception;
-    }
-
-    public static void EntitySafe<T>(Entity<T> entity)
-    {
-        EntitySafe(entity.Code, entity.Message, entity.Data?.ToString() ?? string.Empty);
-    }
-
-    public static void EntitySafe<T>(Entity1<T> entity)
-    {
-        EntitySafe(entity.Code, entity.Message, entity.Data?.ToString() ?? string.Empty);
-    }
-
-    public static void EntitySafe<T>(Entities<T> entity)
-    {
-        EntitySafe(entity.Code, entity.Message, entity.Data.ToString() ?? string.Empty);
     }
 }

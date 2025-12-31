@@ -1,7 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace NirvanaPublic.Entities.NEL;
+namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public class EntityQueryNetSkinItem
 {
     [JsonPropertyName("entity_id")] public required string EntityId { get; set; }

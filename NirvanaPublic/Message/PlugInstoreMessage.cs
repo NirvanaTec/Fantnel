@@ -3,7 +3,8 @@ using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Entities.Plugin;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
-using NirvanaPublic.Utils.ViewLogger;
+using WPFLauncherApi.Entities;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
@@ -32,7 +33,7 @@ public static class PlugInstoreMessage
             .GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get?offset={offset}&limit={limit}").Result;
         var json = response.Content.ReadAsStringAsync().Result;
         var plugins = JsonSerializer.Deserialize<EntityResponse<EntityComponents[]>>(json);
-        if (plugins?.Data == null) throw new Code.ErrorCodeException(Code.ErrorCode.FormatError);
+        if (plugins?.Data == null) throw new ErrorCodeException(ErrorCode.FormatError);
         AddServerList(plugins.Data);
         return plugins.Data;
     }
@@ -114,7 +115,7 @@ public static class PlugInstoreMessage
     private static void Download(string id)
     {
         var detail = GetPluginDetail(id);
-        if (detail?.Data?.Name == null) throw new Code.ErrorCodeException(Code.ErrorCode.NotFound);
+        if (detail?.Data?.Name == null) throw new ErrorCodeException(ErrorCode.NotFound);
         // 下载插件 保存路径
         var path = Path.Combine(Directory.GetCurrentDirectory(), "plugins");
         // 自动插件 插件 文件夹
@@ -152,7 +153,7 @@ public static class PlugInstoreMessage
         {
             var downloadInfo = GetDownloadInfoUrl(id);
             if (downloadInfo?.Data == null || downloadInfo.Code != 1)
-                throw new Code.ErrorCodeException(Code.ErrorCode.Failure, downloadInfo);
+                throw new ErrorCodeException(ErrorCode.Failure, downloadInfo);
 
             // 检测 插件
             if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize)) Download(id);
