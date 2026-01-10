@@ -12,7 +12,7 @@ public class PluginsShopController : ControllerBase
     [HttpGet("/api/pluginstore/get")]
     public IActionResult GetPluginListHttp()
     {
-        var pluginList = PlugInstoreMessage.GetPluginList();
+        var pluginList = PlugInstoreMessage.GetPluginList().Result;
         return Content(Code.ToJson(ErrorCode.Success, pluginList), "application/json");
     }
 

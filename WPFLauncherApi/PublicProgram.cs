@@ -4,5 +4,7 @@ namespace WPFLauncherApi;
 
 public static class PublicProgram
 {
-    public static readonly EntityUserInfo User = new();
+#pragma warning disable CA2211
+    public static EntityUserInfo User = new();
+#pragma warning restore CA2211
 }

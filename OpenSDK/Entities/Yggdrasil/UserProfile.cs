@@ -24,5 +24,4 @@ public class UserProfile
     {
         return Encoding.ASCII.GetBytes(UserToken).Xor(TokenKey);
     }
-
 }

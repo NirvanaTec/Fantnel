@@ -48,7 +48,7 @@ public static class ServerInfoMessage
     public static void CreateCharacter(string serverId, string name)
     {
         // 检查登录状态
-        var createCharacter = X19Extensions.Api<EntityGameCharacter, JsonObject>("/game-character",
+        var createCharacter = X19Extensions.Gateway.Api<EntityGameCharacter, JsonObject>("/game-character",
             new EntityGameCharacter
             {
                 GameId = serverId,

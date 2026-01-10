@@ -27,4 +27,10 @@ public class EntityStackTrace
     {
         return JsonDocument.Parse(ToString());
     }
+
+    // 是否是不重要的
+    public bool IsIgnore()
+    {
+        return (string.IsNullOrEmpty(File) && Line == 0) || Method.Length < 5;
+    }
 }

@@ -10,24 +10,23 @@ using WPFLauncherApi.Http;
 
 namespace OpenSDK.Yggdrasil;
 
-public partial class StandardYggdrasil(YggdrasilData data, string address, int port)
+public partial class StandardYggdrasil(string address, int port)
 {
     private static readonly byte[] ChaChaNonce = "163 NetEase\n"u8.ToArray();
-    private readonly YggdrasilGenerator _generator = new(data);
+    private readonly YggdrasilGenerator _generator = new();
 
-    private StandardYggdrasil(YggdrasilData data, string address)
-        : this(data, ParseAddress(address).address, ParseAddress(address).port)
+    private StandardYggdrasil(string address)
+        : this(ParseAddress(address).address, ParseAddress(address).port)
     {
     }
 
-    public StandardYggdrasil(YggdrasilData data)
-        : this(data, RandomAuthServer())
+    public StandardYggdrasil()
+        : this(RandomAuthServer())
     {
     }
 
     private string Address { get; } = address;
     private int Port { get; } = port;
-    public YggdrasilData Data => _generator.Data;
 
     public async Task<Result> JoinServerAsync(GameProfile profile, string serverId, bool login = false)
     {
@@ -45,9 +44,7 @@ public partial class StandardYggdrasil(YggdrasilData data, string address, int p
             var initiated = await InitializeConnection(stream, profile);
 
             if (login)
-                return initiated.IsSuccess
-                    ? Result.Success()
-                    : Result.Clone(initiated);
+                return initiated.IsSuccess ? Result.Success() : Result.Clone(initiated);
 
             return initiated.IsFailure
                 ? Result.Clone(initiated)

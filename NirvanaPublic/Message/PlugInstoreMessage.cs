@@ -1,9 +1,9 @@
-﻿using System.Text.Json;
-using NirvanaPublic.Entities.Nirvana;
+﻿using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Entities.Plugin;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
 using WPFLauncherApi.Entities;
+using WPFLauncherApi.Http;
 using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
@@ -13,14 +13,14 @@ public static class PlugInstoreMessage
     // 插件列表 - 缓存
     private static readonly List<EntityComponents> PluginList = [];
 
-    public static EntityComponents[] GetPluginList(int offset = 0, int limit = 10)
+    public static async Task<EntityComponents[]> GetPluginList(int offset = 0, int limit = 10)
     {
         // PluginList 有 就用缓存
         lock (LockManager.PluginListLock)
         {
             // 分页 异常顺序 检测
             var size = offset + (limit - 10);
-            if (PluginList.Count < size) GetPluginList(0, size);
+            if (PluginList.Count < size) GetPluginList(0, size).Wait();
             // 分页
             size = (offset == 0 ? 1 : offset) * limit;
             if (PluginList.Count >= size)
@@ -28,11 +28,9 @@ public static class PlugInstoreMessage
         }
 
         // 没有 就从 插件商店 获取
-        var httpClient = new HttpClient();
-        var response = httpClient
-            .GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get?offset={offset}&limit={limit}").Result;
-        var json = response.Content.ReadAsStringAsync().Result;
-        var plugins = JsonSerializer.Deserialize<EntityResponse<EntityComponents[]>>(json);
+        var plugins =
+            await X19Extensions.Nirvana.Api<EntityResponse<EntityComponents[]>>(
+                $"/api/fantnel/plugin/get?offset={offset}&limit={limit}");
         if (plugins?.Data == null) throw new ErrorCodeException(ErrorCode.FormatError);
         AddServerList(plugins.Data);
         return plugins.Data;
@@ -58,18 +56,13 @@ public static class PlugInstoreMessage
 
     public static EntityResponse<EntityPlugin>? GetPluginDetail(string id)
     {
-        var httpClient = new HttpClient();
-        var response = httpClient.GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get/by-id?id={id}").Result;
-        var json = response.Content.ReadAsStringAsync().Result;
-        return JsonSerializer.Deserialize<EntityResponse<EntityPlugin>>(json);
+        return X19Extensions.Nirvana.Api<EntityResponse<EntityPlugin>>($"/api/fantnel/plugin/get/by-id?id={id}").Result;
     }
 
     private static EntityResponse<EntityPluginDownResponse>? GetDownloadInfoUrl(string id)
     {
-        HttpClient httpClient = new();
-        var response = httpClient.GetAsync($"http://110.42.70.32:13423/api/fantnel/plugin/get/download?id={id}").Result;
-        var json = response.Content.ReadAsStringAsync().Result;
-        return JsonSerializer.Deserialize<EntityResponse<EntityPluginDownResponse>>(json);
+        return X19Extensions.Nirvana
+            .Api<EntityResponse<EntityPluginDownResponse>>($"/api/fantnel/plugin/get/download?id={id}").Result;
     }
 
     private static string GetDownloadUrl(string id)
@@ -109,6 +102,9 @@ public static class PlugInstoreMessage
                     Download(item.Id);
                 }
         }
+
+        // 清理相同ID的插件
+        PluginMessage.CleanSameIdPlugin();
     }
 
     // 插件列表 - 下载
@@ -117,7 +113,7 @@ public static class PlugInstoreMessage
         var detail = GetPluginDetail(id);
         if (detail?.Data?.Name == null) throw new ErrorCodeException(ErrorCode.NotFound);
         // 下载插件 保存路径
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "plugins");
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
         // 自动插件 插件 文件夹
         if (!Directory.Exists(path)) Directory.CreateDirectory(path);
         // 自动插件 插件 文件名

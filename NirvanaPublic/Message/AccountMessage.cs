@@ -1,8 +1,8 @@
 ﻿using System.Text;
 using System.Text.Json;
-using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
+using OpenSDK.Entities.Config;
 using Serilog;
 using WPFLauncherApi.Entities;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
@@ -57,6 +57,7 @@ public static class AccountMessage
         foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(account)))
         {
             InfoManager.GameAccount = gameAccount;
+            WPFLauncherApi.PublicProgram.User = gameAccount;
             break;
         }
     }
@@ -292,16 +293,14 @@ public static class AccountMessage
      * 获取4399验证码内容
      * @return 4399验证码内容
      */
-    public static string GetCaptcha4399Content()
+    public static async Task<string> GetCaptcha4399Content()
     {
         if (Captcha4399Bytes == null)
             throw new ErrorCodeException(ErrorCode.Failure);
         var httpClient = new HttpClient();
-        var response = httpClient
-            .PostAsync("http://110.42.70.32:13423/api/fantnel/captcha", new ByteArrayContent(Captcha4399Bytes)).Result;
-        if (!response.IsSuccessStatusCode)
-            throw new ErrorCodeException(ErrorCode.Failure);
-        var resultJson = response.Content.ReadAsStringAsync().Result;
+        var response = await httpClient.PostAsync("http://110.42.70.32:13423/api/fantnel/captcha",
+            new ByteArrayContent(Captcha4399Bytes));
+        var resultJson = await response.Content.ReadAsStringAsync();
         var captcha = JsonSerializer.Deserialize<EntityResponse<string>>(resultJson);
         return captcha?.Data ?? throw new ErrorCodeException(ErrorCode.Failure);
     }

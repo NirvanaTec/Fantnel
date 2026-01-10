@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <DebugType>embedded</DebugType>
+        <DebugType>embedded</DebugType>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,6 +19,10 @@
 
     <ItemGroup>
         <ProjectReference Include="..\WPFLauncherApi\WPFLauncherApi.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Cipher\Nirvana\Utils\"/>
     </ItemGroup>
 
 </Project>

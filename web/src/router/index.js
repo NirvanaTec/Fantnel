@@ -56,6 +56,11 @@ const routes = [
     name: 'Version',
     component: () => import('../views/Version.vue')
   },
+  {
+    path: '/game-manager',
+    name: 'GameManager',
+    component: () => import('../views/GameLaunchManager.vue')
+  }
 ]
 
 const router = createRouter({

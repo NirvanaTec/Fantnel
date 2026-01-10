@@ -91,5 +91,4 @@ public static class Skip32Cipher
         var output = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
         return output;
     }
-
 }

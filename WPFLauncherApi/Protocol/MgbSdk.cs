@@ -55,6 +55,6 @@ public class MgbSdk(string gameId) : IDisposable
             .ReadAsStringAsync());
         if (dictionary == null) throw new HttpRequestException("Response is empty");
         if (!"200".Equals(dictionary["code"].ToString()))
-            throw new HttpRequestException("Status: " + dictionary["status"]);
+            throw new HttpRequestException(dictionary["msg"].ToString() ?? dictionary["status"].ToString());
     }
 }

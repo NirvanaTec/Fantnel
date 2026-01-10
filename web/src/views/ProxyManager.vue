@@ -65,7 +65,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getServerInfo, closeServer, isVersionSafe } from '../utils/Tools.js'
+import { getProxyServerInfo, closeProxyServer, isVersionSafe } from '../utils/Tools.js'
 import Alert from '../components/Alert.vue'
 import useClipboard from 'vue-clipboard3'
 
@@ -108,7 +108,7 @@ let confirmAction = null // 存储确认后的回调函数
 const fetchProxyInfo = async () => {
   loading.value = true
   try {
-    const data = await getServerInfo()
+    const data = await getProxyServerInfo()
     if (data.code === 1) {
       serverIp.value = data.data.ip
       proxyList.value = data.data.proxies
@@ -141,7 +141,7 @@ const showCloseAllConfirm = () => {
 // 关闭单个代理
 const handleCloseSingle = async (id) => {
   try {
-    const data = await closeServer(id)
+    const data = await closeProxyServer(id)
     if (data.code === 1) {
       // 从列表中移除关闭的代理
       proxyList.value = proxyList.value.filter(proxy => proxy.Id !== id)
@@ -160,7 +160,7 @@ const handleCloseAll = async () => {
   try {
     // 依次关闭所有代理
     for (const proxy of proxyList.value) {
-      await closeServer(proxy.Id)
+      await closeProxyServer(proxy.Id)
     }
     // 清空代理列表
     proxyList.value = []

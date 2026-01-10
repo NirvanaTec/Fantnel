@@ -1,31 +1,57 @@
-﻿using System.Text.Json;
+﻿using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
 using Serilog;
+using WPFLauncherApi.Http;
 
 namespace NirvanaPublic.Utils;
 
 public static class UpdateTools
 {
     // 检查更新
-    public static async Task CheckUpdate()
+    public static async Task CheckUpdate(string[] args)
     {
-        if (PublicProgram.Release) await CheckUpdate(PublicProgram.Mode);
-        await CheckUpdate("static");
+        var update = 0; // 0:正常检查 1:不检查 2:已被检查
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // win 系统不检查更新
+            // 因为 win 运行后文件被占用时不能覆盖
+            update = 1;
+            if (args.Any(arg => arg == "--update_false")) update = 2;
+        }
+
+        switch (update)
+        {
+            // 不检查 - 提醒
+            case 1:
+            {
+                if (PublicProgram.Release)
+                {
+                    for (var i = 0; i < 4; i++) Log.Warning("当前版本已取消自动更新，建议前往官网重新下载！");
+
+                    Thread.Sleep(3000);
+                }
+
+                break;
+            }
+            // 正常检查
+            case 0:
+                await CheckUpdate(PublicProgram.Mode + "." + PublicProgram.Arch, "Fantnel");
+                break;
+        }
+
+        await CheckUpdate("static", "Resource");
     }
 
     /**
      * 检查更新
      */
-    private static async Task CheckUpdate(string mode)
+    public static async Task CheckUpdate(string mode, string name = "")
     {
-        var httpClient = new HttpClient();
-        var response =
-            await httpClient.GetAsync(
-                $"http://110.42.70.32:13423/api/fantnel/update/get?mode={mode}&verId={PublicProgram.VersionId}");
-        var json = await response.Content.ReadAsStringAsync();
-        var jsonObj = JsonSerializer.Deserialize<JsonObject>(json);
+        var jsonObj =
+            await X19Extensions.Nirvana.Api<JsonObject>(
+                $"/api/fantnel/update/get?mode={mode}");
         if (jsonObj == null)
         {
             Log.Error("检查更新失败, 建议更新至最新版本!");
@@ -39,65 +65,8 @@ public static class UpdateTools
             return;
         }
 
-        await CheckUpdate(data.AsArray());
+        ThreadUpdateTools.CheckUpdate(data.AsArray(), name);
     }
-
-    /**
-     * * 检查更新
-     * *
-     * "path": "Development.json",
-     * "size": 127,
-     * "url": "http://110.42.70.32:23148/fantnel/update/win64/Development.json",
-     * "sha256": "73f95f9e0ceb205fc1c4dc50c0769729d7087868c2aef1d504cb38c771ec"
-     */
-    private static async Task CheckUpdate(JsonArray jsonArray)
-    {
-        foreach (var item in jsonArray)
-        {
-            if (item == null) continue;
-
-            // 没有地址 / 没有路径 跳过
-            var url = item["url"]?.GetValue<string>();
-            var path = item["path"]?.GetValue<string>();
-            if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(path)) continue;
-
-            // 修复 linux 路径
-            path = path.Replace('\\', Path.DirectorySeparatorChar);
-
-            var start = false; // 是否需要更新
-            var resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), path);
-
-            // 文件 是否存在 检测
-            if (!File.Exists(resourcesPath)) start = true;
-
-            if (!start)
-            {
-                // 文件 大小 检测
-                var size = item["size"];
-                if (size != null)
-                {
-                    var fileSize = new FileInfo(resourcesPath);
-                    if (fileSize.Length != size.GetValue<long>()) start = true;
-                }
-            }
-
-            if (!start)
-            {
-                // 文件 sha256 检测
-                var sha256 = item["sha256"];
-                if (sha256 != null)
-                {
-                    // 计算文件 sha256
-                    var fileSha256 = Tools.ComputeSha256(resourcesPath);
-                    if (fileSha256 != sha256.GetValue<string>()) start = true;
-                }
-            }
-
-            if (!start) continue;
-            await Update(url, resourcesPath, path);
-        }
-    }
-
 
     /**
      * 更新文件
@@ -108,17 +77,18 @@ public static class UpdateTools
     public static async Task Update(string url, string path, string name)
     {
         // 下载插件 进度条 初始化
-        var progress = new SyncProgressBarUtil.ProgressBar(100);
+        var progress = new SyncProgressBarUtil.ProgressBar();
         // 下载插件 进度条 回调
         var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update =>
             progress.Update(update.Percent, update.Message));
-        await DownloadUtil.DownloadAsync(url, path, (Action<uint>)(dp =>
+
+        await DownloadUtil.DownloadAsync(url, path, dp =>
         {
             uiProgress.Report(new SyncProgressBarUtil.ProgressReport
             {
-                Percent = (int)dp,
+                Percent = dp,
                 Message = $"Downloading {name}"
             });
-        }));
+        });
     }
 }

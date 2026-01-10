@@ -38,21 +38,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Codexus.Game.Launcher\Codexus.Game.Launcher.csproj" />
+        <ProjectReference Include="..\Codexus.Game.Launcher\Codexus.Game.Launcher.csproj"/>
         <ProjectReference Include="..\OpenSDK\OpenSDK.csproj"/>
-        <ProjectReference Include="..\WPFLauncherApi\WPFLauncherApi.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="Codexus.Cipher">
-        <HintPath>..\SDK\Codexus.Cipher.dll</HintPath>
-      </Reference>
-      <Reference Include="Codexus.Development.SDK">
-        <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
-      </Reference>
-      <Reference Include="Codexus.Interceptors">
-        <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
-      </Reference>
+        <Reference Include="Codexus.Development.SDK">
+            <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
+        </Reference>
+        <Reference Include="Codexus.Interceptors">
+            <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
 </Project>

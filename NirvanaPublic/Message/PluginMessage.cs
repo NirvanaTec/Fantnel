@@ -21,6 +21,17 @@ public static class PluginMessage
 
     private static readonly string[] PluginExtensions = [".ug", ".dll"];
 
+
+    /**
+     * 获取插件列表
+     * @return 插件列表
+     */
+    public static List<EntityPluginState> GetPluginListSafe()
+    {
+        CleanSameIdPlugin();
+        return GetPluginList();
+    }
+
     /**
      * 获取插件列表
      * @return 插件列表
@@ -57,7 +68,7 @@ public static class PluginMessage
     private static string[] GetPluginDirectoryList()
     {
         // 插件目录 文件夹
-        var pluginsPath = Path.Combine(Directory.GetCurrentDirectory(), "plugins");
+        var pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
         if (!Directory.Exists(pluginsPath)) Directory.CreateDirectory(pluginsPath);
         // 插件文件 文件路径数组
         var filesPath = Directory.GetFiles(pluginsPath);
@@ -148,7 +159,7 @@ public static class PluginMessage
     // 插件初始化
     public static void Initialize()
     {
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "plugins");
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
         if (!Directory.Exists(path)) Directory.CreateDirectory(path);
         var filesPath = Directory.GetFiles(path);
         foreach (var filePath in filesPath)
@@ -157,12 +168,79 @@ public static class PluginMessage
                 File.Delete(filePath);
     }
 
+    // 清理相同ID的插件
+    // 保留高版本插件, 清理低版本插件
+    // 相同插件：根据修改日期，再根据短名称
+    public static void CleanSameIdPlugin()
+    {
+        var plugins = GetPluginList();
+        foreach (var plugin in plugins.ToList())
+        {
+            if (plugin.Version == null || plugin.Path == null) continue;
+
+            var verA = new Version(plugin.Version);
+            foreach (var plugin1 in plugins.ToList())
+            {
+                if (plugin1.Version == null || plugin1.Path == null) continue;
+
+                var verB = new Version(plugin1.Version);
+                var verCompare = verA.CompareTo(verB);
+                if (plugin.Id != plugin1.Id || plugin == plugin1 || verCompare > 0) continue;
+                var plugin1Name = Path.GetFileName(plugin1.Path);
+                if (verCompare < -1)
+                {
+                    Log.Warning("清理旧插件: {FilePath}", plugin1Name);
+                    DeletePlugin(plugin1);
+                    plugin1.Path = null;
+                }
+                else
+                {
+                    // 根据修改日期 清理, 保留最新插件
+                    var pluginFile = new FileInfo(plugin.Path);
+                    var plugin1File = new FileInfo(plugin1.Path);
+                    if (pluginFile.LastWriteTime > plugin1File.LastWriteTime)
+                    {
+                        Log.Warning("清理同名插件: {FilePath}", plugin1Name);
+                        DeletePlugin(plugin1);
+                        plugin1.Path = null;
+                    }
+                    else if (plugin1File.LastWriteTime > pluginFile.LastWriteTime)
+                    {
+                        DeletePlugin(plugin);
+                        plugin.Path = null;
+                        break;
+                    }
+                    else
+                    {
+                        // 根据名称长度 清理, 保留短名插件
+                        var pluginName = Path.GetFileName(plugin.Path);
+                        if (plugin1Name.Length > pluginName.Length)
+                        {
+                            Log.Warning("清理同名插件: {FilePath}", plugin1Name);
+                            DeletePlugin(plugin1);
+                            plugin1.Path = null;
+                        }
+                        else
+                        {
+                            DeletePlugin(plugin);
+                            plugin.Path = null;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // 插件初始化
     public static void InitializeAuto()
     {
         try
         {
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "plugins");
+            // 清理相同ID的插件
+            CleanSameIdPlugin();
+
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
             // 自动更新插件
             PlugInstoreMessage.AutoUpdateCheck();
@@ -413,26 +491,34 @@ public static class PluginMessage
             if (plugin?.Path == null) throw new ErrorCodeException(ErrorCode.PluginNotFound);
 
             // 插件路径
-            var path = plugin.Path;
-            var path1 = path + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ".delete";
-
-            // 标记为待删除状态
-            // 如果删除失败，重启时候会自动删除
-            File.Move(path, path1);
-            if (File.Exists(path1)) path = path1;
-
-            try
-            {
-                // 删除插件文件
-                File.Delete(path);
-            }
-            catch (Exception)
-            {
-                Log.Warning("插件 {name} 已标记为待删除状态", plugin.Name);
-            }
+            DeletePlugin(plugin);
         }
 
         // 删除依赖插件
         foreach (var pluginId in DependenciesPlugin(id)) DeletePlugin(pluginId);
+    }
+
+    // 删除插件
+    private static void DeletePlugin(EntityPluginState plugin)
+    {
+        // 插件路径
+        var path = plugin.Path;
+        if (path == null) throw new ErrorCodeException(ErrorCode.PluginNotFound);
+        var path1 = path + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ".delete";
+
+        // 标记为待删除状态
+        // 如果删除失败，重启时候会自动删除
+        File.Move(path, path1);
+        if (File.Exists(path1)) path = path1;
+
+        try
+        {
+            // 删除插件文件
+            File.Delete(path);
+        }
+        catch (Exception)
+        {
+            Log.Warning("插件 {name} 已标记为待删除状态", Path.GetFileName(plugin.Path));
+        }
     }
 }

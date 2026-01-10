@@ -1,17 +1,22 @@
 ﻿using System.Text.Json;
-using WPFLauncherApi.Http;
-using WPFLauncherApi.Utils;
-using HttpRequestOptions = WPFLauncherApi.Http.HttpRequestOptions;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace WPFLauncherApi.Protocol;
 
 public static class X19
 {
-    private static readonly HttpWrapper ApiGateway = new("https://x19apigatewayobt.nie.netease.com",
-        delegate(HttpRequestOptions options) { options.UserAgent("WPFLauncher/0.0.0.0"); });
+    public const string Channel = "netease";
+
+    // CRC盐值
+    public static string? CrcSalt;
 
     // 最新盒子版本号
     public static string GameVersion => GetLatestVersion();
+
+    public static string GetCrcSalt()
+    {
+        return CrcSalt ?? throw new ErrorCodeException(ErrorCode.CrcSaltNotSet);
+    }
 
     /**
      * @return 最新盒子的补丁信息
@@ -33,12 +38,5 @@ public static class X19
     {
         var result = GetPatchVersionsAsync().GetAwaiter().GetResult();
         return result?.Keys.Last() ?? throw new Exception("X19 versions is empty.");
-    }
-
-
-    public static async Task<HttpResponseMessage> PostAsync(string url, string body)
-    {
-        return await ApiGateway.PostAsync(url, body, "application/json",
-            delegate(HttpRequestOptions options) { options.AddHeaders(TokenUtil.Compute(url, body)); });
     }
 }

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Utils;
 
@@ -37,6 +38,23 @@ public static class Tools
         return (entity.ToArray(), path);
     }
 
+    // 获取异常信息 【简化版】
+    public static string GetMessage(Exception exception)
+    {
+        if (exception is AggregateException aggregateException)
+        {
+            var message = aggregateException.InnerExceptions.Aggregate("",
+                (current, innerException) => current + GetMessage(innerException) + ", ");
+            return message.TrimEnd(',', ' ');
+        }
+
+        if (exception is not ErrorCodeException errorCodeException) return exception.Message;
+        {
+            var message = errorCodeException.Entity.Msg;
+            if (message != null) return message;
+        }
+        return exception.Message;
+    }
 
     /**
      * 计算文件的MD5哈希值
@@ -69,7 +87,6 @@ public static class Tools
         return endIndex == -1 ? string.Empty : source.Substring(startIndex, endIndex - startIndex);
     }
 
-
     /**
      * 同步计算文件的SHA256哈希值
      * @param filePath 文件路径
@@ -86,7 +103,7 @@ public static class Tools
         using var sha256 = SHA256.Create();
         using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         var hashBytes = sha256.ComputeHash(fileStream);
-        return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+        return Convert.ToHexStringLower(hashBytes);
     }
 
     /**
@@ -131,21 +148,13 @@ public static class Tools
 
     /**
      * 检测当前操作系统并返回对应的模式
-     * @return win64G | linux64 | mac64
+     * @return win | linux | mac
      */
     public static string DetectOperatingSystemMode()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return "win64G";
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return "linux64";
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return "mac64";
-        // 根据环境变量判断
-        var platform = Environment.OSVersion.Platform;
-        return platform switch
-        {
-            PlatformID.Unix => "linux64",
-            PlatformID.MacOSX => "mac64",
-            _ => "win64G"
-        };
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return "win";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return "linux";
+        return RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "mac" : "win";
     }
 
     public static bool IsReleaseVersion()
@@ -156,4 +165,14 @@ public static class Tools
             return true;
 #endif
     }
+
+    /**
+     * 检测当前架构并返回对应的模式
+     * @return arm64 | x64
+     */
+    public static string DetectArchitectureMode()
+    {
+        return RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+    }
+    
 }
