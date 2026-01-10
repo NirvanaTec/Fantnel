@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Entities.Login;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
+using NirvanaPublic.Utils;
+using OpenSDK.Entities.Config;
 using Serilog;
 using WPFLauncherApi.Utils.CodeTools;
 
@@ -39,7 +40,7 @@ public class GameAccountController : ControllerBase
     [HttpGet("/api/gameaccount/captcha4399/content")]
     public IActionResult GetCaptcha4399ContentHttp()
     {
-        var captcha = AccountMessage.GetCaptcha4399Content();
+        var captcha = AccountMessage.GetCaptcha4399Content().Result;
         return Content(Code.ToJson(ErrorCode.Success, captcha), "application/json");
     }
 
@@ -52,7 +53,7 @@ public class GameAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            Log.Error("登录失败: {Id}: {Message}", id, e.Message);
+            Log.Error("登录失败: {Id}: {Message}", id, Tools.GetMessage(e));
             throw;
         }
 
@@ -68,7 +69,7 @@ public class GameAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            Log.Error("删除账号失败: {Id}: {Message}", id, e.Message);
+            Log.Error("删除账号失败: {Id}: {Message}", id, Tools.GetMessage(e));
             throw;
         }
 

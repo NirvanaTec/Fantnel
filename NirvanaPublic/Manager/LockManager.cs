@@ -8,9 +8,6 @@ public static class LockManager
     // 登录游戏 锁
     public static readonly Lock LoginLock = new();
 
-    // 已启动代理 锁
-    public static readonly Lock ActiveProxiesLock = new();
-
     // 插件状态 锁
     public static readonly Lock PluginStatesLock = new();
 

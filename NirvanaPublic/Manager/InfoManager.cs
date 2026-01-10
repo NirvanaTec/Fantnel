@@ -1,4 +1,4 @@
-﻿using NirvanaPublic.Entities.Config;
+﻿using OpenSDK.Entities.Config;
 using WPFLauncherApi.Entities;
 using WPFLauncherApi.Utils.CodeTools;
 

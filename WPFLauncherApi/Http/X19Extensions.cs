@@ -1,39 +1,68 @@
 ﻿using System.Text.Json;
 using WPFLauncherApi.Protocol;
-using WPFLauncherApi.Utils.CodeTools;
+using WPFLauncherApi.Utils;
 
 namespace WPFLauncherApi.Http;
 
-public static class X19Extensions
+public class X19Extensions(string url, bool token = true)
 {
-    private static async Task<HttpResponseMessage> Api(string url, string body)
+    public static readonly X19Extensions Gateway = new("https://x19apigatewayobt.nie.netease.com");
+    public static readonly X19Extensions Client = new("https://x19mclobt.nie.netease.com");
+    public static readonly X19Extensions Core = new("https://x19obtcore.nie.netease.com:8443", false);
+    public static readonly X19Extensions Nirvana = new("http://110.42.70.32:13423", false);
+
+    public readonly HttpWrapper HttpWrapper = new(url,
+        options => { options.UserAgent("WPFLauncher/0.0.0.0"); });
+
+    private async Task<HttpResponseMessage> Api(string url, string? body, string? userId, string? userToken)
     {
-        if (PublicProgram.User.UserId == null || PublicProgram.User.Token == null)
-            throw new ErrorCodeException(ErrorCode.LogInNot);
-        return await X19.PostAsync(url, body);
+        if (body == null) return await HttpWrapper.GetAsync(url);
+
+        return await HttpWrapper.PostAsync(url, body, "application/json",
+            options =>
+            {
+                if (userId != null && userToken != null)
+                    options.AddHeaders(TokenUtil.Compute(url, body, userId, userToken));
+                else if (token) options.AddHeaders(TokenUtil.Compute(url, body));
+            });
     }
 
-    public static async Task<T?> Api<T>(string url, object? body)
+    public async Task<T?> Api<T>(string url)
     {
-        return await Api<T>(url, JsonSerializer.Serialize(body, WPFLauncher.DefaultOptions));
+        return await Api<T>(url, null, null, null);
     }
 
-    public static async Task<T?> Api<T>(string url, string body)
+    public async Task<T?> Api<T>(string url, object? body)
     {
-        var response = await ApiRaw(url, body);
+        return await Api<T>(url, body, null, null);
+    }
+
+    public async Task<T?> Api<T>(string url, object? body, string? userId, string? userToken)
+    {
+        return await Api<T>(url, JsonSerializer.Serialize(body, WPFLauncher.DefaultOptions), userId, userToken);
+    }
+
+    public async Task<T?> Api<T>(string url, string body)
+    {
+        return await Api<T>(url, body, null, null);
+    }
+
+    private async Task<T?> Api<T>(string url, string? body, string? userId, string? userToken)
+    {
+        var response = await ApiRaw(url, body, userId, userToken);
         if (response == null) return default;
         if (typeof(T) == typeof(JsonDocument)) return (T)(object)JsonDocument.Parse(response);
         return JsonSerializer.Deserialize<T>(response);
     }
 
-    private static async Task<string?> ApiRaw(string url, string body)
+    private async Task<string?> ApiRaw(string url, string? body, string? userId, string? userToken)
     {
-        var response = await Api(url, body);
+        var response = await Api(url, body, userId, userToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync();
     }
 
-    public static async Task<TResult?> Api<TBody, TResult>(string url, TBody body)
+    public async Task<TResult?> Api<TBody, TResult>(string url, TBody? body)
     {
         return await Api<TResult>(url, body);
     }

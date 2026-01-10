@@ -27,8 +27,8 @@
   &lt;Assembly Path="C:\Users\fengh\Desktop\Fantnel\SDK\Codexus.Development.SDK.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\fengh\.nuget\packages\dotnetty.buffers\0.7.6\lib\net6.0\DotNetty.Buffers.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\fengh\Desktop\Fantnel\SDK\Codexus.Interceptors.dll" /&gt;&#xD;
-  &lt;Assembly Path="C:\Users\fengh\Desktop\Fantnel\SDK\Codexus.Game.Launcher.dll" /&gt;&#xD;
   &lt;Assembly Path="C:\Users\fengh\.dotnet\packs\Microsoft.NETCore.App.Ref\9.0.11\ref\net9.0\Microsoft.CSharp.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Users\fengh\.nuget\packages\sharpcompress\0.42.0\lib\net8.0\SharpCompress.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
 	
 	

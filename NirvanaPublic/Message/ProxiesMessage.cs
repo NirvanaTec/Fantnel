@@ -3,11 +3,11 @@ using Codexus.Development.SDK.Entities;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Interceptors;
-using NirvanaPublic.Entities.Config;
-using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
+using OpenSDK.Entities.Config;
 using OpenSDK.Entities.Yggdrasil;
+using OpenSDK.Yggdrasil;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
@@ -18,37 +18,22 @@ namespace NirvanaPublic.Message;
 
 public static class ProxiesMessage
 {
-    // 已启动代理
-    private static readonly List<RunningProxy> ActiveProxies = [];
-
     /**
      * 启动本地代理
      * @param id 游戏服务器ID
      * @param name 玩家名称
      */
-    public static async Task StartProxyAsync(string id, string name)
+    public static async Task<int> StartProxyAsync(string id, string name)
     {
         // 插件初始化
-        PluginMessage.InitializeAuto();
         Log.Information("正在启动本地代理...");
         Log.Information("名称：{name}", name);
+        PluginMessage.InitializeAuto();
 
         try
         {
-            lock (LockManager.ActiveProxiesLock)
-            {
-                // 关闭老代理
-                var log = 0;
-                foreach (var proxy in ActiveProxies.ToList()
-                             .Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name)))
-                {
-                    log++;
-                    proxy.Interceptor.ShutdownAsync();
-                    ActiveProxies.Remove(proxy);
-                }
-
-                if (log > 0) Log.Information("已清理 {log} 个旧代理", log);
-            }
+            // 清理旧代理
+            ActiveGameAndProxies.Close(id, name);
 
             // 服务器普通信息
             var server = ServersGameMessage.GetServerId(id);
@@ -65,12 +50,8 @@ public static class ProxiesMessage
             var gameVersion = GameVersionUtil.GetEnumFromGameVersion(version.Name);
 
             var serverModInfo = await InstallerService.InstallGameMods(
-                InfoManager.GetGameAccount().GetUserId(),
-                InfoManager.GetGameAccount().GetToken(),
                 gameVersion,
-                new Codexus.Cipher.Protocol.WPFLauncher(),
-                server.EntityId,
-                false);
+                server.EntityId);
 
             var mods = JsonSerializer.Serialize(serverModInfo);
 
@@ -90,17 +71,9 @@ public static class ProxiesMessage
                 CreateProxyInterceptor(server, character, version, address, InfoManager.GetGameAccount(), mods);
 
             // 增加代理
-            lock (LockManager.ActiveProxiesLock)
-            {
-                var proxy = new RunningProxy(interceptor)
-                {
-                    Id = ActiveProxies.Count + 1,
-                    UserId = InfoManager.GetGameAccount().UserId,
-                    UserToken = InfoManager.GetGameAccount().Token,
-                    ServerId = server.EntityId
-                };
-                ActiveProxies.Add(proxy);
-            }
+            ActiveGameAndProxies.Add(interceptor, server.EntityId);
+
+            return interceptor.LocalPort;
         }
         catch (Exception ex)
         {
@@ -128,7 +101,9 @@ public static class ProxiesMessage
             character.Name,
             availableUser.GetUserId(),
             availableUser.GetToken(),
-            YggdrasilCallback
+            YggdrasilCallback,
+            Tools.GetLocalIpAddress(),
+            25565
         );
 
         void YggdrasilCallback(string serverId)
@@ -170,32 +145,6 @@ public static class ProxiesMessage
                 }
             });
             signal.Wait();
-        }
-    }
-
-    /**
-     * 关闭代理
-     */
-    public static void CloseProxy(int id)
-    {
-        lock (LockManager.ActiveProxiesLock)
-        {
-            var proxy = ActiveProxies.FirstOrDefault(x => x.Id == id);
-            if (proxy == null) return;
-            proxy.Interceptor.ShutdownAsync();
-            ActiveProxies.Remove(proxy);
-            Log.Information("已关闭代理 {Nickname} ({Id})", proxy.GetNickName(), proxy.Id);
-        }
-    }
-
-    /**
-     * 获取所有代理
-     */
-    public static List<RunningProxy> GetAllProxies()
-    {
-        lock (LockManager.ActiveProxiesLock)
-        {
-            return ActiveProxies;
         }
     }
 }

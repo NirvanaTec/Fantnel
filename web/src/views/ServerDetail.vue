@@ -47,7 +47,7 @@
         <b>
           <h6>部分服务器可能需要安装 插件 才能正常进入游戏。</h6>
         </b>
-        <form @submit.prevent="launchGame1">
+        <form @submit.prevent="launchGameBtn">
           <div class="form-group">
             <label><b>账号: <h6 style="display: inline;">登录成功后的账号才会显示在账号列表中。</h6></b></label>
             <select v-model="selectedAccount" @change="selectAccount1">
@@ -71,8 +71,8 @@
             <button type="button" class="add-game-btn" @click="showAddGameInput = !showAddGameInput">
               {{ showAddGameInput ? '取消添加' : '添加名称' }}
             </button>
-            <!-- <button type="submit" class="launch-game-btn">启动游戏</button> -->
-            <button type="button" @click="launchProxy" class="launch-proxy-btn">启动代理</button>
+            <button type="submit" class="launch-game-btn">启动游戏</button>
+            <button type="button" @click="launchProxyBtn" class="launch-proxy-btn">启动代理</button>
             <button type="button" @click="showLaunchModal = false" class="cancel-btn">取消</button>
           </div>
         </form>
@@ -86,10 +86,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
-import { selectServer, getLaunchInfo, addLaunchGame, selectAccount, launchGame, isVersionSafe, switchAccount, getGameAccount } from '../utils/Tools'
+import { selectServer, getLaunchInfo, addLaunchGame, selectAccount, launchGame, isVersionSafe, switchAccount, getGameAccount, launchProxy } from '../utils/Tools'
 import Alert from '../components/Alert.vue'
+import randomNameData from '../../public/random.name.json'
 
 const route = useRoute()
 const serverId = route.params.id
@@ -129,8 +130,47 @@ const games = ref()
 // ]
 
 const showAddGameInput = ref(false)
-const newGameName = ref('')
+const newGameName = ref('') // 新添加的游戏名称
 const selectedGame = ref('')
+
+// 生成随机游戏名称
+function generateRandomGameName() {
+  const { prefixes, suffixes } = randomNameData
+  let result, randomPrefix, randomSuffix, randomNumber
+  
+  do {
+    randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+    randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)]
+    randomNumber = ''
+    
+    // 先组合前缀和后缀
+    let baseName = `${randomPrefix}${randomSuffix}`
+    
+    // 计算需要的随机数长度
+    const currentLength = baseName.length
+    if (currentLength < 7) {
+      // 需要添加随机数，确保总长度在7-9之间
+      const minNumbers = Math.max(0, 7 - currentLength)
+      const maxNumbers = Math.max(0, 9 - currentLength)
+      const numberLength = Math.floor(Math.random() * (maxNumbers - minNumbers + 1)) + minNumbers
+      randomNumber = Math.floor(Math.random() * Math.pow(10, numberLength)).toString().padStart(numberLength, '0')
+    } else if (currentLength > 9) {
+      // 如果前缀+后缀已经超过9，需要重新选择
+      continue
+    }
+    
+    result = `${baseName}${randomNumber}`
+  } while (result.length < 7 || result.length > 9)
+  
+  return result
+}
+
+// 当显示添加游戏输入框时自动生成随机名称
+watchEffect(() => {
+  if (showAddGameInput.value) {
+    newGameName.value = generateRandomGameName()
+  }
+})
 
 // 提示框
 const showNotice = ref(false)
@@ -210,7 +250,7 @@ function switchImage(img) {
   mainImage.value = img
 }
 
-function launchGame1() {
+function launchGameBtn() {
   if (!selectedGame.value) {
     noticeText.value = '请选择游戏名称';
     showNotice.value = true;
@@ -219,7 +259,7 @@ function launchGame1() {
   // alert(`启动游戏: ${selectedGame.value}，账号: ${selectedAccount.value}`)
   showLaunchModal.value = false
   noticeText.value = "正在启动游戏中，请稍后.....";
-  launchGame(serverId, selectedGame.value, "game").then(data => {
+  launchGame(serverId, selectedGame.value).then(data => {
     // 启动游戏完成，更多信息请查看控制台
     noticeText.value = data.msg;
   }).catch(err => {
@@ -228,7 +268,7 @@ function launchGame1() {
   showNotice.value = true;
 }
 
-function launchProxy() {
+function launchProxyBtn() {
   if (!selectedGame.value) {
     noticeText.value = '请选择游戏名称';
     showNotice.value = true;
@@ -237,7 +277,7 @@ function launchProxy() {
   // alert(`启动游戏: ${selectedGame.value}，账号: ${selectedAccount.value}`)
   showLaunchModal.value = false
   noticeText.value = "正在启动代理中，请稍后.....";
-  launchGame(serverId, selectedGame.value, "proxy").then(data => {
+  launchProxy(serverId, selectedGame.value).then(data => {
     // 启动代理完成，更多信息请查看控制台
     noticeText.value = data.msg;
   }).catch(err => {

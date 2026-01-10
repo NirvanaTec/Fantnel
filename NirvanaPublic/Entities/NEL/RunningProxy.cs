@@ -1,5 +1,5 @@
 ﻿using Codexus.Interceptors;
-using NirvanaPublic.Entities.Config;
+using OpenSDK.Entities.Config;
 
 namespace NirvanaPublic.Entities.NEL;
 

@@ -1,9 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using NirvanaPublic.Entities.Config;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils;
+using OpenSDK.Entities.Config;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
 using WPFLauncherApi.Protocol;

@@ -67,6 +67,7 @@ public static class Code
             ErrorCode.PluginNotFound => "插件不存在",
             ErrorCode.FormatError => "格式异常",
             ErrorCode.CaptchaNot => "没有验证",
+            ErrorCode.CrcSaltNotSet => "CRC 盐值未设置",
             _ => "未知错误"
         };
     }

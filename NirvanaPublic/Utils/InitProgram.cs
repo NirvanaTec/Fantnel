@@ -1,13 +1,12 @@
 ﻿using System.Diagnostics;
-using System.Text.Json;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils.ViewLogger;
-using OpenSDK.Entities.Yggdrasil;
 using OpenSDK.Yggdrasil;
 using Serilog;
 using Serilog.Events;
 using WPFLauncherApi.Entities;
+using WPFLauncherApi.Http;
 using WPFLauncherApi.Protocol;
 using WPFLauncherApi.Utils.CodeTools;
 
@@ -88,7 +87,7 @@ public static class InitProgram
 
         var isVersion = false; // 版本 是否存在
         foreach (var version in InfoManager.FantnelInfo.Versions)
-            if (version == PublicProgram.Mode + PublicProgram.Version || version == "All" + PublicProgram.Version)
+            if (version == PublicProgram.Version)
                 isVersion = true;
 
         if (!isVersion)
@@ -104,39 +103,39 @@ public static class InitProgram
     }
 
     // Fantnel 在线检测
-    private static async void Online(object? o)
+    private static async void Online()
     {
         try
         {
             while (true)
-            {
-                // 60 * 3 = 180 秒 (3分钟)
-                for (var i = 0; i < 180; i++) await Task.Delay(1000);
-                var httpClient = new HttpClient();
-                await httpClient.PostAsync("http://110.42.70.32:13423/api/tick?mode=fantnel",
-                    new FormUrlEncodedContent(
+                try
+                {
+                    // 60 * 3 = 180 秒 (3分钟)
+                    for (var i = 0; i < 180; i++) await Task.Delay(1000);
+                    await X19Extensions.Nirvana.Api<EntityResponse<string>>("/api/tick?mode=fantnel",
                         new Dictionary<string, string>
                         {
                             { "system", PublicProgram.Mode },
+                            { "arch", PublicProgram.Arch },
                             { "version", PublicProgram.Version },
                             { "versionId", PublicProgram.VersionId.ToString() }
-                        }
-                    ));
-            }
+                        });
+                }
+                catch (Exception e)
+                {
+                    Log.Warning(" 在线检测异常! 错误信息: {Exception}", e.Message);
+                }
         }
         catch (Exception e)
         {
-            Log.Warning(" 在线检测异常! 错误信息: {Exception}", e);
+            Log.Warning(" 在线检测出错! 错误信息: {Exception}", e.Message);
         }
     }
 
     // 将FantnelInit定义为类的静态方法
     private static async Task FantnelInit(bool exitOnError = true)
     {
-        var httpClient = new HttpClient();
-        var response = await httpClient.GetAsync("http://110.42.70.32:13423/fantnel.json");
-        var json = await response.Content.ReadAsStringAsync();
-        var entity = JsonSerializer.Deserialize<EntityInfo>(json);
+        var entity = await X19Extensions.Nirvana.Api<EntityInfo>("/fantnel.json");
         if (entity == null)
         {
             if (!exitOnError) return;
@@ -163,14 +162,8 @@ public static class InitProgram
 
         Log.Information("CRC Salt 当前版本: {Version}", InfoManager.FantnelInfo.GameVersion);
         Log.Information("CRC Salt 计算完成: {CrcSalt}....", InfoManager.FantnelInfo.CrcSalt[..6]);
+        X19.CrcSalt = InfoManager.FantnelInfo.CrcSalt;
 
-        var yggdrasil = new StandardYggdrasil(new YggdrasilData
-        {
-            LauncherVersion = X19.GameVersion,
-            Channel = "netease",
-            CrcSalt = InfoManager.FantnelInfo.CrcSalt
-        });
-
-        return new Services(yggdrasil);
+        return new Services(new StandardYggdrasil());
     }
 }

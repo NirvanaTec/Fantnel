@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NirvanaPublic.Entities.Nirvana;
+using NirvanaPublic.Utils;
 using WPFLauncherApi.Entities;
 using WPFLauncherApi.Utils.CodeTools;
 
@@ -24,7 +25,7 @@ public class WebApiExceptionFilter : ExceptionFilterAttribute
             response = new EntityResponse<object>
             {
                 Code = -1,
-                Msg = GetMessage(context.Exception)
+                Msg = Tools.GetMessage(context.Exception)
             };
             var stack = GetStackTrace(context.Exception);
             if (stack != null) array.Add(stack);
@@ -34,8 +35,10 @@ public class WebApiExceptionFilter : ExceptionFilterAttribute
         var stackTrace = new StackTrace(context.Exception, true);
         foreach (var frame in stackTrace.GetFrames())
         {
+            var stackTraceFrame = new EntityStackTrace(frame);
+            if (stackTraceFrame.IsIgnore()) continue;
             if (index++ > 8) break;
-            array.Add(new EntityStackTrace(frame).ToJsonDocument());
+            array.Add(stackTraceFrame.ToJsonDocument());
         }
 
         response.Data = array;
@@ -66,22 +69,5 @@ public class WebApiExceptionFilter : ExceptionFilterAttribute
             default:
                 return null;
         }
-    }
-
-    private static string GetMessage(Exception exception)
-    {
-        if (exception is AggregateException aggregateException)
-        {
-            var message = aggregateException.InnerExceptions.Aggregate("",
-                (current, innerException) => current + GetMessage(innerException) + ", ");
-            return message.TrimEnd(',', ' ');
-        }
-
-        if (exception is not ErrorCodeException errorCodeException) return exception.Message;
-        {
-            var message = errorCodeException.Entity.Msg;
-            if (message != null) return message;
-        }
-        return exception.Message;
     }
 }

@@ -5,6 +5,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Copyright>涅槃科技 © 版权所有</Copyright>
     </PropertyGroup>
 
     <ItemGroup>

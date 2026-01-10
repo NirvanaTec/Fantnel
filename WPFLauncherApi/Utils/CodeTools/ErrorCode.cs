@@ -26,5 +26,6 @@ public enum ErrorCode
     ModsError = 21,
     PluginNotFound = 22,
     FormatError = 23,
-    CaptchaNot = 24
+    CaptchaNot = 24,
+    CrcSaltNotSet
 }

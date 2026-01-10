@@ -59,7 +59,7 @@ public class HttpWrapper : IDisposable
         return JsonSerializer.Deserialize<T>(await GetStringAsync(url, configure, cancellationToken));
     }
 
-    private async Task<HttpResponseMessage> GetAsync(string url, Action<HttpRequestOptions>? configure = null,
+    public async Task<HttpResponseMessage> GetAsync(string url, Action<HttpRequestOptions>? configure = null,
         CancellationToken cancellationToken = default)
     {
         var request = CreateRequest(HttpMethod.Get, url, configure);

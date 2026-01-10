@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Codexus.Game.Launcher.Utils;
 using Fantnel.Servlet;
 using Microsoft.Extensions.FileProviders;
 using NirvanaPublic;
@@ -15,8 +16,8 @@ public static class Program
         LogoInit();
 
         // 检查更新
-        Log.Information("{Path}", Path.Combine(Directory.GetCurrentDirectory(), "resources"));
-        UpdateTools.CheckUpdate().Wait();
+        Log.Information("{Path}", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources"));
+        UpdateTools.CheckUpdate(args).Wait();
 
         var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +48,7 @@ public static class Program
         // app.UseHttpsRedirection();
 
         // 获取运行目录路径
-        var resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), "resources", "static");
+        var resourcesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources", "static");
 
         // 启用静态文件服务，从运行目录的 resources/static 目录提供文件
         if (Directory.Exists(resourcesPath))
@@ -92,6 +93,7 @@ public static class Program
             InitProgram.NelInit();
 
             Log.Information("{Path}", resourcesPath);
+            Log.Information("Java: {Path}", PathUtil.JavaPath);
         });
 
         app.Run();

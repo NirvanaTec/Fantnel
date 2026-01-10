@@ -1,0 +1,10 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Fantnel MacOS | Arm64" type="DotNetFolderPublish" factoryName="Publish to folder">
+    <riderPublish configuration="Release" platform="Any CPU" target_folder="$PROJECT_DIR$/Fantnel/bin/Release/net10.0/osx-arm64/publish" target_framework="net10.0" uuid_high="2853784112223568270" uuid_low="-2049921471476716077">
+      <runtimes>
+        <item value="osx-arm64" />
+      </runtimes>
+    </riderPublish>
+    <method v="2" />
+  </configuration>
+</component>

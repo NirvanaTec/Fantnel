@@ -43,7 +43,8 @@ public class HomeController : ControllerBase
         {
             ["version"] = PublicProgram.Version,
             ["id"] = PublicProgram.VersionId,
-            ["mode"] = PublicProgram.Mode
+            ["mode"] = PublicProgram.Mode,
+            ["arch"] = PublicProgram.Arch
         };
         return Content(Code.ToJson(ErrorCode.Success, version), "application/json");
     }
@@ -51,14 +52,14 @@ public class HomeController : ControllerBase
     public static string GetIndexHtml()
     {
         // 获取运行目录路径
-        var resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), "resources", "static", "index.html");
+        var resourcesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources", "static", "index.html");
         return System.IO.File.Exists(resourcesPath) ? System.IO.File.ReadAllText(resourcesPath) : "";
     }
 
     // 获取配置
     private static JsonObject GetConfig()
     {
-        var resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), "resources", "config.json");
+        var resourcesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources", "config.json");
         if (!System.IO.File.Exists(resourcesPath)) return new JsonObject();
         return JsonSerializer.Deserialize<JsonObject>(System.IO.File.ReadAllText(resourcesPath)) ?? new JsonObject();
     }
@@ -66,7 +67,7 @@ public class HomeController : ControllerBase
     // 保存配置
     private static void SaveConfig(JsonObject config)
     {
-        var resourcesPath = Path.Combine(Directory.GetCurrentDirectory(), "resources", "config.json");
+        var resourcesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources", "config.json");
         System.IO.File.WriteAllText(resourcesPath, JsonSerializer.Serialize(config));
     }
 

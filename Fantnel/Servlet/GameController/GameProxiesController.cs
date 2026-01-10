@@ -22,7 +22,7 @@ public class GameProxiesController : ControllerBase
     public IActionResult GetLaunchHttp()
     {
         var ip = Tools.GetLocalIpAddress();
-        var proxies = ProxiesMessage.GetAllProxies();
+        var proxies = ActiveGameAndProxies.GetAllProxies();
         var data = new JsonObject
         {
             ["ip"] = ip,
@@ -34,7 +34,7 @@ public class GameProxiesController : ControllerBase
     [HttpGet("/api/server/close")]
     public IActionResult CloseGame([FromQuery] int id)
     {
-        ProxiesMessage.CloseProxy(id);
+        ActiveGameAndProxies.CloseProxy(id);
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 }
