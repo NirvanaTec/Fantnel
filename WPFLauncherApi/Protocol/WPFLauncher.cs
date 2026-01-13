@@ -69,12 +69,12 @@ public static class WPFLauncher
      */
     public static async Task<EntityGameCharacter[]> QueryNetGameCharactersAsync(string gameId)
     {
-        if (PublicProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
+        if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityGameCharacter>>(
             "/game-character/query/user-game-characters", new EntityQueryGameCharacters
             {
                 GameId = gameId,
-                UserId = PublicProgram.User.UserId
+                UserId = WPFLauncherProgram.User.UserId
             });
         return response == null ? throw new ErrorCodeException() : response.Data;
     }
@@ -86,12 +86,12 @@ public static class WPFLauncher
      */
     public static async Task CreateCharacterAsync(string gameId, string roleName)
     {
-        if (PublicProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
+        if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<object>("/game-character/create",
             new EntityGameCharacter
             {
                 GameId = gameId,
-                UserId = PublicProgram.User.UserId,
+                UserId = WPFLauncherProgram.User.UserId,
                 Name = roleName
             });
         if (response == null) throw new ErrorCodeException();
@@ -155,8 +155,8 @@ public static class WPFLauncher
         if (otp == null) throw new ErrorCodeException(ErrorCode.LoginError);
         var user = await AuthenticationOtpAsync(cookie, otp);
         if (user == null) throw new ErrorCodeException(ErrorCode.LoginError);
-        PublicProgram.User.UserId = user.EntityId;
-        PublicProgram.User.Token = user.Token;
+        WPFLauncherProgram.User.UserId = user.EntityId;
+        WPFLauncherProgram.User.Token = user.Token;
         await InterConn.LoginStart();
         // await Task.Run((Func<Task>) (async () => await Http.GetAsync($"https://service.codexus.today/interconnection/report?id={user.EntityId}&token={user.Token}&version={this.MPay.GameVersion}")));
         return user;
@@ -413,7 +413,8 @@ public static class WPFLauncher
     public static async Task<EntityComponentDownloadInfoResponse> GetNetGameComponentDownloadListAsync(
         string gameId)
     {
-        return await GetNetGameComponentDownloadListAsync(PublicProgram.User.UserId, PublicProgram.User.Token, gameId);
+        return await GetNetGameComponentDownloadListAsync(WPFLauncherProgram.User.UserId, WPFLauncherProgram.User.Token,
+            gameId);
     }
 
     /**

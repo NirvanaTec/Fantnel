@@ -30,7 +30,8 @@
             <td>{{ proxy.Id }}</td>
             <td>{{ proxy.Interceptor.NickName }}</td>
             <td>{{ serverIp }}:{{ proxy.Interceptor.LocalPort }}</td>
-            <td>{{ proxy.Interceptor.ForwardAddress }}:{{ proxy.Interceptor.ForwardPort }}</td>
+            <td v-if="proxy.Interceptor.ForwardPort == 25565">{{ proxy.Interceptor.ForwardAddress }}</td>
+            <td v-else>{{ proxy.Interceptor.ForwardAddress }}:{{ proxy.Interceptor.ForwardPort }}</td>
             <td>{{ proxy.Interceptor.ServerName }}</td>
             <td>{{ proxy.Interceptor.ServerVersion }}</td>
             <td>

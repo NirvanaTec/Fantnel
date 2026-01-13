@@ -1,4 +1,5 @@
 ﻿using OpenSDK.Entities.Config;
+using Serilog;
 using WPFLauncherApi.Entities;
 using WPFLauncherApi.Utils.CodeTools;
 
@@ -6,6 +7,7 @@ namespace NirvanaPublic.Manager;
 
 public static class InfoManager
 {
+    // 登录成功后的游戏账号列表
     public static readonly List<EntityAccount> GameAccountList = [];
 
     public static EntityAccount GetGameAccount()
@@ -13,11 +15,11 @@ public static class InfoManager
         return GameAccount?.UserId == null ? throw new ErrorCodeException(ErrorCode.LogInNot) : GameAccount;
     }
 
-    public static bool IsNotLogin()
-    {
-        // GameAccount == null || GameAccount.UserId == null
-        return GameAccount?.UserId == null;
-    }
+    // public static bool IsNotLogin()
+    // {
+    //     // GameAccount == null || GameAccount.UserId == null
+    //     return GameAccount?.UserId == null;
+    // }
 
     public static void AddAccount(EntityAccount account)
     {
@@ -30,7 +32,9 @@ public static class InfoManager
 
         GameAccountList.Add(account);
         GameAccount ??= account;
+        Log.Information("登录成功! 用户ID: {UserId}", account.UserId);
     }
+
     // 涅槃 服务器 信息
 #pragma warning disable CA2211
     public static EntityInfo? FantnelInfo;

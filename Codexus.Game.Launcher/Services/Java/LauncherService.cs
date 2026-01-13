@@ -94,7 +94,10 @@ public sealed class LauncherService : IDisposable
         return Task.CompletedTask;
     }
 
-    // 是否运行中
+    /**
+     * 是否运行中
+     * @return 真:正在运行
+     */
     public bool IsRunning()
     {
         return GameProcess is { HasExited: false };

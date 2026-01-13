@@ -2,23 +2,16 @@
 
 namespace WPFLauncherApi.Utils.CodeTools;
 
-public class ErrorCodeException : Exception
+public class ErrorCodeException(ErrorCode errorCode, object? data = null) : Exception(Code.GetMessage(errorCode))
 {
-    public readonly EntityResponse<object> Entity;
+    public readonly EntityResponse<object> Entity = Code.ToJson1(errorCode, data);
 
     public ErrorCodeException() : this(ErrorCode.Failure)
     {
     }
 
-    public ErrorCodeException(ErrorCode errorCode, object? data = null) : base(Code.GetMessage(errorCode))
-    {
-        ErrorCode = errorCode;
-        Data = data;
-        Entity = Code.ToJson1(errorCode, data);
-    }
-
-    private new object? Data { get; }
-    private ErrorCode ErrorCode { get; }
+    // private new object? Data { get; } = data;
+    // private ErrorCode ErrorCode { get; } = errorCode;
 
     public EntityResponse<object> GetJson()
     {

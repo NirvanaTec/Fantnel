@@ -1,9 +1,6 @@
 ﻿using System.Reflection;
-using System.Runtime.Loader;
 using Codexus.Development.SDK.Attributes;
-using Codexus.Development.SDK.Enums;
 using Codexus.Development.SDK.Manager;
-using Codexus.Development.SDK.Packet;
 using Codexus.Development.SDK.Plugin;
 using Codexus.Interceptors;
 using NirvanaPublic.Entities.NEL;
@@ -16,11 +13,7 @@ namespace NirvanaPublic.Message;
 
 public static class PluginMessage
 {
-    // 已经加载的插件路径
-    private static List<string> _loadedPluginPaths = [];
-
     private static readonly string[] PluginExtensions = [".ug", ".dll"];
-
 
     /**
      * 获取插件列表
@@ -237,178 +230,17 @@ public static class PluginMessage
     {
         try
         {
-            // 清理相同ID的插件
-            CleanSameIdPlugin();
-
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            // 自动更新插件
-            PlugInstoreMessage.AutoUpdateCheck();
-            // 获取目录下所有文件
-            var files = Directory.GetFiles(path);
-            // 获取目录下所有插件文件
-            List<string> pluginFiles = [];
-            pluginFiles.AddRange(files.Where(file => PluginExtensions.Any(file.EndsWith)));
-            // 比较插件文件是否变动
-            // pluginFiles 和 LoadedPluginPaths
-            // 内容是否完全一致
-            if (pluginFiles.SequenceEqual(_loadedPluginPaths) || _loadedPluginPaths.SequenceEqual(pluginFiles)) return;
-            var count = _loadedPluginPaths.Count;
-            if (count > 0) Log.Information("插件文件变动，重新加载插件");
-            // Interceptor 确保加载
-            Interceptor.EnsureLoaded();
-            // PacketManager 确保注册
-            PacketManager.Instance.EnsureRegistered();
-            // 清空插件以便重新加载
-            ClearPlugin();
-            // 自动插件 卸载插件
-            PluginManager.Instance.EnsureUninstall();
-            PluginManager.Instance.LoadPlugins(path);
-
-            var initializeMethod = typeof(PluginManager).GetMethod("InitializePlugins",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            if (initializeMethod != null)
-                initializeMethod.Invoke(PluginManager.Instance, null);
-            else
-                Log.Fatal("没有 InitializePlugins 方法, 这可能导致插件加载失败");
-
-            _loadedPluginPaths = pluginFiles;
-            if (count > 0) Log.Information("重新加载插件后的数量：{Count}", PluginManager.Instance.Plugins.Count);
+            PlugInstoreMessage.AutoUpdateCheck(); // 自动更新插件
+            Interceptor.EnsureLoaded(); // 确保加载
+            PacketManager.Instance.EnsureRegistered(); // 确保注册
+            PluginManager.Instance.EnsureUninstall(); // 备用卸载
+            PluginManager.Instance.LoadPlugins(path); // 加载插件
         }
         catch (Exception e)
         {
             Log.Error("应用初始化失败：{e}", e);
-        }
-    }
-
-    /**
-     * 清空插件状态
-     */
-    private static void ClearPlugin()
-    {
-        // 卸载所有插件
-        foreach (var plugin in PluginManager.Instance.Plugins)
-        {
-            if (plugin.Value.Assembly == null) continue;
-            var loadContext = AssemblyLoadContext.GetLoadContext(plugin.Value.Assembly);
-            if (loadContext is { IsCollectible: true }) loadContext.Unload();
-        }
-
-        // 清空插件状态
-        PluginManager.Instance.Plugins.Clear();
-        // PluginManager.Instance._loadedFiles
-        var loadedFilesField = typeof(PluginManager).GetField("_loadedFiles",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        if (loadedFilesField == null)
-            Log.Fatal("没有 _loadedFiles 属性, 这可能导致插件加载失败");
-        else
-            loadedFilesField.SetValue(PluginManager.Instance, new HashSet<string>());
-        // PacketManager.Instance._ids
-        var idsField = typeof(PacketManager).GetField("_ids",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        if (idsField == null)
-        {
-            Log.Fatal("没有 _ids 属性, 这可能导致插件加载失败");
-        }
-        else
-        {
-            var idsObj = idsField.GetValue(PacketManager.Instance);
-            var idsDict = idsObj as Dictionary<Type, Dictionary<EnumProtocolVersion, int>>;
-            var idList = new Dictionary<Type, Dictionary<EnumProtocolVersion, int>>();
-            if (idsDict != null)
-                foreach (var id in idsDict)
-                {
-                    var name = id.Key.AssemblyQualifiedName;
-                    if (name == null) continue;
-
-                    if (name.StartsWith("Codexus.Interceptors.Packet.")) idList.Add(id.Key, id.Value);
-                }
-
-            idsField.SetValue(PacketManager.Instance, idList);
-        }
-
-        // PacketManager.Instance._metadata
-        var metadataField = typeof(PacketManager).GetField("_metadata",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        if (metadataField == null)
-            Log.Fatal("没有 _metadata 属性, 这可能导致插件加载失败");
-        else
-            metadataField.SetValue(PacketManager.Instance, new Dictionary<Type, RegisterPacket>());
-        // PacketManager.Instance._packets
-        // Codexus 这写法....哎。不讲、不讲。
-        var packetsField = typeof(PacketManager).GetField("_packets",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        if (packetsField == null)
-        {
-            Log.Fatal("没有 _packets 属性, 这可能导致插件加载失败");
-        }
-        else
-        {
-            var packetsObj = packetsField.GetValue(PacketManager.Instance);
-            if (packetsObj is Dictionary<EnumConnectionState,
-                    Dictionary<EnumPacketDirection, Dictionary<EnumProtocolVersion, Dictionary<int, Type>>>>
-                packetsDict)
-            {
-                var newPacket =
-                    new Dictionary<EnumConnectionState, Dictionary<EnumPacketDirection,
-                        Dictionary<EnumProtocolVersion, Dictionary<int, Type>>>>();
-                foreach (var packet in packetsDict)
-                {
-                    var packet1 = packet.Value;
-                    var newPacket3 =
-                        new Dictionary<EnumPacketDirection, Dictionary<EnumProtocolVersion, Dictionary<int, Type>>>();
-                    foreach (var packet2 in packet1)
-                    {
-                        var packet3 = packet2.Value;
-                        var newPacket5 = new Dictionary<EnumProtocolVersion, Dictionary<int, Type>>();
-                        foreach (var packet4 in packet3)
-                        {
-                            var packet5 = packet4.Value;
-                            var newPacket6 = new Dictionary<int, Type>();
-                            foreach (var packet6 in packet5)
-                            {
-                                var packet7 = packet6.Value;
-                                var name = packet7.AssemblyQualifiedName;
-                                if (name == null) continue;
-                                if (name.StartsWith("Codexus.Interceptors.Packet."))
-                                    newPacket6.Add(packet6.Key, packet6.Value);
-                            }
-
-                            newPacket5.Add(packet4.Key, newPacket6);
-                        }
-
-                        newPacket3.Add(packet2.Key, newPacket5);
-                    }
-
-                    newPacket.Add(packet.Key, newPacket3);
-                }
-
-                packetsField.SetValue(PacketManager.Instance, newPacket);
-            }
-        }
-
-        // PacketManager.Instance._states
-        var statesField = typeof(PacketManager).GetField("_states",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        if (statesField == null)
-        {
-            Log.Fatal("没有 _states 属性, 这可能导致插件加载失败");
-        }
-        else
-        {
-            var statesObj = statesField.GetValue(PacketManager.Instance);
-            var statesDict = statesObj as Dictionary<Type, EnumConnectionState>;
-            var states = new Dictionary<Type, EnumConnectionState>();
-            if (statesDict != null)
-                foreach (var state in statesDict)
-                {
-                    var name = state.Key.AssemblyQualifiedName;
-                    if (name == null) continue;
-
-                    if (name.StartsWith("Codexus.Interceptors.Packet.")) states.Add(state.Key, state.Value);
-                }
-
-            statesField.SetValue(PacketManager.Instance, states);
         }
     }
 
@@ -504,7 +336,7 @@ public static class PluginMessage
         // 插件路径
         var path = plugin.Path;
         if (path == null) throw new ErrorCodeException(ErrorCode.PluginNotFound);
-        var path1 = path + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ".delete";
+        var path1 = path + "." + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ".delete";
 
         // 标记为待删除状态
         // 如果删除失败，重启时候会自动删除

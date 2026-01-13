@@ -68,6 +68,7 @@ public static class Code
             ErrorCode.FormatError => "格式异常",
             ErrorCode.CaptchaNot => "没有验证",
             ErrorCode.CrcSaltNotSet => "CRC 盐值未设置",
+            ErrorCode.RestartFailed => "重启失败",
             _ => "未知错误"
         };
     }
