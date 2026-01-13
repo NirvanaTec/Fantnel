@@ -156,9 +156,18 @@ public static class PluginMessage
         if (!Directory.Exists(path)) Directory.CreateDirectory(path);
         var filesPath = Directory.GetFiles(path);
         foreach (var filePath in filesPath)
+        {
             // 删除 处于 待删除状态的插件文件
-            if (filePath.EndsWith(".delete"))
+            if (!filePath.EndsWith(".delete")) continue;
+            try
+            {
                 File.Delete(filePath);
+            }
+            catch (Exception e)
+            {
+                Log.Warning("删除插件: {FilePath} 失败: {Exception}", filePath, e.Message);
+            }
+        }
     }
 
     // 清理相同ID的插件
