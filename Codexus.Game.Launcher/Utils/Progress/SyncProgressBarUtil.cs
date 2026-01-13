@@ -88,6 +88,13 @@ public static class SyncProgressBarUtil
             GC.SuppressFinalize(this);
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
+        // Heypixel Protocol 特供
+        public void Update(int current, string action)
+        {
+            Update((double)current, action);
+        }
+
         public void Update(double current, string action)
         {
             if (_disposed) return;

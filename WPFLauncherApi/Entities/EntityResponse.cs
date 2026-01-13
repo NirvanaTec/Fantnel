@@ -13,6 +13,8 @@ public class EntityInfo
 {
     [JsonPropertyName("versions")] public string[]? Versions { get; init; }
 
+    [JsonPropertyName("disabled_version")] public string[] DisabledVersions { get; init; } = [];
+
     [JsonPropertyName("ad1")] public Advertisement? Ad1 { get; init; }
 
     [JsonPropertyName("ad2")] public Advertisement? Ad2 { get; init; }

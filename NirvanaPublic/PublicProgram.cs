@@ -5,7 +5,7 @@ namespace NirvanaPublic;
 public static class PublicProgram
 {
     // Fantnel 版本
-    public const string Version = "1.3.0";
+    public const string Version = "1.3.1.1";
     public const int VersionId = 3;
 
     // 是最新版本
@@ -15,7 +15,7 @@ public static class PublicProgram
 
     // 检查更新的模式 win | linux | mac
     public static readonly string Mode = Tools.DetectOperatingSystemMode();
-    
+
     // arm64 | x64
     public static readonly string Arch = Tools.DetectArchitectureMode();
 

@@ -15,7 +15,7 @@ public static class InterConn
 
     public static async Task LoginStart()
     {
-        if (PublicProgram.User.UserId == null || PublicProgram.User.Token == null)
+        if (WPFLauncherProgram.User.UserId == null || WPFLauncherProgram.User.Token == null)
             throw new ErrorCodeException(ErrorCode.LogInNot);
         Log.Debug("LoginStart response: {0}",
             await (await Core.PostAsync1("/interconn/web/game-play-v2/login-start", "{\"strict_mode\":true}",
@@ -28,7 +28,7 @@ public static class InterConn
 
     public static async Task GameStart(string gameId)
     {
-        if (PublicProgram.User.UserId == null || PublicProgram.User.Token == null)
+        if (WPFLauncherProgram.User.UserId == null || WPFLauncherProgram.User.Token == null)
             throw new ErrorCodeException(ErrorCode.LogInNot);
         Log.Debug("GameStart response: {0}", await (await Core.PostAsync1("/interconn/web/game-play-v2/start",
                 JsonSerializer.Serialize(new InterConnGameStart

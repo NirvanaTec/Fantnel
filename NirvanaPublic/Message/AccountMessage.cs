@@ -4,6 +4,7 @@ using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
 using OpenSDK.Entities.Config;
 using Serilog;
+using WPFLauncherApi;
 using WPFLauncherApi.Entities;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 using WPFLauncherApi.Protocol;
@@ -57,7 +58,7 @@ public static class AccountMessage
         foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(account)))
         {
             InfoManager.GameAccount = gameAccount;
-            WPFLauncherApi.PublicProgram.User = gameAccount;
+            WPFLauncherProgram.User = gameAccount;
             break;
         }
     }
@@ -96,13 +97,11 @@ public static class AccountMessage
         {
             index++;
             item.Id = index;
-            item.UserId = null;
-            // 登录成功 同步 UserId
+            // 登录成功 同步 UserId, Token
             foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(item)))
             {
-                // item.Token = gameAccount.Token;
                 item.UserId = gameAccount.UserId;
-                break;
+                item.Token = gameAccount.Token;
             }
         }
 
@@ -159,13 +158,13 @@ public static class AccountMessage
 
             if (result == null)
                 throw new ErrorCodeException(ErrorCode.LoginError);
-            // if (saveAccount) SaveAccount(account);
 
             if (result.EntityId.Length < 1) return;
             account.UserId = result.EntityId;
             account.Token = result.Token;
             InfoManager.AddAccount(account);
-            Log.Information("登录成功! 用户ID: {UserId}", InfoManager.GetGameAccount().UserId);
+            // 登录成功后 保存账号
+            SaveAccount();
         }
     }
 
@@ -182,12 +181,8 @@ public static class AccountMessage
             // 修改账号
             accountList[account.Id.Value] = account;
 
-            foreach (var item in accountList)
-            {
-                item.Id = null;
-                item.UserId = null;
-            }
-
+            foreach (var item in accountList) item.Id = null;
+            // item.UserId = null;
             // 创建目录
             var directory = Path.GetDirectoryName(accountPath);
             if (directory == null)
@@ -210,12 +205,8 @@ public static class AccountMessage
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
 
-            foreach (var item in accountList)
-            {
-                item.Id = null;
-                item.UserId = null;
-            }
-
+            foreach (var item in accountList) item.Id = null;
+            // item.UserId = null;
             // cookie 默认 假账号
             if (account.Account == null && account.Type == "cookie")
                 // 10 位时间戳
@@ -238,17 +229,53 @@ public static class AccountMessage
         AutoLogin(account);
     }
 
+    // 保存账号到文件
+    private static void SaveAccount()
+    {
+        lock (LockManager.GameSaveAccountLock)
+        {
+            // 获取账号列表
+            var (accountList, accountPath) = GetAccountList1();
+
+            // 创建目录
+            var directory = Path.GetDirectoryName(accountPath);
+            if (directory == null)
+                throw new ErrorCodeException(ErrorCode.DirectoryCreateError);
+            Directory.CreateDirectory(directory);
+
+            // 写入文件
+            File.WriteAllText(accountPath, JsonSerializer.Serialize(accountList), Encoding.UTF8);
+        }
+    }
+
     // 自动登录账号
     private static void AutoLogin(EntityAccount account)
     {
-        if (!InfoManager.IsNotLogin()) return;
         try
         {
-            if (account.Type == "cookie") Login(account);
+            // 检查是否已登录过
+            var disabled = IsDefaultLogin.Any(defaultLogin => defaultLogin == account.ToString());
+            if (disabled) return;
+            IsDefaultLogin.Add(account.ToString());
+            if (account.Type == "cookie")
+            {
+                Login(account);
+            }
+            else if (account is { Type: "4399", UserId: not null, Token: not null })
+            {
+                WPFLauncherProgram.User.UserId = account.UserId;
+                WPFLauncherProgram.User.Token = account.Token;
+                var freeSkinCount = WPFLauncher.GetFreeSkinListAsync(0, 1).Result.Length;
+                if (freeSkinCount < 1) return;
+                account.UserId = account.UserId;
+                account.Token = account.Token;
+                InfoManager.AddAccount(account);
+                // 登录成功后 保存账号
+                SaveAccount();
+            }
         }
         catch (Exception e)
         {
-            IsDefaultLogin.Add(account.ToString());
             Log.Warning("自动登录失败: {account}: {Message}", account.Id, e.Message);
         }
     }
@@ -276,17 +303,10 @@ public static class AccountMessage
     }
 
     // 全自动执行默认登录
-    public static void DefaultLogin(EntityAccount[] entity)
+    private static void DefaultLogin(EntityAccount[] entity)
     {
         // 默认登录
-        foreach (var item in entity)
-        {
-            if (!InfoManager.IsNotLogin()) break;
-            var disabled = IsDefaultLogin.Any(defaultLogin => defaultLogin == item.ToString());
-
-            if (disabled) continue;
-            AutoLogin(item);
-        }
+        foreach (var item in entity) AutoLogin(item);
     }
 
     /**

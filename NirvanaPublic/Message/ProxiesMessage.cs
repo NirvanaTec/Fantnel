@@ -23,18 +23,33 @@ public static class ProxiesMessage
      * @param id 游戏服务器ID
      * @param name 玩家名称
      */
-    public static async Task<int> StartProxyAsync(string id, string name)
+    public static async Task StartProxyAsync(string id, string name)
     {
         // 插件初始化
         Log.Information("正在启动本地代理...");
         Log.Information("名称：{name}", name);
-        PluginMessage.InitializeAuto();
+        ActiveGameAndProxies.Close(id, name); // 清理旧代理
+        var port = Tools.GetUnusedPort(25565); // 获取没被占用的端口
+        List<string> arguments = ["--mode", "proxy", "--id", id, "--name", name];
+        if (port != 25565)
+        {
+            arguments.Add("--port");
+            arguments.Add(port.ToString());
+        }
+        var process = Tools.Restart(false, arguments);
+        if (process == null) throw new ErrorCodeException(ErrorCode.RestartFailed);
+        await ActiveGameAndProxies.Add(process, id, name, port);
+    }
 
+    /**
+     * 启动本地代理 [真正的]
+     * @param id 游戏服务器ID
+     * @param name 玩家名称
+     */
+    public static async Task<int> StartProxyAsync1(string id, string name, int port = 25565)
+    {
         try
         {
-            // 清理旧代理
-            ActiveGameAndProxies.Close(id, name);
-
             // 服务器普通信息
             var server = ServersGameMessage.GetServerId(id);
             if (server == null) throw new ErrorCodeException(ErrorCode.ServerInNot);
@@ -66,9 +81,12 @@ public static class ProxiesMessage
             InterConn.GameStart(server.EntityId).Wait();
             // await X19.InterconnectionApi.GameStartAsync(server.EntityId);
 
+            // 插件初始化
+            PluginMessage.InitializeAuto();
+
             // 创建代理 并 下载资源
             var interceptor =
-                CreateProxyInterceptor(server, character, version, address, InfoManager.GetGameAccount(), mods);
+                CreateProxyInterceptor(server, character, version, address, InfoManager.GetGameAccount(), mods, port);
 
             // 增加代理
             ActiveGameAndProxies.Add(interceptor, server.EntityId);
@@ -88,7 +106,7 @@ public static class ProxiesMessage
         EntityMcVersion version,
         EntityNetGameServerAddress address,
         EntityAccount availableUser,
-        string mods)
+        string mods, int port)
     {
         return Interceptor.CreateInterceptor(
             new EntitySocks5 { Enabled = false },
@@ -103,7 +121,7 @@ public static class ProxiesMessage
             availableUser.GetToken(),
             YggdrasilCallback,
             Tools.GetLocalIpAddress(),
-            25565
+            port
         );
 
         void YggdrasilCallback(string serverId)

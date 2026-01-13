@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using NirvanaPublic.Manager;
+﻿using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils.ViewLogger;
 using OpenSDK.Yggdrasil;
@@ -36,7 +35,24 @@ public static class InitProgram
         Log.Logger = logger.CreateLogger();
     }
 
-    public static void NelInit()
+    public static void NelInit(string[] args, Action logInit)
+    {
+        // 日志初始化
+        logInit.Invoke();
+
+        // 检查更新
+        Log.Information("{Path}", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources"));
+        UpdateTools.CheckUpdate(args).Wait();
+
+        // 重置日志
+        logInit.Invoke();
+    }
+
+    /**
+     * 核心 初始化
+     * @param isThread 为真不卡死线程
+     */
+    public static void NelInit1()
     {
         // Fantnel 服务器信息 初始化
         FantnelInit().Wait();
@@ -54,16 +70,15 @@ public static class InitProgram
 
         // 默认登录
         // 避免 自动登录失败 被拉取
-        if (!Debugger.IsAttached) AccountMessage.DefaultLogin(AccountMessage.GetAccountList());
+        AccountMessage.GetAccountList();
 
         // 插件管理器初始化
         PluginMessage.Initialize();
 
-        // 在线检测
-        var onlineThread = new Thread(Online);
-        onlineThread.Start();
-
         for (var i = 0; i < 4 && !PublicProgram.LatestVersion; i++) Log.Warning("当前版本不是最新版本，建议更新至最新版本，以获得更好的体验！");
+
+        // 在线检测
+        Online();
     }
 
     /**
@@ -90,6 +105,17 @@ public static class InitProgram
             if (version == PublicProgram.Version)
                 isVersion = true;
 
+        foreach (var version in InfoManager.FantnelInfo.DisabledVersions)
+            // x64_1.3.0
+            if (version == PublicProgram.Arch + "_" + PublicProgram.Version)
+                isVersion = false;
+            else if (version == PublicProgram.Mode + "_" + PublicProgram.Arch + "_" + PublicProgram.Version)
+                // win_x64_1.3.0
+                isVersion = false;
+            else if (version == PublicProgram.Mode + "_" + PublicProgram.Version)
+                // win_1.3.0
+                isVersion = false;
+
         if (!isVersion)
         {
             Log.Error("该版本已被禁用，请前往 https://npyyds.top/ 查看最新版本！");
@@ -98,7 +124,7 @@ public static class InitProgram
         }
 
         // 检查是否为最新版本
-        if (InfoManager.FantnelInfo.Versions.Last().EndsWith(PublicProgram.Version)) return;
+        if (InfoManager.FantnelInfo.Versions.Last().Equals(PublicProgram.Version)) return;
         PublicProgram.LatestVersion = false;
     }
 

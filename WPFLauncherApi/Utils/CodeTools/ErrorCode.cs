@@ -27,5 +27,6 @@ public enum ErrorCode
     PluginNotFound = 22,
     FormatError = 23,
     CaptchaNot = 24,
-    CrcSaltNotSet
+    CrcSaltNotSet = 25,
+    RestartFailed = 26
 }

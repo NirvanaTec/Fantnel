@@ -12,12 +12,14 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        // Fantnel 日志初始化
-        LogoInit();
+        
+        InitProgram.LogoInit(); // 初始化日志
+        LogoInit(); // 初始化日志
+        
+        InitProgram.NelInit(args, LogoInit);
 
-        // 检查更新
-        Log.Information("{Path}", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources"));
-        UpdateTools.CheckUpdate(args).Wait();
+        // 检查是否开启web服务
+        if (!RestartTools.Main(args, LogoInit)) return;
 
         var builder = WebApplication.CreateBuilder(args);
 
@@ -75,7 +77,7 @@ public static class Program
         // 在应用启动前清空控制台并输出访问地址
         app.Lifetime.ApplicationStarted.Register(() =>
         {
-            // Fantnel 日志初始化
+            // 重置日志
             LogoInit();
 
             // 分割显示多个URL
@@ -90,7 +92,7 @@ public static class Program
             Log.Information("---------- 涅槃科技 & Codexus (OpenSDK) ----------");
 
             // Fantnel 初始化
-            InitProgram.NelInit();
+            InitProgram.NelInit1();
 
             Log.Information("{Path}", resourcesPath);
             Log.Information("Java: {Path}", PathUtil.JavaPath);
@@ -101,7 +103,7 @@ public static class Program
 
     private static void LogoInit()
     {
-        InitProgram.LogoInit();
+        Console.Clear(); // 清空框架信息
         Log.Information("----- Fantnel -----");
         Log.Information("应用启动成功！");
         Log.Information("版本: {ver}", PublicProgram.Version);

@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using NirvanaPublic;
 using NirvanaPublic.Manager;
+using NirvanaPublic.Utils;
 using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet;
@@ -47,6 +48,15 @@ public class HomeController : ControllerBase
             ["arch"] = PublicProgram.Arch
         };
         return Content(Code.ToJson(ErrorCode.Success, version), "application/json");
+    }
+
+    // 设置主题
+    [HttpGet("/api/reboot")]
+    public IActionResult Reboot()
+    {
+        // 重启程序
+        Tools.Restart();
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
     public static string GetIndexHtml()

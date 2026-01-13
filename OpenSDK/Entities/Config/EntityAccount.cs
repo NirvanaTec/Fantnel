@@ -31,7 +31,9 @@ public class EntityAccount : EntityUserInfo
 
     public new string ToString()
     {
-        return $"Name: {Name}, Account: {Account}, Type: {Type}, Password: {Password}";
+        return Type == "cookie"
+            ? $"Type: {Type}, Password: {Password}"
+            : $"Account: {Account}, Type: {Type}, Password: {Password}";
     }
 
     public string GetUserId()

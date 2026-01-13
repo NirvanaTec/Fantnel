@@ -75,6 +75,9 @@ public static class PlugInstoreMessage
      */
     public static void AutoUpdateCheck()
     {
+        // 清理相同ID的插件
+        PluginMessage.CleanSameIdPlugin();
+
         var plugins = PluginMessage.GetPluginList();
         foreach (var plugin in plugins)
         {

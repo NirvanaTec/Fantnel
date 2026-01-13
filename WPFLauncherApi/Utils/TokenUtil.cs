@@ -9,9 +9,9 @@ public static class TokenUtil
         string requestPath,
         string sendBody)
     {
-        if (PublicProgram.User.UserId == null || PublicProgram.User.Token == null)
+        if (WPFLauncherProgram.User.UserId == null || WPFLauncherProgram.User.Token == null)
             throw new ErrorCodeException(ErrorCode.LogInNot);
-        return Compute(requestPath, sendBody, PublicProgram.User.UserId, PublicProgram.User.Token);
+        return Compute(requestPath, sendBody, WPFLauncherProgram.User.UserId, WPFLauncherProgram.User.Token);
     }
 
     public static Dictionary<string, string> Compute(

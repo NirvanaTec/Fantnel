@@ -1,16 +1,32 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Serilog;
 using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Utils;
 
 public static class Tools
 {
+    private static bool _isDebugMode;
+
+    [Conditional("DEBUG")]
+    private static void SetDebugMode()
+    {
+        _isDebugMode = true;
+    }
+
+    public static bool IsReleaseVersion()
+    {
+        SetDebugMode();
+        return !_isDebugMode;
+    }
+
     public static (T[], string) GetValueOrDefault<T>(string fileName)
     {
         var path = Path.Combine(AppContext.BaseDirectory, "resources", fileName);
@@ -157,15 +173,6 @@ public static class Tools
         return RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "mac" : "win";
     }
 
-    public static bool IsReleaseVersion()
-    {
-#if DEBUG
-        return false;
-#else
-            return true;
-#endif
-    }
-
     /**
      * 检测当前架构并返回对应的模式
      * @return arm64 | x64
@@ -174,5 +181,33 @@ public static class Tools
     {
         return RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
     }
-    
+
+    /**
+     * 重启当前进程
+     * @param isExit 退出当前进程
+     * @param arguments 附加参数
+     */
+    public static Process? Restart(bool isExit = true, List<string>? arguments = null)
+    {
+        var str1 = Environment.ProcessPath;
+        if (string.IsNullOrEmpty(str1))
+        {
+            using var currentProcess = Process.GetCurrentProcess();
+            str1 = currentProcess.MainModule?.FileName;
+        }
+
+        if (string.IsNullOrEmpty(str1)) throw new Exception("无法确定自身运行路径，无法重启当前进程。");
+        var str2 = Environment.GetCommandLineArgs().Aggregate(" ", (current, arg) => current + arg + " ");
+        if (arguments != null) str2 = arguments.Aggregate(str2, (current, argument) => current + argument + " ");
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = str1,
+            Arguments = str2,
+            UseShellExecute = true
+        };
+        Log.Information("正在重启: {ExecutablePath} {Arguments}", str1, str2);
+        var process = Process.Start(startInfo);
+        if (isExit) Environment.Exit(0);
+        return process;
+    }
 }
