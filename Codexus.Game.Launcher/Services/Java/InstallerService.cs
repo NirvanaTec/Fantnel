@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -17,59 +18,74 @@ namespace Codexus.Game.Launcher.Services.Java;
 
 public static class InstallerService
 {
-    public static async Task<bool> PrepareMinecraftClient(EnumGameVersion gameVersion)
+    public static async Task PrepareMinecraftClient(EnumGameVersion gameVersion)
     {
         var versionName = Enum.GetName(gameVersion);
+        
         var md5Path = Path.Combine(PathUtil.GameBasePath, "GAME_BASE.MD5");
-        var zipPath = Path.Combine(PathUtil.CachePath, "GameBase.7z");
-        var versionMd5File = Path.Combine(PathUtil.GameBasePath, versionName + ".MD5");
-        var versionZip = Path.Combine(PathUtil.CachePath, versionName + ".7z");
-        var libMd5File = Path.Combine(PathUtil.GameBasePath, versionName + "_Lib.MD5");
-        var libZip = Path.Combine(PathUtil.CachePath, versionName + "_Lib.7z");
+        var zipPath = Path.Combine(PathUtil.CachePath, "GameBase.zip");
+        
         var minecraftClientLibs = await WPFLauncher.GetMinecraftClientLibsAsync();
         await ProcessPackage(minecraftClientLibs.Url, zipPath, PathUtil.GameBasePath, md5Path, minecraftClientLibs.Md5,
             "base package");
+        
+        var versionMd5File = Path.Combine(PathUtil.GameBasePath, versionName + ".MD5");
+        var versionZip = Path.Combine(PathUtil.CachePath, versionName + ".zip");
+        
         var versionResult = await WPFLauncher.GetMinecraftClientLibsAsync(gameVersion);
         await ProcessPackage(versionResult.Url, versionZip, PathUtil.GameBasePath, versionMd5File, versionResult.Md5,
-            versionName + " package");
+            versionName + " package", () =>
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+                // 删除 linux/mac 下的 natives[win库]
+                var nativesPath = Path.Combine(PathUtil.GameBasePath,
+                    ".minecraft", "versions",
+                    GameVersionUtil.GetGameVersionFromEnum(gameVersion), "natives");
+                foreach (var native in Directory.GetFiles(nativesPath))
+                    if (native.EndsWith(".dll"))
+                        File.Delete(native);
+            });
+                
+        var libMd5File = Path.Combine(PathUtil.GameBasePath, versionName + "_Lib.MD5");
+        var libZip = Path.Combine(PathUtil.CachePath, versionName + "_Lib.7z");
+        
         await ProcessPackage(versionResult.CoreLibUrl, libZip, PathUtil.CachePath, libMd5File, versionResult.CoreLibMd5,
             versionName + " libraries");
         InstallCoreLibs(Path.Combine(PathUtil.CachePath, versionName + "_libs"), gameVersion);
-        return true;
     }
 
     private static async Task ProcessPackage(string url, string zipPath, string extractTo, string md5Path, string md5,
-        string label)
+        string label, Action success = null)
     {
-        var flag = File.Exists(md5Path);
-        if (flag) flag = await File.ReadAllTextAsync(md5Path) == md5;
+        // 已经下载过，且md5匹配，直接返回
+        if (File.Exists(md5Path) && await File.ReadAllTextAsync(md5Path) == md5) return;
 
-        if (!flag)
+        var progress = new SyncProgressBarUtil.ProgressBar();
+        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update =>
         {
-            var progress = new SyncProgressBarUtil.ProgressBar();
-            var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update =>
+            progress.Update(update.Percent, update.Message);
+        });
+        await DownloadUtil.DownloadAsync(url, zipPath, p =>
+        {
+            uiProgress.Report(new SyncProgressBarUtil.ProgressReport
             {
-                progress.Update(update.Percent, update.Message);
+                Percent = p,
+                Message = "Downloading " + label
             });
-            await DownloadUtil.DownloadAsync(url, zipPath, p =>
+        });
+
+        await CompressionUtil.ExtractAsync(zipPath, extractTo, p =>
+        {
+            uiProgress.Report(new SyncProgressBarUtil.ProgressReport
             {
-                uiProgress.Report(new SyncProgressBarUtil.ProgressReport
-                {
-                    Percent = p,
-                    Message = "Downloading " + label
-                });
+                Percent = p,
+                Message = "Extracting " + label
             });
-            CompressionUtil.ExtractZip(zipPath, extractTo, p =>
-            {
-                uiProgress.Report(new SyncProgressBarUtil.ProgressReport
-                {
-                    Percent = p,
-                    Message = "Extracting " + label
-                });
-            });
-            if (md5Path != null) await File.WriteAllTextAsync(md5Path, md5);
-            FileUtil.DeleteFileSafe(zipPath);
-        }
+        });
+
+        success?.Invoke();
+        if (md5Path != null) await File.WriteAllTextAsync(md5Path, md5);
+        FileUtil.DeleteFileSafe(zipPath);
     }
 
     private static void InstallCoreLibs(string libPath, EnumGameVersion gameVersion)
@@ -229,7 +245,7 @@ public static class InstallerService
                 });
             });
             var idx2 = idx;
-            CompressionUtil.Extract7Z(archive, extractDir, p =>
+            await CompressionUtil.ExtractAsync(archive, extractDir, p =>
             {
                 uiProgress.Report(new SyncProgressBarUtil.ProgressReport
                 {
@@ -281,7 +297,7 @@ public static class InstallerService
                 });
             });
             FileUtil.DeleteDirectorySafe(compDir);
-            CompressionUtil.Extract7Z(compArchive, compDir, p =>
+            await CompressionUtil.ExtractAsync(compArchive, compDir, p =>
             {
                 uiProgress.Report(new SyncProgressBarUtil.ProgressReport
                 {
@@ -343,10 +359,11 @@ public static class InstallerService
             InstallCustomMods(text3);
         }
 
-        var text4 = Path.Combine(text2, "assets");
+        var linkPath = Path.Combine(text2, "assets");
         var targetPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "assets");
-        if (Directory.Exists(text4)) FileUtil.DeleteDirectorySafe(text4);
-        FileUtil.CreateSymbolicLinkSafe(text4, targetPath);
+        // 创建assets目录符号链接
+        if (Directory.Exists(linkPath)) Directory.Delete(linkPath);
+        Directory.CreateSymbolicLink(linkPath, targetPath + "/");
         return text;
     }
 
@@ -377,8 +394,8 @@ public static class InstallerService
                 "natives",
                 "runtime"
             );
-            if (!Directory.Exists(text2)) FileUtil.CreateDirectorySafe(text2);
-            if (!File.Exists(text)) throw new Exception("Native dll not found: " + text);
+            FileUtil.CreateDirectorySafe(text2);
+            if (!File.Exists(text)) throw new Exception("未找到验证库: " + text);
             var destPath = Path.Combine(text2, "api-ms-win-crt-utility-l1-1-1.dll");
             FileUtil.CopyFileSafe(text, destPath);
         }

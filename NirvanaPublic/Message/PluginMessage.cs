@@ -253,6 +253,18 @@ public static class PluginMessage
         }
     }
 
+    /**
+     * 插件是否发生变化
+     * 与 已加载完成的插件，对比是否有变化
+     * 允许变多，不允许变少
+     * @return 是否发生变化
+     */
+    public static bool IsPluginChanged()
+    {
+        var plugins = GetPluginList();
+        return PluginManager.Instance.Plugins.Count > plugins.Count || PluginManager.Instance.Plugins.Any(plugin => plugins.Where(plugin1 => plugin.Value.Id == plugin1.Id).Any(plugin1 => plugin.Value.Version != plugin1.Version));
+    }
+
     private static EntityPluginState? GetPluginToId(string id)
     {
         return GetPluginList().FirstOrDefault(plugin => plugin.Id == id);

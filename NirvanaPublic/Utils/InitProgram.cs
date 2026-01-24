@@ -1,4 +1,5 @@
-﻿using NirvanaPublic.Manager;
+﻿using Codexus.Game.Launcher.Utils;
+using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils.ViewLogger;
 using OpenSDK.Yggdrasil;
@@ -41,7 +42,7 @@ public static class InitProgram
         logInit.Invoke();
 
         // 检查更新
-        Log.Information("{Path}", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources"));
+        Log.Information("{Path}", PathUtil.ResourcePath);
         UpdateTools.CheckUpdate(args).Wait();
 
         // 重置日志

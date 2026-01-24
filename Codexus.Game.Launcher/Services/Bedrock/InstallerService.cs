@@ -102,7 +102,7 @@ public static class InstallerService
     private static async Task ExtractMinecraftPackage(string archivePath, string basePath,
         IProgress<SyncProgressBarUtil.ProgressReport> progress)
     {
-        await CompressionUtil.Extract7ZAsync(archivePath, basePath, percentage =>
+        await CompressionUtil.ExtractAsync(archivePath, basePath, percentage =>
         {
             progress.Report(new SyncProgressBarUtil.ProgressReport
             {

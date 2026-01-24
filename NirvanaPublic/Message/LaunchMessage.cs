@@ -1,4 +1,5 @@
-﻿using Codexus.Game.Launcher.Entities;
+﻿using System.Runtime.InteropServices;
+using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Game.Launcher.Utils;
 using NirvanaPublic.Manager;
@@ -7,6 +8,7 @@ using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 using WPFLauncherApi.Protocol;
+using WPFLauncherApi.Utils;
 using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
@@ -32,6 +34,9 @@ public static class LaunchMessage
         // 服务器版本
         var version = details.McVersionList[0]; // 1.20
         var gameVersion = GameVersionUtil.GetEnumFromGameVersion(version.Name);
+
+        // 检测并自动安装java环境
+        ExEnvironment(gameVersion);
 
         // 安装模组
         await InstallerService.InstallGameMods(gameVersion, server.EntityId);
@@ -60,20 +65,56 @@ public static class LaunchMessage
             LoadCoreMods = true
         };
 
-        // 检查并安装Java环境
-        UpdateTools.CheckUpdate(PublicProgram.Mode + "." + PublicProgram.Arch + ".java", "Java").Wait();
-
         // 启动白端游戏
-        var launcherService = await new LauncherService(launchRequest).LaunchGameAsync();
+        var launcherService = new LauncherService(launchRequest);
+        await launcherService.LaunchGameAsync();
         ActiveGameAndProxies.Add(launcherService);
     }
 
-    // 获取已启动白端游戏
-    public static List<EntityLaunchGame> GetLauncherService()
+    private static void ExEnvironment(EnumGameVersion gameVersion)
     {
-        ActiveGameAndProxies.Dispose();
-        List<EntityLaunchGame> list = [];
-        list.AddRange(ActiveGameAndProxies.ActiveLaunchers.Select(launcher => launcher.Entity));
-        return list;
+        ExEnvironmentByJava(gameVersion);
+        ExEnvironmentByNatives(gameVersion);
     }
+
+
+    // 检测并自动处理natives
+    private static void ExEnvironmentByNatives(EnumGameVersion gameVersion)
+    {
+        // Win 使用盒子资源
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+        var version = GameVersionUtil.GetGameVersionFromEnum(gameVersion);
+        var mode = PublicProgram.Mode + "." + version + ".natives";
+        var num = UpdateTools.CheckUpdate(mode, "Natives").Result;
+        // 没有更新的资源
+        if (num > 0) return;
+        Log.Error("version:{version}", mode);
+        Log.Error("该版本可能不支持，如有需要，建议联系开发者。");
+    }
+
+    // 检测并自动安装java环境
+    private static void ExEnvironmentByJava(EnumGameVersion gameVersion)
+    {
+        // 检查并安装Java环境
+        string javaName;
+        string javaPath;
+        if (gameVersion >= EnumGameVersion.V_1_16)
+        {
+            javaName = "jdk17";
+            javaPath = PathUtil.Jre17Path;
+        }
+        else
+        {
+            javaName = "jre8";
+            javaPath = PathUtil.Jre8Path;
+        }
+
+        // 不存在
+        if (!PathUtil.ExistJava(javaPath))
+            UpdateTools.CheckUpdate(PublicProgram.Mode + "." + PublicProgram.Arch + "." + javaName + ".java", "Java")
+                .Wait();
+
+        Log.Information("Java Path: {JavaPath}", javaPath);
+    }
+    
 }

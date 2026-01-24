@@ -26,7 +26,7 @@ public class GameProxiesController : ControllerBase
         var data = new JsonObject
         {
             ["ip"] = ip,
-            ["proxies"] = JsonSerializer.SerializeToNode(proxies),
+            ["proxies"] = JsonSerializer.SerializeToNode(proxies)
         };
         return Content(Code.ToJson(ErrorCode.Success, data), "application/json");
     }

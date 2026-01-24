@@ -19,7 +19,7 @@ public class GameLaunchController : ControllerBase
     [HttpGet("/api/gamelaunch/get")]
     public IActionResult GetLauncherService()
     {
-        var list = LaunchMessage.GetLauncherService();
+        var list = ActiveGameAndProxies.GetAllLaunchers();
         return Content(Code.ToJson(ErrorCode.Success, list), "application/json");
     }
 

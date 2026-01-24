@@ -1,7 +1,10 @@
-﻿using System.Text.Json.Nodes;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text.Json.Nodes;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
 using NirvanaPublic.Entities;
+using Serilog;
 
 namespace NirvanaPublic.Utils;
 
@@ -14,8 +17,9 @@ public static class ThreadUpdateTools
      * url: http://npyyds.to/Fantnel1.dll,
      * sha256: 73f95f9e0ceb205fc1c4dc50c0769729d7087868c2aef1d504cb38c771ec
      */
-    public static void CheckUpdate(JsonArray jsonArray, string name)
+    public static async Task CheckUpdate(JsonArray jsonArray, string name, bool safeMode = false)
     {
+        var downloadSize = 0;
         List<IntPtrReference> progress = [];
 
         foreach (var item in jsonArray)
@@ -32,7 +36,10 @@ public static class ThreadUpdateTools
 
             // 修复路径
             pathValue = pathValue.Replace('\\', Path.DirectorySeparatorChar);
+
             var resourcesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, pathValue);
+            var resourcesPath1 = resourcesPath;
+            if (safeMode) resourcesPath1 = Path.Combine(PathUtil.UpdaterPath, pathValue);
 
             // 硬盘访问速限制 1 秒 / 32次 ≈ 0.015
             Thread.Sleep(15);
@@ -44,9 +51,43 @@ public static class ThreadUpdateTools
             // 83 - 15 = 68ms
             Thread.Sleep(68);
             newProgress.Value = 0;
-
-            DownloadWithRetryAsync(url, resourcesPath, newProgress, name, progress, jsonArray.Count);
+            if (pathValue.EndsWith(".dll")) downloadSize++;
+            DownloadWithRetryAsync(url, resourcesPath1, newProgress, name, progress, jsonArray.Count);
         }
+
+        if (safeMode && downloadSize > 0)
+        {
+            Log.Information("正在更新核心资源，这会自动重启[1次]，请稍后...");
+            var scriptPath = PathUtil.ScriptPath;
+            await File.WriteAllTextAsync(scriptPath, GenerateUpdateScript());
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
+                Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "/C \"" + scriptPath + "\""
+                    : scriptPath,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+            Environment.Exit(0);
+        }
+    }
+
+    private static string GenerateUpdateScript()
+    {
+        var exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? Tools.GetProcessLocation()
+            : Tools.GetProcessArguments();
+        var updateScript = GenerateUpdateScript(PathUtil.UpdaterPath, AppDomain.CurrentDomain.BaseDirectory, exeName);
+        Log.Information("更新脚本: {UpdateScript}", updateScript);
+        return updateScript;
+    }
+
+    private static string GenerateUpdateScript(string tempDir, string targetDir, string exeName)
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? $"timeout /t 1 /nobreak\r\nxcopy /e /y /i \"{tempDir}\\*\" \"{targetDir}\"\r\nstart \"\" \"{exeName}\""
+            : $"sleep 1\ncp -r \"{tempDir}/.\" \"{targetDir}\"\ndotnet \"{exeName}\" & rm -rf \"{tempDir}\"";
     }
 
     private static void DownloadWithRetryAsync(string url, string filePath, IntPtrReference progressRef,

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Codexus.Game.Launcher.Utils;
 using Serilog;
 using WPFLauncherApi.Utils.CodeTools;
 
@@ -29,7 +30,7 @@ public static class Tools
 
     public static (T[], string) GetValueOrDefault<T>(string fileName)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "resources", fileName);
+        var path = Path.Combine(PathUtil.ResourcePath, fileName);
         List<T>? entity = [];
         if (!File.Exists(path)) return (entity.ToArray(), path);
 
@@ -153,13 +154,13 @@ public static class Tools
     }
 
     // 获取IP地址
-    public static string GetLocalIpAddress()
+    public static string GetLocalIpAddress(bool localhost = true)
     {
         var host = Dns.GetHostEntry(Dns.GetHostName());
         foreach (var ip in host.AddressList)
             if (ip.AddressFamily == AddressFamily.InterNetwork)
                 return ip.ToString();
-        return "localhost";
+        return localhost ? "localhost" : "127.0.0.1";
     }
 
     /**
@@ -189,25 +190,47 @@ public static class Tools
      */
     public static Process? Restart(bool isExit = true, List<string>? arguments = null)
     {
-        var str1 = Environment.ProcessPath;
-        if (string.IsNullOrEmpty(str1))
-        {
-            using var currentProcess = Process.GetCurrentProcess();
-            str1 = currentProcess.MainModule?.FileName;
-        }
-
-        if (string.IsNullOrEmpty(str1)) throw new Exception("无法确定自身运行路径，无法重启当前进程。");
-        var str2 = Environment.GetCommandLineArgs().Aggregate(" ", (current, arg) => current + arg + " ");
-        if (arguments != null) str2 = arguments.Aggregate(str2, (current, argument) => current + argument + " ");
+        var fileName = GetProcessLocation();
+        var arg = GetProcessArguments(arguments);
         var startInfo = new ProcessStartInfo
         {
-            FileName = str1,
-            Arguments = str2,
+            FileName = fileName,
+            Arguments = arg,
             UseShellExecute = true
         };
-        Log.Information("正在重启: {ExecutablePath} {Arguments}", str1, str2);
+        Log.Information("正在重启: {ExecutablePath} {Arguments}", fileName, arg);
         var process = Process.Start(startInfo);
         if (isExit) Environment.Exit(0);
         return process;
+    }
+
+    /**
+     * 前/尾 不包含空格
+     * @return 当前进程的附加参数
+     */
+    public static string GetProcessArguments(List<string>? arguments = null)
+    {
+        var arg = Environment.GetCommandLineArgs().Aggregate("", (current, lineArg) => current + lineArg + " ");
+        if (arguments != null) arg = arguments.Aggregate(arg, (current, argument) => current + argument + " ");
+        // 移除最后一个空格
+        // "a " > "a"
+        return arg.Length >= 2 ? arg[..^1] : arg;
+    }
+
+    /**
+     * @return 当前进程的路径
+     */
+    public static string GetProcessLocation()
+    {
+        var currentProcess = Process.GetCurrentProcess();
+        var mainModule = currentProcess.MainModule;
+        if (mainModule != null)
+        {
+            var fileName1 = mainModule.FileName;
+            if (!string.IsNullOrEmpty(fileName1)) return fileName1;
+        }
+
+        var fileName2 = Environment.ProcessPath;
+        return string.IsNullOrEmpty(fileName2) ? throw new Exception("无法确定自身运行路径，无法重启当前进程。") : fileName2;
     }
 }

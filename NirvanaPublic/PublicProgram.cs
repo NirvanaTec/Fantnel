@@ -5,7 +5,7 @@ namespace NirvanaPublic;
 public static class PublicProgram
 {
     // Fantnel 版本
-    public const string Version = "1.3.1.1";
+    public const string Version = "1.3.1.3";
     public const int VersionId = 3;
 
     // 是最新版本

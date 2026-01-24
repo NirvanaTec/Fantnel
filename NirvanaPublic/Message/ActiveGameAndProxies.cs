@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Interceptors;
 using NirvanaPublic.Entities.NEL;
@@ -27,7 +28,7 @@ public static class ActiveGameAndProxies
     private static readonly List<EntityProxy> ActiveProxies1 = [];
 
     // 已启动白端游戏
-    public static readonly List<LauncherService> ActiveLaunchers = [];
+    private static readonly List<LauncherService> ActiveLaunchers = [];
 
     /**
      * 清理已启动代理和游戏
@@ -44,15 +45,15 @@ public static class ActiveGameAndProxies
                          .Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name)))
             {
                 log++;
-                proxy.Interceptor.ShutdownAsync();
+                proxy.Shutdown();
                 ActiveProxies.Remove(proxy);
             }
-            
+
             foreach (var proxy in ActiveProxies1.ToList()
                          .Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name)))
             {
                 log++;
-                proxy.Kill();
+                proxy.Shutdown();
                 ActiveProxies1.Remove(proxy);
             }
 
@@ -72,6 +73,16 @@ public static class ActiveGameAndProxies
         }
     }
 
+    // 添加已启动代理1
+    public static List<EntityLaunchGame> GetAllLaunchers()
+    {
+        // 获取已启动白端游戏
+        DisposeActive();
+        List<EntityLaunchGame> list = [];
+        list.AddRange(ActiveLaunchers.Select(launcher => launcher.Entity));
+        return list;
+    }
+
     // 添加已启动代理
     public static void Add(Interceptor interceptor, string serverId)
     {
@@ -79,14 +90,15 @@ public static class ActiveGameAndProxies
         {
             var proxy = new RunningProxy
             {
-                Id = ActiveProxies.Count + 1,
+                Id = GetProxiesIndex(),
                 UserId = InfoManager.GetGameAccount().UserId,
                 UserToken = InfoManager.GetGameAccount().Token,
                 ServerId = serverId,
-                Interceptor = interceptor,
+                Interceptor = interceptor
             };
             ActiveProxies.Add(proxy);
         }
+        DisposeActive();
     }
 
     // 添加已启动代理1
@@ -94,14 +106,14 @@ public static class ActiveGameAndProxies
     {
         // 服务器地址
         var address = await WPFLauncher.GetNetGameServerAddressAsync(serverId);
-            
+
         // 服务器普通信息
         var server = ServersGameMessage.GetServerId(serverId);
         if (server == null) throw new ErrorCodeException(ErrorCode.ServerInNot);
-            
+
         // 服务器详细信息
         var details = await WPFLauncher.QueryNetGameDetailByIdAsync(server.EntityId);
-        
+
         lock (SafeLock)
         {
             var interceptor = new EntityProxyItem
@@ -115,15 +127,16 @@ public static class ActiveGameAndProxies
             };
             var entityProxy = new EntityProxy
             {
-                Id = ActiveProxies1.Count + 1,
+                Id = GetProxiesIndex(),
                 UserId = InfoManager.GetGameAccount().UserId,
                 UserToken = InfoManager.GetGameAccount().Token,
                 ServerId = serverId,
-                Interceptor = interceptor,
+                Interceptor = interceptor
             };
             entityProxy.SetProxy(proxy);
             ActiveProxies1.Add(entityProxy);
         }
+        DisposeActive();
     }
 
     // 添加已启动白端游戏
@@ -133,33 +146,29 @@ public static class ActiveGameAndProxies
         {
             ActiveLaunchers.Add(launcherService);
         }
+        DisposeActive();
     }
-    
+
     // 关闭代理
     public static void CloseProxy(int id)
     {
         lock (SafeLock)
         {
-            var proxy = ActiveProxies1.FirstOrDefault(x => x.Id == id);
-            if (proxy == null) return;
-            proxy.Kill();
-            ActiveProxies1.Remove(proxy);
-            Log.Information("已关闭代理 {Nickname} ({Id})", proxy.GetNickName(), proxy.Id);
+            var proxy = ActiveProxies.FirstOrDefault(x => x.Id == id);
+            if (proxy != null)
+            {
+                proxy.Interceptor.ShutdownAsync();
+                ActiveProxies.Remove(proxy);
+                Log.Information("已关闭代理 {Nickname} ({Id})", proxy.GetNickName(), proxy.Id);
+                return;
+            }
+            var proxy1 = ActiveProxies1.FirstOrDefault(x => x.Id == id);
+            if (proxy1 == null) return;
+            proxy1.Shutdown();
+            ActiveProxies1.Remove(proxy1);
+            Log.Information("已关闭代理 {Nickname} ({Id})", proxy1.GetNickName(), proxy1.Id);
         }
     }
-
-    // // 关闭代理
-    // public static void CloseProxy(int id)
-    // {
-    //     lock (SafeLock)
-    //     {
-    //         var proxy = ActiveProxies.FirstOrDefault(x => x.Id == id);
-    //         if (proxy == null) return;
-    //         proxy.Interceptor.ShutdownAsync();
-    //         ActiveProxies.Remove(proxy);
-    //         Log.Information("已关闭代理 {Nickname} ({Id})", proxy.GetNickName(), proxy.Id);
-    //     }
-    // }
 
     // 关闭白端游戏
     public static void CloseGame(string id)
@@ -186,27 +195,32 @@ public static class ActiveGameAndProxies
 
         return null;
     }
-    
+
     // 获取所有已启动代理
-    public static List<EntityProxy> GetAllProxies()
+    public static List<object> GetAllProxies()
     {
+        DisposeActive();
         lock (SafeLock)
         {
-            return ActiveProxies1;
+             var list = new List<object>();
+             list.AddRange(ActiveProxies);
+             list.AddRange(ActiveProxies1);
+             return list;
         }
     }
 
-    // // 获取所有已启动代理
-    // public static List<RunningProxy> GetAllProxies()
-    // {
-    //     lock (SafeLock)
-    //     {
-    //         return ActiveProxies;
-    //     }
-    // }
+    private static int GetProxiesIndex()
+    {
+        lock (SafeLock)
+        {
+            var max = ActiveProxies.Select(proxy => proxy.Id).Prepend(0).Max();
+            max = ActiveProxies1.Select(proxy => proxy.Id).Prepend(max).Max();
+            return max + 1;
+        }
+    }
 
     // 清理过期游戏白端
-    public static void Dispose()
+    private static void DisposeActive()
     {
         lock (SafeLock)
         {
@@ -215,6 +229,13 @@ public static class ActiveGameAndProxies
                 Log.Information("白端游戏 {id} 已清理", launcher.GetProcess().Id);
                 ActiveLaunchers.Remove(launcher);
                 launcher.ShutdownAsync().Wait();
+            }
+
+            foreach (var launcher in ActiveProxies1.ToList().Where(launcher => !launcher.IsRunning()))
+            {
+                Log.Information("游戏代理 {id} 已清理", launcher.GetRunningPid());
+                ActiveProxies1.Remove(launcher);
+                launcher.Shutdown();
             }
         }
     }

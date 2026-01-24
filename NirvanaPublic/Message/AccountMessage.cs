@@ -87,7 +87,7 @@ public static class AccountMessage
      * 获取所有账号列表 和 账号文件路径
      * @return 账号实体数组 和 账号文件路径
      */
-    private static (EntityAccount[], string) GetAccountList1()
+    private static (EntityAccount[], string) GetAccountList1(bool defaultLogin = true)
     {
         var (entity, path) = Tools.GetValueOrDefault<EntityAccount>("account.json");
 
@@ -105,7 +105,7 @@ public static class AccountMessage
             }
         }
 
-        DefaultLogin(entity);
+        if (defaultLogin) DefaultLogin(entity);
         return (entity, path);
     }
 
@@ -169,20 +169,18 @@ public static class AccountMessage
     }
 
     // 保存账号到文件
-    public static void UpdateAccount(EntityAccount account)
+    public static void UpdateAccount(EntityAccount account, bool defaultLogin = true)
     {
         lock (LockManager.GameSaveAccountLock)
         {
             // 获取账号列表
-            var (accountList, accountPath) = GetAccountList1();
+            var (accountList, accountPath) = GetAccountList1(defaultLogin);
 
             if (account.Id == null) throw new ErrorCodeException(ErrorCode.IdError);
 
             // 修改账号
             accountList[account.Id.Value] = account;
 
-            foreach (var item in accountList) item.Id = null;
-            // item.UserId = null;
             // 创建目录
             var directory = Path.GetDirectoryName(accountPath);
             if (directory == null)
@@ -205,8 +203,6 @@ public static class AccountMessage
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
 
-            foreach (var item in accountList) item.Id = null;
-            // item.UserId = null;
             // cookie 默认 假账号
             if (account.Account == null && account.Type == "cookie")
                 // 10 位时间戳
@@ -265,13 +261,27 @@ public static class AccountMessage
             {
                 WPFLauncherProgram.User.UserId = account.UserId;
                 WPFLauncherProgram.User.Token = account.Token;
-                var freeSkinCount = WPFLauncher.GetFreeSkinListAsync(0, 1).Result.Length;
-                if (freeSkinCount < 1) return;
-                account.UserId = account.UserId;
-                account.Token = account.Token;
-                InfoManager.AddAccount(account);
-                // 登录成功后 保存账号
-                SaveAccount();
+                var freeSkinCount = -1;
+                try
+                {
+                    freeSkinCount = WPFLauncher.GetFreeSkinListAsync(0, 1).Result.Length;
+                }
+                catch (Exception e)
+                {
+                    Log.Error("自动登录失败: {account}: {Message}", account.Id, e.Message);
+                }
+
+                if (freeSkinCount > 0)
+                {
+                    // 登录成功
+                    InfoManager.AddAccount(account);
+                }
+                else
+                {
+                    account.UserId = null;
+                    account.Token = null;
+                    UpdateAccount(account, false);
+                }
             }
         }
         catch (Exception e)
