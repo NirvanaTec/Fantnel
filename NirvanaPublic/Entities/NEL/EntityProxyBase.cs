@@ -47,8 +47,7 @@ public abstract class EntityProxyBase
     }
 
     /**
-     * 获取游戏昵称
-     */
+      * 获取游戏昵称
+      */
     public abstract string GetNickName();
-
 }

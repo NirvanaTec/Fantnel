@@ -210,11 +210,11 @@ public sealed class LauncherService : IDisposable
     {
         var commandService = new CommandService();
         var availablePort = NetworkUtil.GetAvailablePort(11413);
-        commandService.Init(dToken: TokenUtil.GenerateEncryptToken(Entity.AccessToken),
-            uuid: _skip32.GenerateRoleUuid(Entity.RoleName, Convert.ToUInt32(Entity.UserId)), gameVersion: enumVersion,
-            maxMemory: Entity.MaxGameMemory, roleName: Entity.RoleName, serverIp: Entity.ServerIp,
-            serverPort: Entity.ServerPort, userId: Entity.UserId, gameId: Entity.GameId, workPath: workingDirectory,
-            socketPort: _socketPort, protocolVersion: X19.GameVersion, isFilter: true, rpcPort: availablePort);
+        commandService.Init(enumVersion,
+            Entity.MaxGameMemory, Entity.RoleName, Entity.ServerIp,
+            Entity.ServerPort, Entity.UserId, TokenUtil.GenerateEncryptToken(Entity.AccessToken), Entity.GameId,
+            workingDirectory, _skip32.GenerateRoleUuid(Entity.RoleName, Convert.ToUInt32(Entity.UserId)), _socketPort,
+            X19.GameVersion, true, availablePort);
         return (commandService, rpcPort: availablePort);
     }
 

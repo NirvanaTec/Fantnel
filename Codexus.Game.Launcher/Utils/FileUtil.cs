@@ -36,40 +36,6 @@ public static class FileUtil
         }
     }
 
-    public static bool CreateSymbolicLinkSafe(string linkPath, string targetPath)
-    {
-        if (string.IsNullOrWhiteSpace(linkPath) || string.IsNullOrWhiteSpace(targetPath)) return false;
-        try
-        {
-            var flag = Directory.Exists(targetPath);
-            if (File.Exists(linkPath) || Directory.Exists(linkPath))
-            {
-                var fileSystemInfo = flag ? new DirectoryInfo(linkPath) : (FileSystemInfo)new FileInfo(linkPath);
-                if (fileSystemInfo.LinkTarget != null &&
-                    Path.GetFullPath(fileSystemInfo.LinkTarget) == Path.GetFullPath(targetPath)) return true;
-                fileSystemInfo.Delete();
-            }
-
-            if (flag)
-                Directory.CreateSymbolicLink(linkPath, targetPath);
-            else
-                File.CreateSymbolicLink(linkPath, targetPath);
-            return true;
-        }
-        catch (IOException)
-        {
-            return false;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return false;
-        }
-        catch (PlatformNotSupportedException)
-        {
-            return false;
-        }
-    }
-
     public static void CleanDirectorySafe(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
@@ -95,21 +61,18 @@ public static class FileUtil
         }
     }
 
-    public static bool DeleteDirectorySafe(string path)
+    public static void DeleteDirectorySafe(string path)
     {
-        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) return true;
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) return;
         try
         {
             Directory.Delete(path, true);
-            return true;
         }
         catch (IOException)
         {
-            return false;
         }
         catch (UnauthorizedAccessException)
         {
-            return false;
         }
     }
 

@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using Codexus.Development.SDK.Entities;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Game.Launcher.Utils;
@@ -18,6 +20,7 @@ namespace NirvanaPublic.Message;
 
 public static class ProxiesMessage
 {
+    
     /**
      * 启动本地代理
      * @param id 游戏服务器ID
@@ -25,10 +28,16 @@ public static class ProxiesMessage
      */
     public static async Task StartProxyAsync(string id, string name)
     {
-        // 插件初始化
         Log.Information("正在启动本地代理...");
         Log.Information("名称：{name}", name);
         ActiveGameAndProxies.Close(id, name); // 清理旧代理
+        // 插件未初始化
+        if (!PluginMessage.IsPluginChanged())
+        {
+            await StartProxyAsync1(id, name);
+            return;
+        }
+        // 子窗口的方式启动代理
         var port = Tools.GetUnusedPort(25565); // 获取没被占用的端口
         List<string> arguments = ["--mode", "proxy", "--id", id, "--name", name];
         if (port != 25565)
@@ -36,6 +45,11 @@ public static class ProxiesMessage
             arguments.Add("--port");
             arguments.Add(port.ToString());
         }
+        
+        // 避免 在 linux 上，控制台关闭导致，子进程控制台被隐藏
+        arguments.Add("--MainPid");
+        arguments.Add(Environment.ProcessId.ToString());
+        
         var process = Tools.Restart(false, arguments);
         if (process == null) throw new ErrorCodeException(ErrorCode.RestartFailed);
         await ActiveGameAndProxies.Add(process, id, name, port);
@@ -120,7 +134,7 @@ public static class ProxiesMessage
             availableUser.GetUserId(),
             availableUser.GetToken(),
             YggdrasilCallback,
-            Tools.GetLocalIpAddress(),
+            Tools.GetLocalIpAddress(false),
             port
         );
 

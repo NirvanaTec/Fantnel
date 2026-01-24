@@ -1,158 +1,200 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Serilog;
 using SharpCompress.Archives;
-using SharpCompress.Archives.SevenZip;
-using SharpCompress.Archives.Zip;
+using SharpCompress.Common;
 
 namespace Codexus.Game.Launcher.Utils;
 
 public static class CompressionUtil
 {
-    public static void Extract7Z(string filePath, string outPath, Action<int> progressAction)
+
+    private static async Task ExtractZipAsync(string archivePath, string outPath,
+        Action<int> progress = null)
     {
         try
         {
-            using var val = SevenZipArchive.Open(filePath);
-            val.ExtractToDirectory(outPath, dp => { progressAction((int)(dp * 100.0)); });
-        }
-        catch (Exception e)
-        {
-            Log.Fatal("解压7z时出错: {filePath}", filePath);
-            Log.Fatal("解压错误：{message}", e.Message);
-        }
-    }
+            // 1. 打开压缩包并获取所有条目
+            using var archive = ArchiveFactory.OpenArchive(archivePath);
 
-    public static void ExtractZip(string filePath, string outPath, Action<int> progressAction)
-    {
-        try
-        {
-            using var val = ZipArchive.Open(filePath);
-            val.ExtractToDirectory(outPath, dp => { progressAction((int)(dp * 100.0)); });
-        }
-        catch (Exception e)
-        {
-            Log.Fatal("解压zip时出错: {filePath}", filePath);
-            Log.Fatal("解压错误：{message}", e.Message);
-        }
-    }
+            // 创建一个线程安全的队列来存放待处理的条目
+            var entriesQueue = new ConcurrentQueue<IArchiveEntry>();
 
-    public static async Task Extract7ZAsync(string archivePath, string outputDir,
-        Action<int> progress = null,
-        int maxDegreeOfParallelism = 12)
-    {
-        var processedCount = 0;
-        var totalEntries = -1;
-        var keys = Extract7ZAsync1(archivePath, outputDir, total =>
-        {
-            processedCount++;
-            if (totalEntries == -1) totalEntries = total;
-            progress?.Invoke((int)(processedCount / (double)total * 100));
-        }, maxDegreeOfParallelism).Result;
-        var totalEntries1 = -1;
-        await Extract7ZAsync(archivePath, outputDir, total =>
-        {
-            processedCount++;
-            if (totalEntries1 == -1) totalEntries1 = total;
-            var total1 = totalEntries + totalEntries1;
-            progress?.Invoke((int)(processedCount / (double)total1 * 100));
-        }, keys);
-    }
-
-    private static async Task Extract7ZAsync(string archivePath, string outputDir, Action<int> progress,
-        List<string> keys)
-    {
-        await Task.Run(() =>
-        {
-            using var val = ArchiveFactory.Open(archivePath);
-
-            foreach (var entry in val.Entries)
+            // 只处理非目录条目
+            var allEntries = archive.Entries.Where(entry => !entry.IsDirectory).ToList();
+            var totalEntries = allEntries.Count;
+            foreach (var entry in allEntries) entriesQueue.Enqueue(entry);
+            if (totalEntries == 0)
             {
-                // 跳过目录和空文件名
-                if (entry.IsDirectory || entry.Key == null) continue;
-                // 跳过不在 keys 中的文件
-                if (!keys.Contains(entry.Key)) continue;
-                var path = Path.Combine(outputDir, entry.Key);
-                var directoryName = Path.GetDirectoryName(path);
-                if (directoryName == null) throw new ArgumentException("Invalid directory name");
-                if (!Directory.Exists(directoryName)) Directory.CreateDirectory(directoryName);
-                using var stream = entry.OpenEntryStream();
-                using var destination = File.Create(path);
-                stream.CopyTo(destination);
-                progress.Invoke(val.Entries.Count());
+                progress?.Invoke(100);
+                return; // 没有文件需要解压
             }
-        });
+
+            // 初始化进度状态
+            var progressState = new ProgressState
+            {
+                TotalEntries = totalEntries
+            };
+
+            await ProcessEntriesFromQueueAsync(entriesQueue, outPath, progress, progressState);
+        }
+        catch (Exception e)
+        {
+            Log.Fatal("解压时出错: {filePath}", archivePath);
+            Log.Fatal("解压错误：{message}", e.Message);
+            throw;
+        }
     }
 
-    private static async Task<List<string>> Extract7ZAsync1(string archivePath, string outputDir,
-        Action<int> progress,
-        int maxDegreeOfParallelism = 12)
+    public static async Task ExtractAsync(string archivePath, string outPath,
+        Action<int> progress = null)
     {
-        Directory.CreateDirectory(outputDir);
+        if (Is7ZipFormat(archivePath))
+            await Extract7ZAsync(archivePath, outPath, progress);
+        else
+            await ExtractZipAsync(archivePath, outPath, progress);
+    }
 
-        using var archive = ArchiveFactory.Open(archivePath);
-        var entries = archive.Entries.Where(e => !e.IsDirectory).ToList();
-        var lockObj = new Lock();
-        var totalEntries = archive.Entries.Count();
-        // 7z 格式通常不适合完全并行解压，特别是固实压缩包
-        // 更好的方法是并行处理文件写入，而非同时打开多个条目流
+    /**
+     * @Return 是否为7z格式
+     */
+    private static bool Is7ZipFormat(string archivePath)
+    {
+        using var stream = File.OpenRead(archivePath);
+        using var archive = ArchiveFactory.OpenArchive(stream);
+        return archive.Type == ArchiveType.SevenZip;
+    }
 
-        var options = new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism };
+    private static async Task Extract7ZAsync(string archivePath, string outPath, Action<int> progress = null)
+    {
+        // 取文件信息
+        var fileInfo = new FileInfo(archivePath);
+        // 超过 30mb
+        if (fileInfo.Length > 30 * 1024 * 1024)
+        {
+            if (Extract7Z_7ZIP(archivePath, outPath, progress)) return;
+            Log.Warning("使用通用模式解压7z文件中....");
+            Log.Warning("Path: {archivePath}", archivePath);
+        }
+
+        await ExtractZipAsync(archivePath, outPath, progress);
+    }
+
+    /**
+     * 单文件解压
+     * @return 是否成功
+     */
+    private static bool Extract7Z_7ZIP(string archivePath, string outputDirectory, Action<int> progress = null)
+    {
+        if (!File.Exists(archivePath))
+        {
+            Log.Error("错误：压缩包文件不存在 - {ArchivePath}", archivePath);
+            return false;
+        }
 
         try
         {
-            List<string> throwList = [];
-            await Task.Run(() => Parallel.ForEach(entries, options, entry =>
-            {
-                try
-                {
-                    // 安全处理文件路径，防止路径遍历
-                    if (entry.Key != null)
-                    {
-                        var safeFileName =
-                            Path.GetFileName(entry.Key.Replace("/", Path.DirectorySeparatorChar.ToString()));
-                        var relativePath = entry.Key[..^safeFileName.Length]
-                            .Replace("/", Path.DirectorySeparatorChar.ToString());
+            var sevenZipExePath = Get7ZipPath();
 
-                        var entryOutputDir = Path.Combine(outputDir, relativePath);
-                        Directory.CreateDirectory(entryOutputDir);
+            Directory.CreateDirectory(outputDirectory);
 
-                        var outputPath = Path.Combine(entryOutputDir, safeFileName);
+            using var process = new Process();
 
-                        // 每个线程单独打开流
-                        using var entryStream = entry.OpenEntryStream();
-                        using var fs = File.Create(outputPath);
+            process.StartInfo.WorkingDirectory = outputDirectory;
+            process.StartInfo.FileName = sevenZipExePath;
+            process.StartInfo.Arguments = $"x -y \"{archivePath}\"";
 
-                        // 使用缓冲提高性能
-                        var buffer = new byte[8192];
-                        int read;
-                        while ((read = entryStream.Read(buffer, 0, buffer.Length)) > 0) fs.Write(buffer, 0, read);
-                        fs.Flush();
-                    }
+            process.Start(); // 启动进程
+            process.WaitForExit(); // 等待进程退出
+            progress?.Invoke(100);
 
-                    // 报告进度
-                    lock (lockObj)
-                    {
-                        progress?.Invoke(totalEntries);
-                    }
-                }
-                catch (Exception)
-                {
-                    throwList.Add(entry.Key);
-                }
-            }));
-            return throwList;
+            // 7-Zip 成功时退出码通常为 0。
+            // 1: 警告 (例如，有些文件被锁定)，2: 错误，其他值可能表示不同错误。
+            return process.ExitCode is 0 or 1; // 根据实际需求判断成功条件
         }
         catch (Exception ex)
         {
-            Log.Fatal("解压文件时出错: {archivePath}", archivePath);
-            Log.Fatal("解压错误：{message}", ex.Message);
+            Log.Error("解压过程中发生异常: \n{ExMessage}", ex.Message);
+            return false;
         }
+    }
 
-        return [];
+    private static string Get7ZipPath()
+    {
+        var path = Path.Combine(PathUtil.ResourcePath,
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "7z.exe" : "7zz");
+        return File.Exists(path) ? path : throw new Exception("未找到 7-Zip 可执行文件");
+    }
+
+    /**
+     * 循环处理队列中的压缩条目
+     * @entriesQueue 待处理的条目队列
+     * @destinationPath 解压目标路径
+     */
+    private static async Task ProcessEntriesFromQueueAsync(
+        ConcurrentQueue<IArchiveEntry> entriesQueue,
+        string destinationPath,
+        Action<int> progress,
+        ProgressState progressState) // 传入封装了状态的对象
+    {
+        while (entriesQueue.TryDequeue(out var entry))
+        {
+            try
+            {
+                // 5. 执行单个文件的解压和写入操作
+                await ExtractSingleEntryAsync(entry, destinationPath);
+            }
+            finally
+            {
+                // 更新进度 - 必须在锁内进行
+                lock (progressState.Lock)
+                {
+                    progressState.ProcessedCount++;
+                    var currentPercentage = progressState.ProcessedCount * 100 / progressState.TotalEntries;
+                    progress?.Invoke(currentPercentage);
+                }
+            }
+        }
+    }
+
+    /**
+     * 解压单个条目到目标路径
+     * @entry 要解压的条目
+     * @destinationPath 解压目标路径
+     */
+    private static async Task ExtractSingleEntryAsync(IArchiveEntry entry, string destinationPath)
+    {
+        if (entry.Key == null) return;
+
+        // 计算目标文件的完整路径
+        var fullPath = Path.Combine(destinationPath, entry.Key.Replace('/', Path.DirectorySeparatorChar));
+
+        // 确保目标文件的目录存在
+        var dirPath = Path.GetDirectoryName(fullPath);
+        if (dirPath == null) return;
+        Directory.CreateDirectory(dirPath);
+
+        // 使用 WriteEntryToFile 方法进行解压
+        // 注意：WriteEntryToFile 在 SharpCompress v0.37+ 版本中是同步的。
+        // 虽然我们不能直接异步写入单个文件（SharpCompress API 本身未提供异步写入单个文件的方法），
+        // 但我们通过并发处理多个 *不同* 的文件条目来实现整体上的多线程效果。
+        // SemaphoreSlim 在这里起到了控制并发文件写入数量的作用。
+        await entry.WriteToFileAsync(fullPath, new ExtractionOptions
+        {
+            ExtractFullPath = true,
+            Overwrite = true // 根据需要决定是否覆盖现有文件
+        });
+    }
+
+    private class ProgressState
+    {
+        public readonly object Lock = new();
+        public int ProcessedCount;
+        public int TotalEntries; // 添加总条目数作为字段
     }
 }

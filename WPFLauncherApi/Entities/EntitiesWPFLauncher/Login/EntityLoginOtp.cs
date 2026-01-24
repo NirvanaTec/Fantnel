@@ -4,8 +4,6 @@ namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 
 public class EntityLoginOtp
 {
-    [JsonPropertyName("otp")] private int Otp { get; set; }
-
     [JsonPropertyName("otp_token")] public string OtpToken { get; set; } = string.Empty;
 
     [JsonPropertyName("aid")] public int Aid { get; set; }

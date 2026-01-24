@@ -11,14 +11,15 @@ public static class PathUtil
 
     public static readonly string ResourcePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources");
 
-    // private static readonly string UpdaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "updater");
+    public static readonly string UpdaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "updater");
 
-    // public static readonly string ScriptPath = Path.Combine(UpdaterPath,
-    //     RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "update.bat" : "update.sh");
+    public static readonly string ScriptPath = Path.Combine(UpdaterPath,
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "update.bat" : "update.sh");
+
+    // 脚本后缀
+    public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" : ".sh";
 
     public static readonly string CustomModsPath = Path.Combine(ResourcePath, "mods");
-
-    public static readonly string JavaExePath = GetJavaExePath(); // javaw.exe
 
     public static readonly string GamePath = Path.Combine(CachePath, "Game");
 
@@ -27,6 +28,8 @@ public static class PathUtil
     public static readonly string GameModsPath = Path.Combine(CachePath, "GameMods");
 
     public static readonly string CppGamePath = Path.Combine(CachePath, "CppGame");
+
+    public static string JavaExePath => GetJavaExePath(); // javaw.exe
 
     // public static readonly string WebSitePath = Path.Combine(ResourcePath, "static");
 
@@ -43,7 +46,10 @@ public static class PathUtil
      */
     private static string GetJavaPath()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return Path.Combine(CachePath, "Java");
+        var cacheJava = Path.Combine(CachePath, "Java"); // .game_cache/Java
+        // 非 win 版 或 已存在 .game_cache/Java
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || ExistJava(cacheJava))
+            return cacheJava;
         var reg4399 = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Netease\PC4399_MCLauncher");
         var reg163 = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Netease\MCLauncher");
         if (reg4399?.GetValue("DownloadPath") is string patch)
@@ -64,16 +70,17 @@ public static class PathUtil
             if (ExistJava(wpf)) return wpf;
         }
 
-        return Path.Combine(CachePath, "Java");
+        return cacheJava;
     }
 
     private static string GetJavaExePath()
     {
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javaw.exe" : "javaw";
+        // Mac / Linux 没有 javaw.exe
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javaw.exe" : "java";
     }
 
     // javaw 是否存在
-    private static bool ExistJava(string path)
+    public static bool ExistJava(string path)
     {
         return File.Exists(Path.Combine(path, "jdk17", "bin", JavaExePath)) &&
                File.Exists(Path.Combine(path, "jre8", "bin", JavaExePath));

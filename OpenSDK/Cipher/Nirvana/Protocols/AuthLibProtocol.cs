@@ -108,24 +108,27 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
             try
             {
                 var lenBuf = new byte[4];
+
                 await ReadExactAsync(stream, lenBuf, 0, 4, token).ConfigureAwait(false);
-                var num = BitConverter.ToInt32(lenBuf, 0);
-                var gameIdBuf = new byte[num];
-                await ReadExactAsync(stream, gameIdBuf, 0, num, token).ConfigureAwait(false);
+                var gameIdLen = BitConverter.ToInt32(lenBuf);
+                var gameIdBuf = new byte[gameIdLen];
+                await ReadExactAsync(stream, gameIdBuf, 0, gameIdLen, token).ConfigureAwait(false);
                 var gameId = Encoding.UTF8.GetString(gameIdBuf);
+
                 await ReadExactAsync(stream, lenBuf, 0, 4, token).ConfigureAwait(false);
-                var num2 = BitConverter.ToInt32(lenBuf, 0);
-                var userIdBuf = new byte[num2];
-                await ReadExactAsync(stream, userIdBuf, 0, num2, token).ConfigureAwait(false);
+                var userIdLen = BitConverter.ToInt32(lenBuf);
+                var userIdBuf = new byte[userIdLen];
+                await ReadExactAsync(stream, userIdBuf, 0, userIdLen, token).ConfigureAwait(false);
                 var userId = Encoding.UTF8.GetString(userIdBuf);
+
                 await ReadExactAsync(stream, lenBuf, 0, 4, token).ConfigureAwait(false);
-                var num3 = BitConverter.ToInt32(lenBuf, 0);
-                var certBuf = new byte[num3];
-                await ReadExactAsync(stream, certBuf, 0, num3, token).ConfigureAwait(false);
-                var text = Encoding.Unicode.GetString(certBuf);
-                if (!string.IsNullOrEmpty(text))
-                    await NetEaseConnection.CreateAuthenticatorAsync(text, gameId, version, modList,
-                        int.Parse(userId), accessToken, () => { responseCode = 0u; }).ConfigureAwait(false);
+                var serverIdLen = BitConverter.ToInt32(lenBuf);
+                var serverIdBuf = new byte[serverIdLen];
+                await ReadExactAsync(stream, serverIdBuf, 0, serverIdLen, token).ConfigureAwait(false);
+                var serverId = Encoding.UTF8.GetString(serverIdBuf);
+
+                await NetEaseConnection.CreateAuthenticatorAsync(serverId, gameId, version, modList,
+                    int.Parse(userId), accessToken, () => { responseCode = 0u; }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

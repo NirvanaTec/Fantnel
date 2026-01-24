@@ -15,7 +15,7 @@ public static class Program
         
         InitProgram.LogoInit(); // 初始化日志
         LogoInit(); // 初始化日志
-        
+
         InitProgram.NelInit(args, LogoInit);
 
         // 检查是否开启web服务
@@ -50,7 +50,7 @@ public static class Program
         // app.UseHttpsRedirection();
 
         // 获取运行目录路径
-        var resourcesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources", "static");
+        var resourcesPath = Path.Combine(PathUtil.ResourcePath, "static");
 
         // 启用静态文件服务，从运行目录的 resources/static 目录提供文件
         if (Directory.Exists(resourcesPath))
@@ -78,7 +78,7 @@ public static class Program
         app.Lifetime.ApplicationStarted.Register(() =>
         {
             // 重置日志
-            LogoInit();
+            LogoInit1();
 
             // 分割显示多个URL
             Log.Information("访问地址:");
@@ -86,14 +86,12 @@ public static class Program
 
             Log.Information("本项目遵循 GNU GPL 3.0 协议开源");
             Log.Information("------");
-            // Log.Information("静态文件: {Path}", resourcesPath);
             Log.Information("官方网址: https://npyyds.top/");
             Log.Information("最终解释权归于 涅槃科技 所有!");
-            Log.Information("---------- 涅槃科技 & Codexus (OpenSDK) ----------");
+            Log.Information("-------- 涅槃科技 & Codexus [OpenSDK] ----------");
 
             // Fantnel 初始化
             InitProgram.NelInit1();
-
             Log.Information("{Path}", resourcesPath);
             Log.Information("Java: {Path}", PathUtil.JavaPath);
         });
@@ -102,6 +100,12 @@ public static class Program
     }
 
     private static void LogoInit()
+    {
+        LogoInit1();
+        Log.Information("官方网址: https://npyyds.top/");
+    }
+
+    private static void LogoInit1()
     {
         Console.Clear(); // 清空框架信息
         Log.Information("----- Fantnel -----");

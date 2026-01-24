@@ -27,7 +27,7 @@ public static class JreService
         });
         try
         {
-            CompressionUtil.Extract7Z(jreFile, PathUtil.JavaPath, p =>
+            await CompressionUtil.ExtractAsync(jreFile, PathUtil.JavaPath, p =>
             {
                 uiProgress.Report(new SyncProgressBarUtil.ProgressReport
                 {

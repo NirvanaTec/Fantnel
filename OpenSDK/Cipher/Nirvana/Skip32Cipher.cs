@@ -115,12 +115,12 @@ public class Skip32Cipher(byte[] key)
         return uuid.Length != 32 ? 0U : Decrypt(BitConverter.ToUInt32(Convert.FromHexString(uuid), 12));
     }
 
-    public uint Decrypt(uint value)
+    private uint Decrypt(uint value)
     {
         return (uint)Decrypt((int)value);
     }
 
-    public int Decrypt(int value)
+    private int Decrypt(int value)
     {
         int[] buf =
         [
