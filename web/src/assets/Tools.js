@@ -52,12 +52,12 @@ async function selectServer(id) {
 }
 
 // 获取启动信息
-async function getLaunchInfo(id) {
+async function getServerInfo(id) {
     return axios.get(`/api/gameserver/getlaunch?id=${id}`).then(res => res.data);
 }
 
 // 添加游戏名称
-async function addLaunchGame(id, name) {
+async function addServerRole(id, name) {
     return axios.post("/api/gameserver/createname", {id, name}).then(res => res.data);
 }
 
@@ -213,8 +213,8 @@ export {
     updateAccount,
     getServerList,
     selectServer,
-    getLaunchInfo,
-    addLaunchGame,
+    getServerInfo,
+    addServerRole,
     launchGame,
     getPlugins,
     togglePluginStatus,

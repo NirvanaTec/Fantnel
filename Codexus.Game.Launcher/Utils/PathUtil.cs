@@ -12,12 +12,11 @@ public static class PathUtil
     public static readonly string ResourcePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources");
 
     public static readonly string UpdaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "updater");
-
-    public static readonly string ScriptPath = Path.Combine(UpdaterPath,
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "update.bat" : "update.sh");
-
+    
     // 脚本后缀
     public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" : ".sh";
+    
+    public static readonly string ScriptPath = Path.Combine(UpdaterPath, "update" + ScriptSuffix);
 
     public static readonly string CustomModsPath = Path.Combine(ResourcePath, "mods");
 

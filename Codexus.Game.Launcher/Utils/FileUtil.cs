@@ -1,8 +1,11 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Mono.Unix;
+using Serilog;
 
 namespace Codexus.Game.Launcher.Utils;
 
@@ -40,25 +43,7 @@ public static class FileUtil
     {
         if (string.IsNullOrWhiteSpace(path)) return;
         DeleteDirectorySafe(path);
-        CreateDirectorySafe(path);
-    }
-
-    public static bool CreateDirectorySafe(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path)) return false;
-        try
-        {
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            return true;
-        }
-        catch (IOException)
-        {
-            return false;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return false;
-        }
+        Directory.CreateDirectory(path);
     }
 
     public static void DeleteDirectorySafe(string path)
@@ -166,4 +151,36 @@ public static class FileUtil
             throw;
         }
     }
+    
+    
+    /**
+     * 设置文件权限
+     * @param filePath 文件路径
+     * @param requiredPermissions 所需权限，默认所有权限
+     */
+    public static void SetUnixFilePermissions(string filePath, FileAccessPermissions requiredPermissions = FileAccessPermissions.AllPermissions)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+        
+        try
+        {
+            var fileInfo = new UnixFileInfo(filePath);
+            if ((fileInfo.FileAccessPermissions & requiredPermissions) == requiredPermissions)
+            {
+                return; // 权限已满足
+            }
+            fileInfo.FileAccessPermissions |= requiredPermissions;
+            Log.Debug("已通过 Mono.Posix 设置 {FilePath} 的权限", filePath); // 可选的日志
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            Log.Warning("警告：无权修改 {FilePath} 的权限: {UAExMessage}", filePath, e.Message);
+        }
+        catch (Exception e)
+        {
+            Log.Warning("警告：使用 Mono.Posix 设置 {FilePath} 权限时出错: {PosixExMessage}", filePath, e.Message);
+        }
+    }
+
+    
 }

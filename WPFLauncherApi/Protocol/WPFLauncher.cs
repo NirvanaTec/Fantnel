@@ -13,6 +13,8 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.GameMods;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.RentalGame;
+using WPFLauncherApi.Entities.EntitiesWPFLauncher.RentalGame.GameCharacters;
 using WPFLauncherApi.Http;
 using WPFLauncherApi.Utils;
 using WPFLauncherApi.Utils.CodeTools;
@@ -34,7 +36,7 @@ public static class WPFLauncher
      * @param gameId 服务器ID
      * @return 服务器详细信息
      */
-    public static async Task<EntityQueryNetGameDetailItem> QueryNetGameDetailByIdAsync(string gameId)
+    public static async Task<EntityQueryNetGameDetailItem> GetNetGameDetailByIdAsync(string gameId)
     {
         var response = await X19Extensions.Gateway.Api<EntityWPFLauncher<EntityQueryNetGameDetailItem>>(
             "/item-details/get_v2",
@@ -48,18 +50,38 @@ public static class WPFLauncher
 
     /**
      * 查询服务器地址
-     * @param gameId 服务器ID
+     * @param serverId 服务器ID
      * @return 服务器地址
      */
-    public static async Task<EntityNetGameServerAddress> GetNetGameServerAddressAsync(string gameId)
+    public static async Task<EntityNetGameServerAddress> GetNetGameServerAddressAsync(string serverId)
     {
         var response = await X19Extensions.Gateway.Api<EntityWPFLauncher<EntityNetGameServerAddress>>(
             "/item-address/get",
             new EntityQueryNetGameDetailRequest
             {
-                ItemId = gameId
+                ItemId = serverId
             });
         return response == null ? throw new ErrorCodeException(ErrorCode.AddressError) : response.SafeEntity();
+    }
+    
+    /**
+    * 查询租赁服地址
+    * @param serverId 服务器ID
+    * @return 服务器地址
+     */
+    public static async Task<EntityRentalGameServerAddress> GetGameRentalAddressAsync(
+        string serverId, 
+        string? pwd = null)
+    {
+        // 该接口存在问题，20%概率 因为缺少 引号 导致解析失败
+        //  "entity_id": 4664453443934401593,
+        var entity = await X19Extensions.Client.Api<EntityWPFLauncher<EntityRentalGameServerAddress>>(
+            "/rental-server-world-enter/get", new EntityQueryRentalGameServerAddress
+            {
+                ServerId = serverId,
+                Password = pwd ?? "none"
+            }); 
+        return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
     }
 
     /**
@@ -67,7 +89,7 @@ public static class WPFLauncher
      * @param serverId 服务器ID
      * @return 服务器上的所有游戏角色
      */
-    public static async Task<EntityGameCharacter[]> QueryNetGameCharactersAsync(string gameId)
+    public static async Task<EntityGameCharacter[]> GetNetGameCharactersAsync(string gameId)
     {
         if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityGameCharacter>>(
@@ -87,12 +109,47 @@ public static class WPFLauncher
     public static async Task CreateCharacterAsync(string gameId, string roleName)
     {
         if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
-        var response = await X19Extensions.Gateway.Api<object>("/game-character/create",
+        var response = await X19Extensions.Gateway.Api<object>("/game-character",
             new EntityGameCharacter
             {
                 GameId = gameId,
                 UserId = WPFLauncherProgram.User.UserId,
                 Name = roleName
+            });
+        if (response == null) throw new ErrorCodeException();
+    }
+    
+    /**
+    * 获取 租赁服 游戏角色
+    */
+    public static async Task<EntityRentalGamePlayerList[]> GetRentalGameRolesListAsync(string serverId)
+    {
+        var entity = await X19Extensions.Client.Api<EntitiesWPFLauncher<EntityRentalGamePlayerList>>("/rental-server-player/query/search-by-user-server", new EntityQueryRentalGamePlayerList
+        {
+            ServerId = serverId,
+            Offset = 0,
+            Length = 10
+        });
+        return entity == null ? throw new ErrorCodeException() : entity.Data;
+    }
+    
+    /**
+    * 创建游戏角色
+    * @param serverId 服务器ID
+    * @param roleName 角色名称
+    */
+    public static async Task CreateCharacterRentalAsync(string serverId, string roleName)
+    {
+        if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
+        var response = await X19Extensions.Gateway.Api<object>("/rental-server-player",
+            new EntityAddRentalGameRole
+            {
+                ServerId = serverId,
+                UserId = WPFLauncherProgram.User.UserId,
+                Name = roleName,
+                CreateTs = 555555,
+                IsOnline = false,
+                Status = 0
             });
         if (response == null) throw new ErrorCodeException();
     }
@@ -105,7 +162,7 @@ public static class WPFLauncher
      */
     public static async Task<EntityNetGameItem[]> GetAvailableNetGamesAsync(int offset, int length)
     {
-        var response = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityNetGameItem>>("/item/query/available",
+        var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityNetGameItem>>("/item/query/available",
             new EntityNetGameRequest
             {
                 AvailableMcVersions = [],
@@ -115,7 +172,7 @@ public static class WPFLauncher
                 MasterTypeId = "2",
                 SecondaryTypeId = ""
             });
-        return response == null ? throw new ErrorCodeException() : response.Data;
+        return entity == null ? throw new ErrorCodeException() : entity.Data;
     }
 
     /**
@@ -169,8 +226,7 @@ public static class WPFLauncher
      */
     private static async Task<EntityLoginOtp?> LoginOtpAsync(EntityX19CookieRequest cookieRequest)
     {
-        var entity = await X19Extensions.Core.Api<EntityWPFLauncher<JsonElement?>>("/login-otp",
-            JsonSerializer.Serialize(cookieRequest, DefaultOptions));
+        var entity = await X19Extensions.Core.Api<EntityWPFLauncher<JsonElement?>>("/login-otp", cookieRequest);
         if (entity == null)
             throw new Exception("Failed to deserialize: login-otp");
         if (entity.Code != 0 || !entity.Data.HasValue)
@@ -270,7 +326,7 @@ public static class WPFLauncher
     public static async Task<EntityWPFResponse?> SetSkinAsync(string entityId)
     {
         var entity = await X19Extensions.Gateway.Api<EntityWPFResponse>("/user-game-skin-multi",
-            JsonSerializer.Serialize(new
+            new
             {
                 skin_settings = new List<EntitySkinSettings>
                 {
@@ -315,7 +371,7 @@ public static class WPFLauncher
                         SkinType = 31
                     }
                 }
-            }));
+            });
         if (entity == null) throw new ErrorCodeException();
         return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity;
     }
@@ -332,7 +388,7 @@ public static class WPFLauncher
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityQueryNetSkinItem>>(
             "/item/query/available",
-            JsonSerializer.Serialize(new EntityFreeSkinListRequest
+            new EntityFreeSkinListRequest
             {
                 IsHas = true,
                 ItemType = 2,
@@ -341,7 +397,7 @@ public static class WPFLauncher
                 Offset = offset,
                 PriceType = 3,
                 SecondaryTypeId = 31
-            }));
+            });
         if (entity == null) throw new ErrorCodeException();
         return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity.Data;
     }
@@ -353,12 +409,12 @@ public static class WPFLauncher
      * @param pageSize 数量
      * @return 皮肤列表
      */
-    public static async Task<EntityQueryNetSkinItem[]> QueryFreeSkinByNameAsync(string name, int offset = 0,
+    public static async Task<EntityQueryNetSkinItem[]> GetFreeSkinByNameAsync(string name, int offset = 0,
         int pageSize = 10)
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityQueryNetSkinItem>>(
             "/item/query/search-by-keyword",
-            JsonSerializer.Serialize(new EntityQuerySkinByNameRequest
+            new EntityQuerySkinByNameRequest
             {
                 IsHas = true,
                 IsSync = 0,
@@ -371,7 +427,7 @@ public static class WPFLauncher
                 SecondaryTypeId = "31",
                 SortType = 1,
                 Year = 0
-            }));
+            });
         if (entity == null) throw new ErrorCodeException();
         return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity.Data;
     }
@@ -411,10 +467,10 @@ public static class WPFLauncher
     * 获取 白端服务器 模组
     */
     public static async Task<EntityComponentDownloadInfoResponse> GetNetGameComponentDownloadListAsync(
-        string gameId)
+        string serverId)
     {
         return await GetNetGameComponentDownloadListAsync(WPFLauncherProgram.User.UserId, WPFLauncherProgram.User.Token,
-            gameId);
+            serverId);
     }
 
     /**
@@ -423,12 +479,12 @@ public static class WPFLauncher
     public static async Task<EntityComponentDownloadInfoResponse> GetNetGameComponentDownloadListAsync(
         string? userId,
         string? userToken,
-        string gameId)
+        string serverId)
     {
         var entity = await X19Extensions.Client.Api<EntityWPFLauncher<EntityComponentDownloadInfoResponse>>(
             "/user-item-download-v2", new EntitySearchByItemIdQuery
             {
-                ItemId = gameId,
+                ItemId = serverId,
                 Length = 0,
                 Offset = 0
             },
@@ -466,4 +522,32 @@ public static class WPFLauncher
         if (entity == null) throw new ErrorCodeException();
         return entity.Data == null ? throw new ErrorCodeException() : entity.Data.ToList();
     }
+    
+    /**
+     * 获取 租赁服 列表
+     */
+    public static async Task<EntityRentalGame[]> GetRentalGameListAsync(
+        int offset = 0)
+    {
+        var entity = await X19Extensions.Client.Api<EntitiesWPFLauncher<EntityRentalGame>>("/rental-server/query/available-public-server", new EntityQueryRentalGame
+        {
+            Offset = offset,
+            SortType = 0
+        });
+        return entity == null ? throw new ErrorCodeException() : entity.Data;
+    }
+    
+    /**
+     * 获取 租赁服 详细信息
+     */
+    public static async Task<EntityRentalGameDetails> GetRentalGameDetailsAsync(
+        string entityId)
+    {
+        var entity = await X19Extensions.Client.Api<EntityWPFLauncher<EntityRentalGameDetails>>("/rental-server-details/get", new EntityQueryRentalGameDetail
+        {
+                ServerId = entityId
+        });
+        return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
+    }
+    
 }

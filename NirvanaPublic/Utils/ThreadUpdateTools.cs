@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json.Nodes;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
@@ -59,7 +60,14 @@ public static class ThreadUpdateTools
         {
             Log.Information("正在更新核心资源，这会自动重启[1次]，请稍后...");
             var scriptPath = PathUtil.ScriptPath;
-            await File.WriteAllTextAsync(scriptPath, GenerateUpdateScript());
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                await File.WriteAllTextAsync(scriptPath, GenerateUpdateScript(), Encoding.GetEncoding(936)); // GBK 编码
+            }
+            else
+            {
+                await File.WriteAllTextAsync(scriptPath, GenerateUpdateScript());
+            }
             Process.Start(new ProcessStartInfo
             {
                 FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",

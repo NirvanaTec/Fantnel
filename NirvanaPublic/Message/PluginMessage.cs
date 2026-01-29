@@ -62,7 +62,7 @@ public static class PluginMessage
     {
         // 插件目录 文件夹
         var pluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
-        if (!Directory.Exists(pluginsPath)) Directory.CreateDirectory(pluginsPath);
+        Directory.CreateDirectory(pluginsPath);
         // 插件文件 文件路径数组
         var filesPath = Directory.GetFiles(pluginsPath);
         // 过滤后的插件文件 文件路径数组
@@ -153,7 +153,7 @@ public static class PluginMessage
     public static void Initialize()
     {
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
-        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        Directory.CreateDirectory(path);
         var filesPath = Directory.GetFiles(path);
         foreach (var filePath in filesPath)
         {
@@ -240,7 +240,7 @@ public static class PluginMessage
         try
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            Directory.CreateDirectory(path);
             PlugInstoreMessage.AutoUpdateCheck(); // 自动更新插件
             Interceptor.EnsureLoaded(); // 确保加载
             PacketManager.Instance.EnsureRegistered(); // 确保注册

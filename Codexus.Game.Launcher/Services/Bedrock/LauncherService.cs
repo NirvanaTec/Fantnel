@@ -12,7 +12,6 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 
 namespace Codexus.Game.Launcher.Services.Bedrock;
 
-// ReSharper disable once UnusedType.Global
 public sealed class LauncherService : IDisposable
 {
     private readonly object _disposeLock = new();

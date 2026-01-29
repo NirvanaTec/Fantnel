@@ -1,43 +1,21 @@
 <template>
-  <div class="server-detail">
-    <div class="server-header">
-      <div class="server-title">
-        <h1>{{ server.name }}</h1>
-        <p>服务器ID: {{ server.id }}</p>
-      </div>
-      <button class="launch-btn" @click="showLaunchModal = true">Launch</button>
+  <div class="servers">
+    <h1>租赁服</h1>
+    <p>租赁服页面，用于启动游戏服务器。</p>
+    <div class="search-bar">
+      <input type="text" v-model="searchQuery" placeholder="搜索服务器...">
     </div>
-
-    <div class="server-images">
-      <img :src="mainImage" alt="服务器介绍图" class="main-image" width="584" height="329">
-      <div class="small-images">
-        <img v-for="(img, index) in server.brief_image_urls" :key="index" :src="img" alt="小介绍图" class="small-image"
-          width="80" height="48" @click="switchImage(img)">
+    <div class="server-list" @scroll="handleScroll">
+      <div v-for="server in filteredServers" class="server-item" @click="showLaunch(server)">
+        <div class="server-image">
+          <img :src="server.image_url" alt="服务器介绍图" width="307" height="173">
+        </div>
+        <div class="server-info">
+          <h3>{{ server.server_name }}</h3>
+          <p>{{server.capacity }} / {{ server.player_count}}</p>
+        <p> [ {{ server.mc_version}} ]</p>
+        </div>
       </div>
-    </div>
-
-    <div class="server-meta">
-      <div class="meta-item">
-        <span class="label">服务器作者:</span>
-        <span class="value">{{ server.author }}</span>
-      </div>
-      <div class="meta-item">
-        <span class="label">创建时间:</span>
-        <span class="value">{{ server.createdAt }}</span>
-      </div>
-      <div class="meta-item">
-        <span class="label">游戏版本:</span>
-        <span class="value">{{ server.gameVersion }}</span>
-      </div>
-      <div class="meta-item">
-        <span class="label">服务器地址:</span>
-        <span class="value">{{ server.address }}</span>
-      </div>
-    </div>
-
-    <div class="server-description">
-      <h2>服务器介绍</h2>
-      <p v-html="server.fullDescription"></p>
     </div>
 
     <!-- Launch 弹窗 -->
@@ -53,7 +31,7 @@
             <select v-model="selectedAccount" @change="selectAccount1">
               <option v-for="account in accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
             </select>
-
+            
           </div>
           <div class="form-group">
             <label><b>游戏名称: <h6 style="display: inline;">请先 添加 / 选择 游戏名称，才能启动游戏。</h6></b></label>
@@ -86,66 +64,124 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect } from 'vue'
-import { useRoute } from 'vue-router'
-import { selectServer, getServerInfo, addServerRole, launchGame, switchAccount, getGameAccount, launchProxy } from '../utils/Tools'
+
+import { ref, computed, onMounted, onUnmounted, watchEffect } from 'vue'
+import { getRentalServerList, getServerInfo, addServerRole, sortRentalServer, launchGame, switchAccount, getGameAccount, launchProxy } from '../utils/Tools'
 import Alert from '../components/Alert.vue'
 import randomNameData from '../../public/random.name.json'
 
-const route = useRoute()
-const serverId = route.params.id
+const searchQuery = ref('')
+const servers = ref([])
+const offset = ref(0)
 
-const server = ref({})
-
-// {
-//   id: serverId,
-//   name: `服务器${serverId}`,
-//   author: '作者名称',
-//   createdAt: '2023-01-01',
-//   gameVersion: '1.19.2',
-//   address: 'mc.example.com:25565',
-//   brief_image_urls: [
-//     'https://via.placeholder.com/80x48',
-//     'https://via.placeholder.com/80x48',
-//     'https://via.placeholder.com/80x48'
-//   ],
-//   fullDescription: '这是一个详细的服务器介绍，包含了服务器的各种特色和玩法。服务器拥有丰富的插件和活动，欢迎玩家加入体验。' + ' '.repeat(100) // 填充到500字左右
-// }
-
-const mainImage = ref("");
-
-const showLaunchModal = ref(false);
-const selectedAccount = ref('');
-
-const accounts = ref()
-// [
-//   { id: 1, name: '账号1' },
-//   { id: 2, name: '账号2' }
-// ]
-
-const games = ref()
-// [
-//   { id: 1, name: '游戏1' },
-//   { id: 2, name: '游戏2' }
-// ]
-
+// Launch 弹窗相关
+const showLaunchModal = ref(false)
+const selectedServerId = ref('')
+const selectedAccount = ref('')
+const accounts = ref([])
+const games = ref([])
 const showAddGameInput = ref(false)
-const newGameName = ref('') // 新添加的游戏名称
+const newGameName = ref('')
 const selectedGame = ref('')
+
+// 提示框
+const showNotice = ref(false)
+const noticeText = ref("")
+const noticeLocation = ref("")
+
+const isActive = ref(true)
+
+onMounted(async () => {
+  isActive.value = true
+  await sortRentalServer()
+  await loadServersInBatches()
+})
+
+onUnmounted(() => {
+  isActive.value = false
+})
+
+async function showLaunch(server){
+  selectedServerId.value = server.entity_id;
+  await getServerInfo1();
+  showLaunchModal.value = true;
+}
+
+// 初始加载服务器列表
+async function loadServersInBatches() {
+  // 只有第一次加载错误时，才抛出异常
+  let loading = true;
+  while (true) {
+
+    // 是否在当前页
+    if (!isActive.value) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      continue;
+    }
+
+    const ok = await loadMoreServers(15, loading)
+    loading = false;
+    // 如果没有更多服务器可加载，则跳出循环
+    if (!ok) {
+      break
+    }
+    // 每次加载完服务器后，等待 600 毫秒
+    await new Promise(resolve => setTimeout(resolve, 700))
+  }
+}
+
+const filteredServers = computed(() => {
+  if (!searchQuery.value) return servers.value;
+  return servers.value.filter(server =>
+    server.server_name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+function handleScroll(event) {
+  // const element = event.target;
+  // if (element.scrollTop + element.clientHeight >= element.scrollHeight - 10) {
+  //   // 滚动到底部，加载更多服务器
+  //   loadMoreServers();
+  // }
+}
+
+function loadMoreServers(pageSize = 10, throwError = true) {
+  return getRentalServerList(offset.value, pageSize).then(res => {
+    if (res.code !== 1) {
+      if (throwError) {
+        noticeText.value = res.msg || "获取服务器列表失败"
+        showNotice.value = true
+        noticeLocation.value = "/game-accounts";
+      }
+      return false;
+    }
+    if (!res || !res.data || !res.data.length) {
+      return false;
+    }
+    servers.value = [...servers.value, ...res.data]
+    offset.value += pageSize
+    return true;
+  }).catch(err => {
+    noticeText.value = err.message || "获取服务器列表异常"
+    showNotice.value = true
+    noticeLocation.value = "/game-accounts";
+    return false;
+  })
+}
 
 // 生成随机游戏名称
 function generateRandomGameName() {
   const { prefixes, suffixes } = randomNameData
   let result, randomPrefix, randomSuffix, randomNumber
-
+  
   do {
     randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)]
     randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)]
     randomNumber = ''
-
+    
     // 先组合前缀和后缀
     let baseName = `${randomPrefix}${randomSuffix}`
-
+    
     // 计算需要的随机数长度
     const currentLength = baseName.length
     if (currentLength < 7) {
@@ -158,10 +194,10 @@ function generateRandomGameName() {
       // 如果前缀+后缀已经超过9，需要重新选择
       continue
     }
-
+    
     result = `${baseName}${randomNumber}`
   } while (result.length < 7 || result.length > 9)
-
+  
   return result
 }
 
@@ -170,25 +206,6 @@ watchEffect(() => {
   if (showAddGameInput.value) {
     newGameName.value = generateRandomGameName()
   }
-})
-
-// 提示框
-const showNotice = ref(false)
-const noticeText = ref("")
-const noticeLocation = ref("")
-
-onMounted(() => {
-  selectServer(serverId).then(data => {
-    if (data.code !== 1) {
-      noticeText.value = data.msg;
-      showNotice.value = true;
-      noticeLocation.value = "/game-accounts";
-      return;
-    }
-    server.value = data.data;
-    mainImage.value = server.value.brief_image_urls[0];
-  })
-  getServerInfo1();
 })
 
 function selectAccount1(event) {
@@ -205,8 +222,8 @@ function selectAccount1(event) {
   });
 }
 
-function getServerInfo1() {
-  getServerInfo(serverId).then(data => {
+async function getServerInfo1() {
+  await getServerInfo(selectedServerId.value).then(data => {
     accounts.value = data.data.accounts
     games.value = data.data.games
 
@@ -224,15 +241,11 @@ function getServerInfo1() {
 
 // 刷新当前选择账号
 function refreshSelectedAccount() {
-  getGameAccount().then(data => {
-    if (data.code === 1) {
-      selectedAccount.value = data.data.id;
-    }
-  });
-}
-
-function switchImage(img) {
-  mainImage.value = img
+    getGameAccount().then(data => {
+      if (data.code === 1) {
+        selectedAccount.value = data.data.id;
+      }
+    });
 }
 
 function launchGameBtn() {
@@ -241,11 +254,9 @@ function launchGameBtn() {
     showNotice.value = true;
     return;
   }
-  // alert(`启动游戏: ${selectedGame.value}，账号: ${selectedAccount.value}`)
   showLaunchModal.value = false
   noticeText.value = "正在启动游戏中，请稍后.....";
-  launchGame(serverId, selectedGame.value).then(data => {
-    // 启动游戏完成，更多信息请查看控制台
+  launchGame(selectedServerId.value, selectedGame.value).then(data => {
     noticeText.value = data.msg;
   }).catch(err => {
     noticeText.value = err.message;
@@ -259,11 +270,9 @@ function launchProxyBtn() {
     showNotice.value = true;
     return;
   }
-  // alert(`启动游戏: ${selectedGame.value}，账号: ${selectedAccount.value}`)
   showLaunchModal.value = false
   noticeText.value = "正在启动代理中，请稍后.....";
-  launchProxy(serverId, selectedGame.value).then(data => {
-    // 启动代理完成，更多信息请查看控制台
+  launchProxy(selectedServerId.value, selectedGame.value).then(data => {
     noticeText.value = data.msg;
   }).catch(err => {
     noticeText.value = err.message;
@@ -273,17 +282,9 @@ function launchProxyBtn() {
 
 function addNewGame() {
   if (newGameName.value.trim()) {
-    // const newId = Math.max(...games.value.map(g => g.id), 0) + 1
-    // games.value.push({
-    //   id: newId,
-    //   name: newGameName.value.trim()
-    // })
-    // selectedGame.value = newGameName.value.trim()
-    // newGameName.value = ''
-    // showAddGameInput.value = false
     showNotice.value = true;
     noticeText.value = "正在添加角色中，请稍后.....";
-    addServerRole(serverId, newGameName.value).then(data => {
+    addServerRole(selectedServerId.value, newGameName.value).then(data => {
       if (data.code === 1) {
         getServerInfo1();
       }
@@ -301,111 +302,67 @@ function handleNoticeOk() {
 </script>
 
 <style scoped>
-.server-detail {
+.servers {
   padding: 20px;
 }
 
-.server-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.search-bar {
   margin-bottom: 20px;
+  margin-top: 10px;
 }
 
-.server-title h1 {
-  margin: 0;
-  font-size: 24px;
-}
-
-.server-title p {
-  margin: 5px 0 0 0;
-  color: var(--text-color);
-}
-
-.launch-btn {
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
+.search-bar input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
   border-radius: 5px;
-  cursor: pointer;
   font-size: 16px;
 }
 
-.server-images {
-  margin-bottom: 20px;
+.server-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 10px;
 }
 
-.main-image {
+.server-item {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.server-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.server-image img {
   width: 100%;
-  max-width: 584px;
   height: auto;
   object-fit: cover;
-  border-radius: 5px;
-  margin-bottom: 10px;
 }
 
-.small-images {
-  display: flex;
-  gap: 10px;
-}
-
-.small-image {
-  width: 80px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 3px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: border-color 0.2s;
-}
-
-.small-image:hover {
-  border-color: #2196F3;
-}
-
-.server-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+.server-info {
   padding: 15px;
-  background-color: var(--sidebar-bg);
-  border-radius: 5px;
 }
 
-.meta-item {
-  display: flex;
-  flex-direction: column;
+.server-info h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
 }
 
-.meta-item .label {
-  font-weight: bold;
-  color: var(--text-color);
+.server-info p {
+  margin: 0;
+  color: #666;
   font-size: 14px;
 }
 
-.meta-item .value {
-  margin-top: 5px;
-  font-size: 16px;
-  color: var(--text-color);
-}
-
-.server-description {
-  margin-top: 20px;
-}
-
-.server-description h2 {
-  margin: 0 0 10px 0;
-  font-size: 20px;
-  color: var(--text-color);
-}
-
-.server-description p {
-  line-height: 1.6;
-  color: var(--text-color);
-}
-
+/* Modal styles */
 .modal {
   position: fixed;
   top: 0;

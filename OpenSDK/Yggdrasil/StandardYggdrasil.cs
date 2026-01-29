@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using System.Text.RegularExpressions;
 using OpenSDK.Cipher;
 using OpenSDK.Entities;
 using OpenSDK.Entities.Yggdrasil;
@@ -10,13 +9,12 @@ using WPFLauncherApi.Http;
 
 namespace OpenSDK.Yggdrasil;
 
-public partial class StandardYggdrasil(string address, int port)
+public class StandardYggdrasil(string address, int port)
 {
     private static readonly byte[] ChaChaNonce = "163 NetEase\n"u8.ToArray();
-    private readonly YggdrasilGenerator _generator = new();
 
-    private StandardYggdrasil(string address)
-        : this(ParseAddress(address).address, ParseAddress(address).port)
+    private StandardYggdrasil(YggdrasilServer server)
+        : this(server.Ip, server.Port)
     {
     }
 
@@ -60,7 +58,7 @@ public partial class StandardYggdrasil(string address, int port)
         }
     }
 
-    private async Task<Result<byte[]>> InitializeConnection(NetworkStream stream, GameProfile profile)
+    private static async Task<Result<byte[]>> InitializeConnection(NetworkStream stream, GameProfile profile)
     {
         using var receive = await stream.ReadSteamWithInt16Async();
 
@@ -72,7 +70,7 @@ public partial class StandardYggdrasil(string address, int port)
         receive.ReadExactly(loginSeed);
         receive.ReadExactly(signContent);
 
-        var message = _generator.GenerateInitializeMessage(profile, loginSeed, signContent);
+        var message = YggdrasilGenerator.GenerateInitializeMessage(profile, loginSeed, signContent);
         await stream.WriteAsync(message);
 
         using var response = await stream.ReadSteamWithInt16Async();
@@ -87,13 +85,13 @@ public partial class StandardYggdrasil(string address, int port)
             : Result<byte[]>.Success(loginSeed);
     }
 
-    private async Task<Result> MakeRequest(NetworkStream stream, GameProfile profile, string serverId, byte[] loginSeed)
+    private static async Task<Result> MakeRequest(NetworkStream stream, GameProfile profile, string serverId, byte[] loginSeed)
     {
         var token = profile.User.GetAuthToken();
 
         var packer = new ChaChaPacker(token.CombineWith(loginSeed), ChaChaNonce, true);
         var unpacker = new ChaChaPacker(loginSeed.CombineWith(token), ChaChaNonce, false);
-        var message = packer.PackMessage(9, _generator.GenerateJoinMessage(profile, serverId, loginSeed));
+        var message = packer.PackMessage(9, YggdrasilGenerator.GenerateJoinMessage(profile, serverId, loginSeed));
         await stream.WriteAsync(message);
 
         using var messageStream = await stream.ReadSteamWithInt16Async();
@@ -102,20 +100,6 @@ public partial class StandardYggdrasil(string address, int port)
         if (type != 9 || unpackMessage[0] != 0x00) return Result.Failure(Convert.ToHexString([unpackMessage[0]]));
 
         return Result.Success();
-    }
-
-    private static (string address, int port) ParseAddress(string baseAddress)
-    {
-        var match = AddressRegex().Match(baseAddress);
-        if (!match.Success)
-            throw new FormatException($"Invalid address format: {baseAddress}");
-
-        var address = match.Groups["address"].Value;
-        var port = match.Groups["port"].Success
-            ? int.Parse(match.Groups["port"].Value)
-            : throw new FormatException($"Invalid port format: {baseAddress}");
-
-        return (address, port);
     }
 
     private static async Task<IPAddress[]> ResolveAddressAsync(string address)
@@ -136,7 +120,7 @@ public partial class StandardYggdrasil(string address, int port)
         }
     }
 
-    private static string RandomAuthServer()
+    private static YggdrasilServer RandomAuthServer()
     {
         var http = new HttpWrapper();
         var servers = http.GetAsync<YggdrasilServer[]>("https://x19.update.netease.com/authserver.list").GetAwaiter()
@@ -146,10 +130,7 @@ public partial class StandardYggdrasil(string address, int port)
             throw new Exception("No servers found.");
 
         var random = new Random();
-        var selected = servers[random.Next(servers.Length)];
-        return selected.Ip + ":" + selected.Port;
+        return servers[random.Next(servers.Length)];
     }
 
-    [GeneratedRegex(@"^(?<address>[^:]+):(?<port>\d+)$")]
-    private static partial Regex AddressRegex();
 }

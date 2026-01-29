@@ -15,4 +15,5 @@ public class GameProfile
     {
         return Mods == null ? string.Empty : JsonSerializer.Serialize(Mods);
     }
+    
 }

@@ -60,7 +60,17 @@ const routes = [
     path: '/game-manager',
     name: 'GameManager',
     component: () => import('../views/GameLaunchManager.vue')
-  }
+  },
+  {
+    path: '/game-rental/',
+    name: 'GameRental',
+    component: () => import('../views/GameRental.vue')
+  },
+  {
+    path: '/game-rental/:id',
+    name: 'GameRentalDetail',
+    component: () => import('../views/GameRentalDetail.vue')
+  },
 ]
 
 const router = createRouter({

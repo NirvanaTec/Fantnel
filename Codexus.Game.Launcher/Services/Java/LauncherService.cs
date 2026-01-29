@@ -23,7 +23,6 @@ namespace Codexus.Game.Launcher.Services.Java;
 
 public sealed class LauncherService : IDisposable
 {
-    private readonly IProgress<EntityProgressUpdate> _progress;
 
     private readonly Skip32Cipher _skip32;
 
@@ -40,16 +39,9 @@ public sealed class LauncherService : IDisposable
     public LauncherService(EntityLaunchGame entityLaunchGame)
     {
         Entity = entityLaunchGame;
-        _progress = new Progress<EntityProgressUpdate>();
         _skip32 = new Skip32Cipher((from c in "SaintSteve".ToCharArray() select (byte)c).ToArray());
         _socketPort = NetworkUtil.GetAvailablePort(9876);
         Identifier = Guid.NewGuid();
-        LastProgress = new EntityProgressUpdate
-        {
-            Id = Identifier,
-            Percent = 0,
-            Message = "Initialized"
-        };
     }
 
     public EntityLaunchGame Entity { get; }
@@ -57,8 +49,6 @@ public sealed class LauncherService : IDisposable
     private Guid Identifier { get; }
 
     private Process GameProcess { get; set; }
-
-    public EntityProgressUpdate LastProgress { get; private set; }
 
     public void Dispose()
     {
@@ -105,69 +95,30 @@ public sealed class LauncherService : IDisposable
 
     public async Task<LauncherService> LaunchGameAsync()
     {
-        var progressHandler = CreateProgressHandler();
         try
         {
-            await ExecuteLaunchStepsAsync(progressHandler);
+            await ExecuteLaunchStepsAsync();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to launch game");
-            ReportProgress(progressHandler, 100, "Game launch failed");
             throw;
         }
 
         return this;
     }
 
-    private async Task ExecuteLaunchStepsAsync(IProgress<EntityProgressUpdate> progressHandler)
+    private async Task ExecuteLaunchStepsAsync()
     {
-        ReportProgress(progressHandler, 5, "Installing game mods");
         var enumVersion = GameVersionConverter.Convert(Entity.GameVersionId);
         _modList = await InstallGameModsAsync(enumVersion);
-        ReportProgress(progressHandler, 30, "Preparing Minecraft client");
         await PrepareMinecraftClientAsync(enumVersion);
-        ReportProgress(progressHandler, 45, "Setting up runtime");
         var workingDirectory = SetupGameRuntime();
-        ReportProgress(progressHandler, 60, "Applying core mods");
         ApplyCoreMods(workingDirectory);
-        ReportProgress(progressHandler, 75, "Initializing launcher");
         var (commandService, rpcPort) = InitializeLauncher(enumVersion, workingDirectory);
-        ReportProgress(progressHandler, 80, "Starting RPC service");
         LaunchRpcService(enumVersion, rpcPort);
-        ReportProgress(progressHandler, 90, "Starting authentication socket service");
         StartAuthenticationService();
-        ReportProgress(progressHandler, 95, "Launching game process");
-        await StartGameProcessAsync(commandService, progressHandler);
-    }
-
-    private SyncCallback<EntityProgressUpdate> CreateProgressHandler()
-    {
-        var progress = new SyncProgressBarUtil.ProgressBar();
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update =>
-        {
-            progress.Update(update.Percent, update.Message);
-        });
-        return new SyncCallback<EntityProgressUpdate>(update =>
-        {
-            uiProgress.Report(new SyncProgressBarUtil.ProgressReport
-            {
-                Percent = update.Percent,
-                Message = update.Message
-            });
-            _progress.Report(update);
-            LastProgress = update;
-        });
-    }
-
-    private void ReportProgress(IProgress<EntityProgressUpdate> handler, int percent, string message)
-    {
-        handler.Report(new EntityProgressUpdate
-        {
-            Id = Identifier,
-            Percent = percent,
-            Message = message
-        });
+        await StartGameProcessAsync(commandService);
     }
 
     private async Task<EntityModsList> InstallGameModsAsync(EnumGameVersion enumVersion)
@@ -221,7 +172,7 @@ public sealed class LauncherService : IDisposable
     private void LaunchRpcService(EnumGameVersion gameVersion, int rpcPort)
     {
         var text = Path.Combine(PathUtil.CachePath, "Skins");
-        if (!Directory.Exists(text)) Directory.CreateDirectory(text);
+        Directory.CreateDirectory(text);
         _gameRpcService = new GameRpcService(rpcPort, Entity.ServerIp, Entity.ServerPort.ToString(), Entity.RoleName,
             Entity.UserId, Entity.AccessToken, gameVersion);
         _gameRpcService.Connect(text);
@@ -234,22 +185,20 @@ public sealed class LauncherService : IDisposable
         _authLibProtocol.Start();
     }
 
-    private async Task StartGameProcessAsync(CommandService commandService,
-        IProgress<EntityProgressUpdate> progressHandler)
+    private async Task StartGameProcessAsync(CommandService commandService)
     {
         var process = commandService.StartGame();
         if (process != null)
-            await HandleSuccessfulLaunch(process, progressHandler);
+            await HandleSuccessfulLaunch(process);
         else
-            HandleFailedLaunch(progressHandler);
+            HandleFailedLaunch();
     }
 
-    private Task HandleSuccessfulLaunch(Process process, IProgress<EntityProgressUpdate> progressHandler)
+    private Task HandleSuccessfulLaunch(Process process)
     {
         GameProcess = process;
         GameProcess.EnableRaisingEvents = true;
         GameProcess.Exited += OnGameProcessExited;
-        ReportProgress(progressHandler, 100, "Running");
         SyncProgressBarUtil.ProgressBar.ClearCurrent();
         Console.WriteLine();
         Log.Information(
@@ -258,9 +207,8 @@ public sealed class LauncherService : IDisposable
         return Task.CompletedTask;
     }
 
-    private void HandleFailedLaunch(IProgress<EntityProgressUpdate> progressHandler)
+    private void HandleFailedLaunch()
     {
-        ReportProgress(progressHandler, 100, "Game launch failed");
         SyncProgressBarUtil.ProgressBar.ClearCurrent();
         Log.Error("Game launch failed. Game Version: {GameVersion}, Role: {Role}", Entity.GameVersion, Entity.RoleName);
     }

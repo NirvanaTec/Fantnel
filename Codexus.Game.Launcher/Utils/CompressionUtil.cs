@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Mono.Unix;
 using Serilog;
 using SharpCompress.Archives;
 using SharpCompress.Common;
@@ -13,7 +14,6 @@ namespace Codexus.Game.Launcher.Utils;
 
 public static class CompressionUtil
 {
-
     private static async Task ExtractZipAsync(string archivePath, string outPath,
         Action<int> progress = null)
     {
@@ -99,7 +99,9 @@ public static class CompressionUtil
 
         try
         {
+
             var sevenZipExePath = Get7ZipPath();
+            FileUtil.SetUnixFilePermissions(sevenZipExePath); // 添加 7zz 执行权限
 
             Directory.CreateDirectory(outputDirectory);
 
@@ -143,7 +145,6 @@ public static class CompressionUtil
         ProgressState progressState) // 传入封装了状态的对象
     {
         while (entriesQueue.TryDequeue(out var entry))
-        {
             try
             {
                 // 5. 执行单个文件的解压和写入操作
@@ -159,7 +160,6 @@ public static class CompressionUtil
                     progress?.Invoke(currentPercentage);
                 }
             }
-        }
     }
 
     /**

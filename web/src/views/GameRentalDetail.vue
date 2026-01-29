@@ -9,25 +9,21 @@
     </div>
 
     <div class="server-images">
-      <img :src="mainImage" alt="服务器介绍图" class="main-image" width="584" height="329">
-      <div class="small-images">
-        <img v-for="(img, index) in server.brief_image_urls" :key="index" :src="img" alt="小介绍图" class="small-image"
-          width="80" height="48" @click="switchImage(img)">
-      </div>
+      <img :src="server.image_url" alt="服务器介绍图" class="main-image" width="584" height="329">
     </div>
 
     <div class="server-meta">
       <div class="meta-item">
-        <span class="label">服务器作者:</span>
-        <span class="value">{{ server.author }}</span>
-      </div>
-      <div class="meta-item">
-        <span class="label">创建时间:</span>
-        <span class="value">{{ server.createdAt }}</span>
-      </div>
-      <div class="meta-item">
         <span class="label">游戏版本:</span>
-        <span class="value">{{ server.gameVersion }}</span>
+        <span class="value">{{ server.mc_version }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">服务器类型:</span>
+        <span class="value">{{ server.server_type }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">在线人数:</span>
+        <span class="value">{{ server.player_count }}/{{ server.capacity }}</span>
       </div>
       <div class="meta-item">
         <span class="label">服务器地址:</span>
@@ -37,7 +33,7 @@
 
     <div class="server-description">
       <h2>服务器介绍</h2>
-      <p v-html="server.fullDescription"></p>
+      <p>{{ server.brief_summary }}</p>
     </div>
 
     <!-- Launch 弹窗 -->
@@ -88,7 +84,7 @@
 <script setup>
 import { ref, onMounted, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
-import { selectServer, getServerInfo, addServerRole, launchGame, switchAccount, getGameAccount, launchProxy } from '../utils/Tools'
+import { getRentalServerDetail, getRentalInfo, addRentalRole, launchGame, switchAccount, getGameAccount, launchProxy } from '../utils/Tools'
 import Alert from '../components/Alert.vue'
 import randomNameData from '../../public/random.name.json'
 
@@ -97,37 +93,11 @@ const serverId = route.params.id
 
 const server = ref({})
 
-// {
-//   id: serverId,
-//   name: `服务器${serverId}`,
-//   author: '作者名称',
-//   createdAt: '2023-01-01',
-//   gameVersion: '1.19.2',
-//   address: 'mc.example.com:25565',
-//   brief_image_urls: [
-//     'https://via.placeholder.com/80x48',
-//     'https://via.placeholder.com/80x48',
-//     'https://via.placeholder.com/80x48'
-//   ],
-//   fullDescription: '这是一个详细的服务器介绍，包含了服务器的各种特色和玩法。服务器拥有丰富的插件和活动，欢迎玩家加入体验。' + ' '.repeat(100) // 填充到500字左右
-// }
+const showLaunchModal = ref(false)
+const selectedAccount = ref('')
 
-const mainImage = ref("");
-
-const showLaunchModal = ref(false);
-const selectedAccount = ref('');
-
-const accounts = ref()
-// [
-//   { id: 1, name: '账号1' },
-//   { id: 2, name: '账号2' }
-// ]
-
-const games = ref()
-// [
-//   { id: 1, name: '游戏1' },
-//   { id: 2, name: '游戏2' }
-// ]
+const accounts = ref([])
+const games = ref([])
 
 const showAddGameInput = ref(false)
 const newGameName = ref('') // 新添加的游戏名称
@@ -178,7 +148,7 @@ const noticeText = ref("")
 const noticeLocation = ref("")
 
 onMounted(() => {
-  selectServer(serverId).then(data => {
+  getRentalServerDetail(serverId).then(data => {
     if (data.code !== 1) {
       noticeText.value = data.msg;
       showNotice.value = true;
@@ -186,7 +156,6 @@ onMounted(() => {
       return;
     }
     server.value = data.data;
-    mainImage.value = server.value.brief_image_urls[0];
   })
   getServerInfo1();
 })
@@ -206,7 +175,7 @@ function selectAccount1(event) {
 }
 
 function getServerInfo1() {
-  getServerInfo(serverId).then(data => {
+  getRentalInfo(serverId).then(data => {
     accounts.value = data.data.accounts
     games.value = data.data.games
 
@@ -231,10 +200,6 @@ function refreshSelectedAccount() {
   });
 }
 
-function switchImage(img) {
-  mainImage.value = img
-}
-
 function launchGameBtn() {
   if (!selectedGame.value) {
     noticeText.value = '请选择游戏名称';
@@ -244,7 +209,7 @@ function launchGameBtn() {
   // alert(`启动游戏: ${selectedGame.value}，账号: ${selectedAccount.value}`)
   showLaunchModal.value = false
   noticeText.value = "正在启动游戏中，请稍后.....";
-  launchGame(serverId, selectedGame.value).then(data => {
+  launchGame(serverId, selectedGame.value, "rental").then(data => {
     // 启动游戏完成，更多信息请查看控制台
     noticeText.value = data.msg;
   }).catch(err => {
@@ -262,7 +227,7 @@ function launchProxyBtn() {
   // alert(`启动游戏: ${selectedGame.value}，账号: ${selectedAccount.value}`)
   showLaunchModal.value = false
   noticeText.value = "正在启动代理中，请稍后.....";
-  launchProxy(serverId, selectedGame.value).then(data => {
+  launchProxy(serverId, selectedGame.value, "rental").then(data => {
     // 启动代理完成，更多信息请查看控制台
     noticeText.value = data.msg;
   }).catch(err => {
@@ -273,17 +238,9 @@ function launchProxyBtn() {
 
 function addNewGame() {
   if (newGameName.value.trim()) {
-    // const newId = Math.max(...games.value.map(g => g.id), 0) + 1
-    // games.value.push({
-    //   id: newId,
-    //   name: newGameName.value.trim()
-    // })
-    // selectedGame.value = newGameName.value.trim()
-    // newGameName.value = ''
-    // showAddGameInput.value = false
     showNotice.value = true;
     noticeText.value = "正在添加角色中，请稍后.....";
-    addServerRole(serverId, newGameName.value).then(data => {
+    addRentalRole(serverId, newGameName.value).then(data => {
       if (data.code === 1) {
         getServerInfo1();
       }
@@ -343,25 +300,6 @@ function handleNoticeOk() {
   object-fit: cover;
   border-radius: 5px;
   margin-bottom: 10px;
-}
-
-.small-images {
-  display: flex;
-  gap: 10px;
-}
-
-.small-image {
-  width: 80px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 3px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: border-color 0.2s;
-}
-
-.small-image:hover {
-  border-color: #2196F3;
 }
 
 .server-meta {

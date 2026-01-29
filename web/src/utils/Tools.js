@@ -51,24 +51,24 @@ export async function selectServer(id) {
     return axios.get(`/api/gameserver/id?id=${id}`).then(res => res.data);
 }
 
-// 获取启动信息
-export async function getLaunchInfo(id) {
+// 获取服务器 账号/角色
+export async function getServerInfo(id) {
     return axios.get(`/api/gameserver/getlaunch?id=${id}`).then(res => res.data);
 }
 
 // 添加游戏名称
-export async function addLaunchGame(id, name) {
+export async function addServerRole(id, name) {
     return axios.post("/api/gameserver/createname", {id, name}).then(res => res.data);
 }
 
 // 启动游戏代理
-export async function launchProxy(id, name) {
-    return axios.get(`/api/gameserver/launch?id=${id}&name=${name}`).then(res => res.data);
+export async function launchProxy(id, name, mode = "net") {
+    return axios.get(`/api/gameserver/launch?id=${id}&name=${name}&mode=${mode}`).then(res => res.data);
 }
 
 // 启动游戏白端
-export async function launchGame(id, name) {
-    return axios.get(`/api/gamelaunch/launch?id=${id}&name=${name}`).then(res => res.data);
+export async function launchGame(id, name, mode = "net") {
+    return axios.get(`/api/gamelaunch/launch?id=${id}&name=${name}&mode=${mode}`).then(res => res.data);
 }
 
 // 获取插件列表
@@ -217,4 +217,29 @@ export async function setGameSkin(id) {
 // 获取皮肤 - 根据名称
 export async function getGameSkinListByName(name, offset = 0, pageSize = 10) {
     return axios.get(`/api/gameskin/get?name=${name}&offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
+}
+
+// 获取租赁服列表
+export async function getRentalServerList(offset = 0, pageSize = 10) {
+    return axios.get(`/api/gamerental/get?offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
+}
+
+// 获取租赁服详情
+export async function getRentalServerDetail(id) {
+    return axios.get(`/api/gamerental/id?id=${id}`).then(res => res.data);
+}
+
+// 租赁服排序
+export async function sortRentalServer() {
+    return axios.get(`/api/gamerental/sort`);
+}
+
+// 添加租赁服角色
+export async function addRentalRole(id, name) {
+    return axios.post(`/api/gamerental/createname`, {id, name}).then(res => res.data);
+}
+
+// 获取租赁服 账号/角色
+export async function getRentalInfo(id) {
+    return axios.get(`/api/gamerental/getlaunch?id=${id}`).then(res => res.data);
 }

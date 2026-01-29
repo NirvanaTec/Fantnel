@@ -266,9 +266,11 @@ public static class InstallerService
         });
         var compDir = Path.Combine(PathUtil.CachePath, "Game", gameId);
         var compArchive = compDir + ".7z";
-        FileUtil.CreateDirectorySafe(compDir);
-        var netGameComponentDownloadList = await WPFLauncher.GetNetGameComponentDownloadListAsync(gameId);
+        Directory.CreateDirectory(compDir);
+
+        try
         {
+            var netGameComponentDownloadList = await WPFLauncher.GetNetGameComponentDownloadListAsync(gameId);
             var comp = netGameComponentDownloadList.SubEntities[0];
             var extractDir = Path.Combine(compDir, gameId + ".MD5");
             var archive = Path.Combine(compDir, gameId + ".json");
@@ -327,6 +329,11 @@ public static class InstallerService
             await File.WriteAllTextAsync(archive, JsonSerializer.Serialize(serverModsList));
             FileUtil.DeleteFileSafe(compArchive);
         }
+        catch (Exception)
+        {
+           Log.Warning("Download game Component failed");
+        }
+
         uiProgress.Report(new SyncProgressBarUtil.ProgressReport
         {
             Percent = 100,
@@ -349,12 +356,15 @@ public static class InstallerService
         var path = HashUtil.GenerateGameRuntimeId(gameId, roleName);
         var text = Path.Combine(PathUtil.GamePath, "Runtime", path);
         var text2 = Path.Combine(text, ".minecraft");
-        if (!Directory.Exists(text)) Directory.CreateDirectory(text);
+        
+        Directory.CreateDirectory(text);
+        Directory.CreateDirectory(text2);
+        
         if (gameType == EnumGType.NetGame)
         {
             var text3 = Path.Combine(text2, "mods");
             FileUtil.DeleteDirectorySafe(text3);
-            FileUtil.CreateDirectorySafe(text3);
+            Directory.CreateDirectory(text3);
             FileUtil.CopyDirectory(Path.Combine(PathUtil.CachePath, "Game", gameId, ".minecraft"), text2, false);
             InstallCustomMods(text3);
         }
@@ -363,7 +373,7 @@ public static class InstallerService
         var targetPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "assets");
         // 创建assets目录符号链接
         if (Directory.Exists(linkPath)) Directory.Delete(linkPath);
-        Directory.CreateSymbolicLink(linkPath, targetPath + "/");
+        Directory.CreateSymbolicLink(linkPath, targetPath + Path.DirectorySeparatorChar);
         return text;
     }
 
@@ -371,12 +381,14 @@ public static class InstallerService
     {
         var text = Path.Combine(PathUtil.GameModsPath, gameId);
         if (!Directory.Exists(text)) return;
-        FileUtil.CreateDirectorySafe(targetModsPath);
+        Directory.CreateDirectory(targetModsPath);
         var array = FileUtil.EnumerateFiles(text);
         foreach (var text2 in array)
         {
             var text3 = Path.Combine(targetModsPath, Path.GetRelativePath(text, text2));
-            FileUtil.CreateDirectorySafe(Path.GetDirectoryName(text3));
+            var dir = Path.GetDirectoryName(text3);
+            if(dir == null) continue;
+            Directory.CreateDirectory(dir);
             FileUtil.CopyFileSafe(text2, text3);
         }
     }
@@ -394,7 +406,7 @@ public static class InstallerService
                 "natives",
                 "runtime"
             );
-            FileUtil.CreateDirectorySafe(text2);
+            Directory.CreateDirectory(text2);
             if (!File.Exists(text)) throw new Exception("未找到验证库: " + text);
             var destPath = Path.Combine(text2, "api-ms-win-crt-utility-l1-1-1.dll");
             FileUtil.CopyFileSafe(text, destPath);

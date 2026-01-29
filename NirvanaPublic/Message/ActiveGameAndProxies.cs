@@ -108,11 +108,11 @@ public static class ActiveGameAndProxies
         var address = await WPFLauncher.GetNetGameServerAddressAsync(serverId);
 
         // 服务器普通信息
-        var server = ServersGameMessage.GetServerId(serverId);
+        var server = ServersGameMessage.GetServerById(serverId);
         if (server == null) throw new ErrorCodeException(ErrorCode.ServerInNot);
 
         // 服务器详细信息
-        var details = await WPFLauncher.QueryNetGameDetailByIdAsync(server.EntityId);
+        var details = await WPFLauncher.GetNetGameDetailByIdAsync(server.EntityId);
 
         lock (SafeLock)
         {
