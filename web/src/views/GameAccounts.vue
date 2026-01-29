@@ -175,7 +175,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { getAccounts, addAccount, selectAccount, deleteAccount, updateAccount, getCaptcha4399Url, verifyCaptcha4399, getCaptcha4399Content, isVersionSafe } from '../utils/Tools'
+import { getAccounts, addAccount, selectAccount, deleteAccount, updateAccount, getCaptcha4399Url, verifyCaptcha4399, getCaptcha4399Content } from '../utils/Tools'
 import Alert from '../components/Alert.vue'
 
 const accounts = ref([])
@@ -260,17 +260,14 @@ function loadCaptcha() {
     img.onload = () => {
       // 确保图片加载完成
       captchaLoading.value = false;
-      // 版本安全检查
-      if (isVersionSafe(2, false)) {
-        // 获取验证码内容
-        getCaptcha4399Content().then(data => {
-          if (data.code === 1) {
-            captchaInput.value = data.data || '';
-          } else {
-            captchaInput.value = '';
-          }
-        })
-      }
+      // 获取验证码内容
+      getCaptcha4399Content().then(data => {
+        if (data.code === 1) {
+          captchaInput.value = data.data || '';
+        } else {
+          captchaInput.value = '';
+        }
+      })
     };
     img.onerror = () => {
       // 图片加载失败也需要更新状态

@@ -138,8 +138,8 @@ public class CommandService
 
     public Process StartGame()
     {
-        // 非 Windows 系统需要设置目录权限，否则会导致 Java 无法执行
         var javaPath = GetJavaPath(_gameVersion);
+        FileUtil.SetUnixFilePermissions(javaPath); // 添加 Java 权限
         return Process.Start(new ProcessStartInfo(javaPath, _cmd)
         {
             UseShellExecute = false,
@@ -274,7 +274,6 @@ public class CommandService
     private void AddNativePath(StringBuilder sb)
     {
         var natives = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", _version, "natives");
-        var runtime = Path.Combine(natives, "runtime");
 
         // 避免 linux 出现权限问题
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -284,9 +283,10 @@ public class CommandService
             // 创建 natives 目录符号链。
             if (Directory.Exists(linkPath)) Directory.Delete(linkPath);
             Directory.CreateSymbolicLink(linkPath, targetPath);
-            natives = linkPath + ":" + natives;
+            natives = linkPath;
         }
-
+        
+        var runtime = Path.Combine(natives, "runtime");
         sb.Insert(0, $" -Djava.library.path=\"{natives}\" -Druntime_path=\"{runtime}\" ");
     }
 

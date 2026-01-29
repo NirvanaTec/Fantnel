@@ -66,11 +66,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getProxyServerInfo, closeProxyServer, isVersionSafe } from '../utils/Tools.js'
+import { getProxyServerInfo, closeProxyServer } from '../utils/Tools.js'
 import Alert from '../components/Alert.vue'
 import useClipboard from 'vue-clipboard3'
-
-isVersionSafe(1);
 
 // 复制功能
 const { toClipboard } = useClipboard()

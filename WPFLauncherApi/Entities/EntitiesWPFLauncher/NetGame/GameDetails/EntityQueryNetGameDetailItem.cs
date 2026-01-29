@@ -5,6 +5,10 @@ namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class EntityQueryNetGameDetailItem
 {
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
+    
+    [JsonPropertyName("entity_id")] public string EntityId { get; set; } = string.Empty;
+    
     [JsonPropertyName("brief_image_urls")] public string[] BriefImageUrls { get; set; } = Array.Empty<string>();
 
     [JsonPropertyName("detail_description")]

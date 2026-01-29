@@ -77,7 +77,7 @@ public static class SkinMessage
 
     public static async Task<EntityQueryNetSkinItem[]> GetSkinListByName(string name, int offset = 0, int pageSize = 10)
     {
-        var result = WPFLauncher.QueryFreeSkinByNameAsync(name, offset, pageSize).Result;
+        var result = WPFLauncher.GetFreeSkinByNameAsync(name, offset, pageSize).Result;
 
         var items = new List<EntityQueryNetSkinItem>();
         foreach (var item in result)

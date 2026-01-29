@@ -5,8 +5,8 @@ namespace NirvanaPublic;
 public static class PublicProgram
 {
     // Fantnel 版本
-    public const string Version = "1.3.1.3";
-    public const int VersionId = 3;
+    public const string Version = "1.4.0";
+    public const int VersionId = 4;
 
     // 是最新版本
 #pragma warning disable CA2211

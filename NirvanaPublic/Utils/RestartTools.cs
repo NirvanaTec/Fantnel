@@ -22,9 +22,10 @@ public static class RestartTools
         var id = Get("id", args);
         var name = Get("name", args);
         var port = Get("port", args);
+        var proxyMode = Get("proxyMode", args);
         if (string.IsNullOrEmpty(port)) port = "25565";
         InitProgram.NelInit1();
-        ProxiesMessage.StartProxyAsync1(id, name, int.Parse(port)).Wait();
+        ProxiesMessage.StartProxyAsyncTo(id, name, int.Parse(port), proxyMode).Wait();
         Maintenance(args);
         return false;
     }

@@ -64,10 +64,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getGameLaunchInfo, closeGameLaunch, isVersionSafe } from '../utils/Tools.js'
+import { getGameLaunchInfo, closeGameLaunch } from '../utils/Tools.js'
 import Alert from '../components/Alert.vue'
-
-isVersionSafe(3);
 
 // 游戏列表
 const gameLaunchList = ref([])

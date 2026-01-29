@@ -126,7 +126,7 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
                 var serverIdBuf = new byte[serverIdLen];
                 await ReadExactAsync(stream, serverIdBuf, 0, serverIdLen, token).ConfigureAwait(false);
                 var serverId = Encoding.UTF8.GetString(serverIdBuf);
-
+                
                 await NetEaseConnection.CreateAuthenticatorAsync(serverId, gameId, version, modList,
                     int.Parse(userId), accessToken, () => { responseCode = 0u; }).ConfigureAwait(false);
             }

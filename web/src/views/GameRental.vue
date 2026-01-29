@@ -1,18 +1,22 @@
 <template>
-  <div class="servers">
-    <h1>服务器管理</h1>
-    <p>网络服务器页面，用于启动网络游戏。</p>
+  <div class="game-rental">
+    <h1>租赁服管理</h1>
+    <p>租赁服页面，用于启动租赁服上的游戏。</p>
     <div class="search-bar">
-      <input type="text" v-model="searchQuery" placeholder="搜索服务器...">
+      <input type="text" v-model="searchQuery" placeholder="搜索租赁服...">
     </div>
     <div class="server-list" @scroll="handleScroll">
       <div v-for="server in filteredServers" class="server-item" @click="navigateToServer(server.entity_id)">
         <div class="server-image">
-          <img :src="server.title_image_url" alt="服务器介绍图" width="307" height="173">
+          <img :src="server.image_url" alt="服务器介绍图" width="307" height="173">
         </div>
         <div class="server-info">
-          <h3>{{ server.name }}</h3>
+          <h3>{{ server.server_name }}</h3>
           <p>{{ server.brief_summary }}</p>
+          <div class="server-meta">
+            <span class="meta-item">版本: {{ server.mc_version }}</span>
+            <span class="meta-item">在线: {{ server.player_count }}/{{ server.capacity }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -25,9 +29,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-// import { useRouter } from 'vue-router'
-import { getServerList } from '../utils/Tools'
-// const router = useRouter()
+import { getRentalServerList, sortRentalServer } from '../utils/Tools'
 import Alert from '../components/Alert.vue'
 
 const searchQuery = ref('')
@@ -40,17 +42,12 @@ const showNotice = ref(false)
 const noticeText = ref("")
 const noticeLocation = ref("")
 
-// [
-//   { entity_id: 1, name: '服务器1', brief_summary: '这是一个很棒的服务器', title_image_url: 'https://via.placeholder.com/307x173' },
-//   { entity_id: 2, name: '服务器2', brief_summary: '这是另一个很棒的服务器', title_image_url: 'https://via.placeholder.com/307x173' },
-//   { entity_id: 3, name: '服务器3', brief_summary: '这是第三个很棒的服务器', title_image_url: 'https://via.placeholder.com/307x173' }
-// ]
-
 const isActive = ref(true)
 
 onMounted(async () => {
   isActive.value = true
   // 启动批量加载
+  await sortRentalServer();
   await loadServersInBatches()
 })
 
@@ -84,14 +81,13 @@ async function loadServersInBatches() {
 const filteredServers = computed(() => {
   if (!searchQuery.value) return servers.value;
   return servers.value.filter(server =>
-    server.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    server.server_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     server.brief_summary.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
 
 function navigateToServer(id) {
-  location.href = `/server/${id}`;
-  // router.push(`/server/${id}`)
+  location.href = `/game-rental/${id}`;
 }
 
 function handleScroll(event) {
@@ -103,15 +99,10 @@ function handleScroll(event) {
 }
 
 function loadMoreServers(pageSize = 10, throwError = true) {
-  // const newServers = [
-  //   { entity_id: servers.value.length + 1, name: `服务器${servers.value.length + 1}`, describrief_summarytion: `这是第${servers.value.length + 1}个服务器`, title_image_url: 'https://via.placeholder.com/307x173' },
-  //   { entity_id: servers.value.length + 2, name: `服务器${servers.value.length + 2}`, brief_summary: `这是第${servers.value.length + 2}个服务器`, title_image_url: 'https://via.placeholder.com/307x173' }
-  // ]
-  // servers.value = [...servers.value, ...newServers]
-  return getServerList(offset.value, pageSize).then(res => {
+  return getRentalServerList(offset.value, pageSize).then(res => {
     if (res.code !== 1) {
       if (throwError) {
-        noticeText.value = res.msg || "获取服务器列表失败"
+        noticeText.value = res.msg || "获取租赁服列表失败"
         showNotice.value = true
         noticeLocation.value = "/game-accounts";
       }
@@ -124,7 +115,7 @@ function loadMoreServers(pageSize = 10, throwError = true) {
     offset.value += pageSize
     return true;
   }).catch(err => {
-    noticeText.value = err.message || "获取服务器列表异常"
+    noticeText.value = err.message || "获取租赁服列表异常"
     showNotice.value = true
     noticeLocation.value = "/game-accounts";
     return false;
@@ -140,7 +131,7 @@ function handleNoticeOk() {
 </script>
 
 <style scoped>
-.servers {
+.game-rental {
   padding: 20px;
 }
 
@@ -195,8 +186,21 @@ function handleNoticeOk() {
 }
 
 .server-info p {
-  margin: 0;
+  margin: 0 0 10px 0;
   color: #666;
   font-size: 14px;
+}
+
+.server-meta {
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+  color: #999;
+}
+
+.meta-item {
+  background-color: #f5f5f5;
+  padding: 3px 8px;
+  border-radius: 10px;
 }
 </style>

@@ -118,7 +118,7 @@ public static class PlugInstoreMessage
         // 下载插件 保存路径
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
         // 自动插件 插件 文件夹
-        if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        Directory.CreateDirectory(path);
         // 自动插件 插件 文件名
         path = Path.Combine(path, detail.Data.Name + " [" + detail.Data.Version + "].dll");
         UpdateTools.Update(GetDownloadUrl(id), path, detail.Data.Name + " [" + detail.Data.Version + "]").Wait();

@@ -12,9 +12,9 @@ namespace Fantnel.Servlet.GameController;
 public class GameProxiesController : ControllerBase
 {
     [HttpGet("/api/gameserver/launch")]
-    public IActionResult LaunchGame([FromQuery] string id, [FromQuery] string name)
+    public IActionResult LaunchGame([FromQuery] string id, [FromQuery] string name, [FromQuery] string mode = "net")
     {
-        ProxiesMessage.StartProxyAsync(id, name).Wait();
+        ProxiesMessage.StartProxyAsync(id, name, mode).Wait();
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 

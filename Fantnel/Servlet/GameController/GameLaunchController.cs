@@ -10,9 +10,9 @@ namespace Fantnel.Servlet.GameController;
 public class GameLaunchController : ControllerBase
 {
     [HttpGet("/api/gamelaunch/launch")]
-    public IActionResult LaunchGame([FromQuery] string id, [FromQuery] string name)
+    public IActionResult LaunchGame([FromQuery] string id, [FromQuery] string name, [FromQuery] string mode = "net")
     {
-        LaunchMessage.LaunchGame(id, name).Wait();
+        LaunchMessage.LaunchGame(id, name, mode).Wait();
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 

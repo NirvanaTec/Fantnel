@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Serilog;
 using WPFLauncherApi.Protocol;
 using WPFLauncherApi.Utils;
 

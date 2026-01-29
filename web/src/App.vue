@@ -25,6 +25,7 @@ provide('theme', theme)
 <template>
   <div class="app" :class="theme">
     <div class="container">
+
       <!-- 左侧导航栏 -->
       <nav class="sidebar">
         <div class="logo">
@@ -38,7 +39,10 @@ provide('theme', theme)
             <router-link to="/game-accounts" active-class="active">游戏账号</router-link>
           </li>
           <li>
-            <router-link to="/servers" active-class="active">服务器</router-link>
+            <router-link to="/servers" active-class="active">网络器</router-link>
+          </li>
+          <li>
+            <router-link to="/game-rental" active-class="active">租赁服</router-link>
           </li>
           <li>
             <router-link to="/skins" active-class="active" class="divider">我的皮肤</router-link>
