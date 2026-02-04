@@ -1,16 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Message;
 using WPFLauncherApi.Protocol;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
 // servers
 [ApiController]
 [Route("[controller]")]
-public class GameServerController : ControllerBase
-{
+public class GameServerController : ControllerBase {
     [HttpGet("/api/gameserver/get")]
     public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10)
     {
@@ -36,8 +35,7 @@ public class GameServerController : ControllerBase
         // 全部游戏角色
         var games = WPFLauncher.GetNetGameCharactersAsync(id).Result;
         // 合并
-        var text = new
-        {
+        var text = new {
             accounts,
             games
         };
@@ -53,5 +51,4 @@ public class GameServerController : ControllerBase
         ServersGameMessage.GetUserName(name.Id, name.Name).Wait(); // 防止缓存
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
-    
 }

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Launch;
 
-public class EntityUserPropertiesEx
-{
+public class EntityUserPropertiesEx {
     [JsonPropertyName("GameType")] public required int GameType { get; set; }
 
     [JsonPropertyName("isFilter")] public required bool IsFilter { get; set; }

@@ -1,19 +1,18 @@
 ﻿using System.Text;
 using System.Text.Json;
+using NirvanaAPI.Entities;
+using NirvanaAPI.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Manager;
-using NirvanaPublic.Utils;
 using OpenSDK.Entities.Config;
 using Serilog;
 using WPFLauncherApi;
-using WPFLauncherApi.Entities;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 using WPFLauncherApi.Protocol;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
-public static class AccountMessage
-{
+public static class AccountMessage {
     // 默认 自动登录 已执行完成
     private static readonly List<string> IsDefaultLogin = [];
 
@@ -55,8 +54,7 @@ public static class AccountMessage
     public static void SwitchAccount(int id)
     {
         var account = GetAccount(id);
-        foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(account)))
-        {
+        foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
             InfoManager.GameAccount = gameAccount;
             WPFLauncherProgram.User = gameAccount;
             break;
@@ -93,13 +91,11 @@ public static class AccountMessage
 
         // 给 账号 赋值 Id
         var index = -1;
-        foreach (var item in entity)
-        {
+        foreach (var item in entity) {
             index++;
             item.Id = index;
             // 登录成功 同步 UserId, Token
-            foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(item)))
-            {
+            foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(item))) {
                 item.UserId = gameAccount.UserId;
                 item.Token = gameAccount.Token;
             }
@@ -118,20 +114,17 @@ public static class AccountMessage
     // 登录游戏账号
     public static void Login(EntityAccount account)
     {
-        lock (LockManager.LoginLock)
-        {
+        lock (LockManager.LoginLock) {
             if (account.Password == null) throw new ErrorCodeException(ErrorCode.PasswordError);
 
             EntityAuthenticationOtp? result = null; // 登录结果
 
-            switch (account.Type)
-            {
+            switch (account.Type) {
                 // cookie
                 case "cookie":
                     result = WPFLauncher.LoginWithCookieAsync(account.Password).Result;
                     break;
-                case "4399":
-                {
+                case "4399": {
                     if (_session4399Id == null || Captcha4399 == null)
                         throw new ErrorCodeException(ErrorCode.CaptchaNot);
 
@@ -171,8 +164,7 @@ public static class AccountMessage
     // 保存账号到文件
     public static void UpdateAccount(EntityAccount account, bool defaultLogin = true)
     {
-        lock (LockManager.GameSaveAccountLock)
-        {
+        lock (LockManager.GameSaveAccountLock) {
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1(defaultLogin);
 
@@ -198,8 +190,7 @@ public static class AccountMessage
     // 保存账号到文件
     public static void SaveAccount(EntityAccount account)
     {
-        lock (LockManager.GameSaveAccountLock)
-        {
+        lock (LockManager.GameSaveAccountLock) {
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
 
@@ -228,8 +219,7 @@ public static class AccountMessage
     // 保存账号到文件
     private static void SaveAccount()
     {
-        lock (LockManager.GameSaveAccountLock)
-        {
+        lock (LockManager.GameSaveAccountLock) {
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
 
@@ -247,45 +237,33 @@ public static class AccountMessage
     // 自动登录账号
     private static void AutoLogin(EntityAccount account)
     {
-        try
-        {
+        try {
             // 检查是否已登录过
             var disabled = IsDefaultLogin.Any(defaultLogin => defaultLogin == account.ToString());
             if (disabled) return;
             IsDefaultLogin.Add(account.ToString());
-            if (account.Type == "cookie")
-            {
+            if (account.Type == "cookie") {
                 Login(account);
-            }
-            else if (account is { Type: "4399", UserId: not null, Token: not null })
-            {
+            } else if (account is { Type: "4399", UserId: not null, Token: not null }) {
                 WPFLauncherProgram.User.UserId = account.UserId;
                 WPFLauncherProgram.User.Token = account.Token;
                 var freeSkinCount = -1;
-                try
-                {
+                try {
                     freeSkinCount = WPFLauncher.GetFreeSkinListAsync(0, 1).Result.Length;
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     Log.Error("自动登录失败: {account}: {Message}", account.Id, e.Message);
                 }
 
-                if (freeSkinCount > 0)
-                {
+                if (freeSkinCount > 0) {
                     // 登录成功
                     InfoManager.AddAccount(account);
-                }
-                else
-                {
+                } else {
                     account.UserId = null;
                     account.Token = null;
                     UpdateAccount(account, false);
                 }
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.Warning("自动登录失败: {account}: {Message}", account.Id, e.Message);
         }
     }
@@ -293,8 +271,7 @@ public static class AccountMessage
     // 删除账号到文件
     public static void DeleteAccount(int id)
     {
-        lock (LockManager.GameSaveAccountLock)
-        {
+        lock (LockManager.GameSaveAccountLock) {
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
 

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame;
 
-public class EntityNetGameRequest
-{
+public class EntityNetGameRequest {
     [JsonPropertyName("available_mc_versions")]
     public required string[] AvailableMcVersions { get; set; }
 

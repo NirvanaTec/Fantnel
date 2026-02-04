@@ -1,7 +1,6 @@
 ﻿namespace OpenSDK.Entities;
 
-public class Result(bool isSuccess, string? error = null)
-{
+public class Result(bool isSuccess, string? error = null) {
     public bool IsSuccess { get; } = isSuccess;
     public bool IsFailure => !IsSuccess;
     public string? Error { get; } = error;
@@ -22,8 +21,7 @@ public class Result(bool isSuccess, string? error = null)
     }
 }
 
-public class Result<T> : Result
-{
+public class Result<T> : Result {
     private Result(T value) : base(true)
     {
         Value = value;

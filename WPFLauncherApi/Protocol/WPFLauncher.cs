@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using NirvanaAPI.Utils.CodeTools;
 using Serilog;
 using WPFLauncherApi.Entities;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher;
@@ -17,17 +18,14 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.RentalGame;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.RentalGame.GameCharacters;
 using WPFLauncherApi.Http;
 using WPFLauncherApi.Utils;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace WPFLauncherApi.Protocol;
 
 // ReSharper disable once InconsistentNaming
-public static class WPFLauncher
-{
+public static class WPFLauncher {
     private static readonly MgbSdk Sdk = new("x19");
 
-    public static readonly JsonSerializerOptions DefaultOptions = new()
-    {
+    public static readonly JsonSerializerOptions DefaultOptions = new() {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
@@ -40,8 +38,7 @@ public static class WPFLauncher
     {
         var response = await X19Extensions.Gateway.Api<EntityWPFLauncher<EntityQueryNetGameDetailItem>>(
             "/item-details/get_v2",
-            new EntityQueryNetGameDetailRequest
-            {
+            new EntityQueryNetGameDetailRequest {
                 ItemId = gameId
             }
         );
@@ -57,30 +54,28 @@ public static class WPFLauncher
     {
         var response = await X19Extensions.Gateway.Api<EntityWPFLauncher<EntityNetGameServerAddress>>(
             "/item-address/get",
-            new EntityQueryNetGameDetailRequest
-            {
+            new EntityQueryNetGameDetailRequest {
                 ItemId = serverId
             });
         return response == null ? throw new ErrorCodeException(ErrorCode.AddressError) : response.SafeEntity();
     }
-    
+
     /**
-    * 查询租赁服地址
-    * @param serverId 服务器ID
-    * @return 服务器地址
+     * 查询租赁服地址
+     * @param serverId 服务器ID
+     * @return 服务器地址
      */
     public static async Task<EntityRentalGameServerAddress> GetGameRentalAddressAsync(
-        string serverId, 
+        string serverId,
         string? pwd = null)
     {
         // 该接口存在问题，20%概率 因为缺少 引号 导致解析失败
         //  "entity_id": 4664453443934401593,
         var entity = await X19Extensions.Client.Api<EntityWPFLauncher<EntityRentalGameServerAddress>>(
-            "/rental-server-world-enter/get", new EntityQueryRentalGameServerAddress
-            {
+            "/rental-server-world-enter/get", new EntityQueryRentalGameServerAddress {
                 ServerId = serverId,
                 Password = pwd ?? "none"
-            }); 
+            });
         return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
     }
 
@@ -93,8 +88,7 @@ public static class WPFLauncher
     {
         if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityGameCharacter>>(
-            "/game-character/query/user-game-characters", new EntityQueryGameCharacters
-            {
+            "/game-character/query/user-game-characters", new EntityQueryGameCharacters {
                 GameId = gameId,
                 UserId = WPFLauncherProgram.User.UserId
             });
@@ -110,40 +104,38 @@ public static class WPFLauncher
     {
         if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<object>("/game-character",
-            new EntityGameCharacter
-            {
+            new EntityGameCharacter {
                 GameId = gameId,
                 UserId = WPFLauncherProgram.User.UserId,
                 Name = roleName
             });
         if (response == null) throw new ErrorCodeException();
     }
-    
+
     /**
     * 获取 租赁服 游戏角色
     */
     public static async Task<EntityRentalGamePlayerList[]> GetRentalGameRolesListAsync(string serverId)
     {
-        var entity = await X19Extensions.Client.Api<EntitiesWPFLauncher<EntityRentalGamePlayerList>>("/rental-server-player/query/search-by-user-server", new EntityQueryRentalGamePlayerList
-        {
-            ServerId = serverId,
-            Offset = 0,
-            Length = 10
-        });
+        var entity = await X19Extensions.Client.Api<EntitiesWPFLauncher<EntityRentalGamePlayerList>>(
+            "/rental-server-player/query/search-by-user-server", new EntityQueryRentalGamePlayerList {
+                ServerId = serverId,
+                Offset = 0,
+                Length = 10
+            });
         return entity == null ? throw new ErrorCodeException() : entity.Data;
     }
-    
+
     /**
-    * 创建游戏角色
-    * @param serverId 服务器ID
-    * @param roleName 角色名称
-    */
+     * 创建游戏角色
+     * @param serverId 服务器ID
+     * @param roleName 角色名称
+     */
     public static async Task CreateCharacterRentalAsync(string serverId, string roleName)
     {
         if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<object>("/rental-server-player",
-            new EntityAddRentalGameRole
-            {
+            new EntityAddRentalGameRole {
                 ServerId = serverId,
                 UserId = WPFLauncherProgram.User.UserId,
                 Name = roleName,
@@ -163,8 +155,7 @@ public static class WPFLauncher
     public static async Task<EntityNetGameItem[]> GetAvailableNetGamesAsync(int offset, int length)
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityNetGameItem>>("/item/query/available",
-            new EntityNetGameRequest
-            {
+            new EntityNetGameRequest {
                 AvailableMcVersions = [],
                 ItemType = 1,
                 Length = length,
@@ -183,12 +174,9 @@ public static class WPFLauncher
     public static async Task<EntityAuthenticationOtp> LoginWithCookieAsync(string cookie)
     {
         EntityX19CookieRequest? req;
-        try
-        {
+        try {
             req = JsonSerializer.Deserialize<EntityX19CookieRequest>(cookie);
-        }
-        catch
-        {
+        } catch {
             req = new EntityX19CookieRequest { Json = cookie };
         }
 
@@ -247,8 +235,7 @@ public static class WPFLauncher
         var entityX19Cookie = JsonSerializer.Deserialize<EntityX19Cookie>(cookieRequest.Json);
         if (entityX19Cookie == null) throw new ErrorCodeException(ErrorCode.LoginError);
         var upper = StringGenerator.GenerateHexString(4).ToUpper();
-        var authenticationDetail = new EntityAuthenticationDetail
-        {
+        var authenticationDetail = new EntityAuthenticationDetail {
             Udid = "0000000000000000" + upper,
             AppVersion = X19.GameVersion,
             PayChannel = entityX19Cookie.AppChannel,
@@ -257,12 +244,10 @@ public static class WPFLauncher
         var entity = JsonSerializer.Deserialize<EntityWPFLauncher<EntityAuthenticationOtp>>(
             (ReadOnlySpan<byte>)HttpUtil.HttpDecrypt(await (await X19Extensions.Core.HttpWrapper.PostAsync(
                 "/authentication-otp",
-                HttpUtil.HttpEncrypt(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new EntityAuthenticationData
-                {
+                HttpUtil.HttpEncrypt(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new EntityAuthenticationData {
                     SaData = JsonSerializer.Serialize(authenticationDetail, DefaultOptions),
                     AuthJson = cookieRequest.Json,
-                    Version = new EntityAuthenticationVersion
-                    {
+                    Version = new EntityAuthenticationVersion {
                         Version = X19.GameVersion
                     },
                     Aid = otp.Aid.ToString(),
@@ -286,8 +271,7 @@ public static class WPFLauncher
     private static async Task<EntitySkin[]> GetSkinDetailsAsync(List<string> skinList)
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntitySkin>>("/item/query/search-by-ids",
-            new EntitySkinDetailsRequest
-            {
+            new EntitySkinDetailsRequest {
                 ChannelId = 11,
                 EntityIds = skinList,
                 IsHas = true,
@@ -326,44 +310,37 @@ public static class WPFLauncher
     public static async Task<EntityWPFResponse?> SetSkinAsync(string entityId)
     {
         var entity = await X19Extensions.Gateway.Api<EntityWPFResponse>("/user-game-skin-multi",
-            new
-            {
-                skin_settings = new List<EntitySkinSettings>
-                {
-                    new()
-                    {
+            new {
+                skin_settings = new List<EntitySkinSettings> {
+                    new() {
                         ClientType = "java",
                         GameType = 9,
                         SkinId = entityId,
                         SkinMode = 0,
                         SkinType = 31
                     },
-                    new()
-                    {
+                    new() {
                         ClientType = "java",
                         GameType = 8,
                         SkinId = entityId,
                         SkinMode = 0,
                         SkinType = 31
                     },
-                    new()
-                    {
+                    new() {
                         ClientType = "java",
                         GameType = 2,
                         SkinId = entityId,
                         SkinMode = 0,
                         SkinType = 31
                     },
-                    new()
-                    {
+                    new() {
                         ClientType = "java",
                         GameType = 10,
                         SkinId = entityId,
                         SkinMode = 0,
                         SkinType = 31
                     },
-                    new()
-                    {
+                    new() {
                         ClientType = "java",
                         GameType = 7,
                         SkinId = entityId,
@@ -388,8 +365,7 @@ public static class WPFLauncher
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityQueryNetSkinItem>>(
             "/item/query/available",
-            new EntityFreeSkinListRequest
-            {
+            new EntityFreeSkinListRequest {
                 IsHas = true,
                 ItemType = 2,
                 Length = length,
@@ -414,8 +390,7 @@ public static class WPFLauncher
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityQueryNetSkinItem>>(
             "/item/query/search-by-keyword",
-            new EntityQuerySkinByNameRequest
-            {
+            new EntityQuerySkinByNameRequest {
                 IsHas = true,
                 IsSync = 0,
                 ItemType = 2,
@@ -440,8 +415,7 @@ public static class WPFLauncher
         bool isRental)
     {
         var entity = await X19Extensions.Gateway.Api<EntityWPFLauncher<EntityQuerySearchByGameResponse>>(
-            "/game-auth-item-list/query/search-by-game", new EntityQuerySearchByGameRequest
-            {
+            "/game-auth-item-list/query/search-by-game", new EntityQuerySearchByGameRequest {
                 McVersionId = (int)gameVersion,
                 GameType = isRental ? 8 : 2
             });
@@ -455,8 +429,7 @@ public static class WPFLauncher
         List<ulong> gameModList)
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityComponentDownloadInfoResponse>>(
-            "/user-item-download-v2/get-list", new EntitySearchByIdsQuery
-            {
+            "/user-item-download-v2/get-list", new EntitySearchByIdsQuery {
                 ItemIdList = gameModList
             });
         if (entity == null) throw new ErrorCodeException();
@@ -482,8 +455,7 @@ public static class WPFLauncher
         string serverId)
     {
         var entity = await X19Extensions.Client.Api<EntityWPFLauncher<EntityComponentDownloadInfoResponse>>(
-            "/user-item-download-v2", new EntitySearchByItemIdQuery
-            {
+            "/user-item-download-v2", new EntitySearchByItemIdQuery {
                 ItemId = serverId,
                 Length = 0,
                 Offset = 0
@@ -502,8 +474,7 @@ public static class WPFLauncher
         uint gameVersionId = 0;
         if (gameVersion != null) gameVersionId = (uint)gameVersion.Value;
         var entity = await X19Extensions.Client.Api<EntityWPFLauncher<EntityCoreLibResponse>>(
-            "/game-patch-info", new EntityMcDownloadVersion
-            {
+            "/game-patch-info", new EntityMcDownloadVersion {
                 McVersion = gameVersionId
             });
         return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
@@ -522,32 +493,31 @@ public static class WPFLauncher
         if (entity == null) throw new ErrorCodeException();
         return entity.Data == null ? throw new ErrorCodeException() : entity.Data.ToList();
     }
-    
+
     /**
      * 获取 租赁服 列表
      */
     public static async Task<EntityRentalGame[]> GetRentalGameListAsync(
         int offset = 0)
     {
-        var entity = await X19Extensions.Client.Api<EntitiesWPFLauncher<EntityRentalGame>>("/rental-server/query/available-public-server", new EntityQueryRentalGame
-        {
-            Offset = offset,
-            SortType = 0
-        });
+        var entity = await X19Extensions.Client.Api<EntitiesWPFLauncher<EntityRentalGame>>(
+            "/rental-server/query/available-public-server", new EntityQueryRentalGame {
+                Offset = offset,
+                SortType = 0
+            });
         return entity == null ? throw new ErrorCodeException() : entity.Data;
     }
-    
+
     /**
      * 获取 租赁服 详细信息
      */
     public static async Task<EntityRentalGameDetails> GetRentalGameDetailsAsync(
         string entityId)
     {
-        var entity = await X19Extensions.Client.Api<EntityWPFLauncher<EntityRentalGameDetails>>("/rental-server-details/get", new EntityQueryRentalGameDetail
-        {
+        var entity = await X19Extensions.Client.Api<EntityWPFLauncher<EntityRentalGameDetails>>(
+            "/rental-server-details/get", new EntityQueryRentalGameDetail {
                 ServerId = entityId
-        });
+            });
         return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
     }
-    
 }

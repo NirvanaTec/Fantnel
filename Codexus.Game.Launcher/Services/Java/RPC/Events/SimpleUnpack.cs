@@ -5,8 +5,7 @@ using System.Text;
 
 namespace Codexus.Game.Launcher.Services.Java.RPC.Events;
 
-public class SimpleUnpack(byte[] bytes)
-{
+public class SimpleUnpack(byte[] bytes) {
     private int _index;
 
     private ushort _lastLength;
@@ -14,8 +13,7 @@ public class SimpleUnpack(byte[] bytes)
     public void Unpack<T>(ref T content)
     {
         var fields = typeof(T).GetFields();
-        foreach (var fieldInfo in fields)
-        {
+        foreach (var fieldInfo in fields) {
             var value = fieldInfo.GetValue(content);
             var fieldType = fieldInfo.FieldType;
             if (value == null) continue;
@@ -25,8 +23,7 @@ public class SimpleUnpack(byte[] bytes)
 
         var properties = typeof(T).GetProperties();
         foreach (var propertyInfo in properties)
-            if (propertyInfo.CanWrite)
-            {
+            if (propertyInfo.CanWrite) {
                 var value2 = propertyInfo.GetValue(content);
                 var propertyType = propertyInfo.PropertyType;
                 if (value2 == null) continue;
@@ -45,20 +42,15 @@ public class SimpleUnpack(byte[] bytes)
     private void InnerUnpack(ref object value, Type type)
     {
         // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-        switch (Type.GetTypeCode(type))
-        {
+        switch (Type.GetTypeCode(type)) {
             case TypeCode.Object:
-                if (type == typeof(byte[]))
-                {
+                if (type == typeof(byte[])) {
                     value = bytes.Skip(_index).Take(_lastLength).ToArray();
                     _index += _lastLength;
-                }
-                else if (type == typeof(List<uint>))
-                {
+                } else if (type == typeof(List<uint>)) {
                     var num = _lastLength;
                     var list = new List<uint>();
-                    while (num > 0)
-                    {
+                    while (num > 0) {
                         list.Add(BitConverter.ToUInt32(bytes, _index));
                         _index += 4;
                         num -= 4;

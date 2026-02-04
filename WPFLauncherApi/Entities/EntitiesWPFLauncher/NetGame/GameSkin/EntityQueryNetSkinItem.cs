@@ -3,8 +3,7 @@
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-public class EntityQueryNetSkinItem
-{
+public class EntityQueryNetSkinItem {
     [JsonPropertyName("entity_id")] public required string EntityId { get; set; }
     [JsonPropertyName("name")] public required string Name { get; set; }
     [JsonPropertyName("developer_name")] public required string DeveloperName { get; set; }

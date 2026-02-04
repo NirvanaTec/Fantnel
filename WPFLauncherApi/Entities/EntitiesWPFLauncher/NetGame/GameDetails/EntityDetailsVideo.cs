@@ -3,8 +3,7 @@
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-public class EntityDetailsVideo
-{
+public class EntityDetailsVideo {
     [JsonPropertyName("cover")] public string Cover { get; set; } = string.Empty;
 
     [JsonPropertyName("size")] public int Size { get; set; }

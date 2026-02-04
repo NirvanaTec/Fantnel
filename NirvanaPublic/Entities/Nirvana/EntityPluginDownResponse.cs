@@ -2,8 +2,7 @@
 
 namespace NirvanaPublic.Entities.Nirvana;
 
-public class EntityPluginDownResponse
-{
+public class EntityPluginDownResponse {
     [JsonPropertyName("fileHash")] public string? FileHash { get; set; }
 
     [JsonPropertyName("fileSize")] public long? FileSize { get; set; }

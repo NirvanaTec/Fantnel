@@ -1,7 +1,6 @@
 ﻿namespace NirvanaPublic.Manager;
 
-public static class LockManager
-{
+public static class LockManager {
     // 保存/修改 游戏账号锁
     public static readonly Lock GameSaveAccountLock = new();
 

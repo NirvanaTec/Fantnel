@@ -3,15 +3,12 @@ using System.Text;
 
 namespace WPFLauncherApi.Http;
 
-public static class HttpUtil
-{
+public static class HttpUtil {
     private const string SKeys =
         "MK6mipwmOUedplb6,OtEylfId6dyhrfdn,VNbhn5mvUaQaeOo9,bIEoQGQYjKd02U0J,fuaJrPwaH2cfXXLP,LEkdyiroouKQ4XN1,jM1h27H4UROu427W,DhReQada7gZybTDk,ZGXfpSTYUvcdKqdY,AZwKf7MWZrJpGR5W,amuvbcHw38TcSyPU,SI4QotspbjhyFdT0,VP4dhjKnDGlSJtbB,UXDZx4KhZywQ2tcn,NIK73ZNvNqzva4kd,WeiW7qU766Q1YQZI";
 
-    private static Aes Aes
-    {
-        get
-        {
+    private static Aes Aes {
+        get {
             var tempAes = Aes.Create();
             tempAes.Padding = PaddingMode.None;
 
@@ -19,8 +16,7 @@ public static class HttpUtil
         }
     }
 
-    private static byte[][] HttpKeys
-    {
+    private static byte[][] HttpKeys {
         get { return SKeys.Split(',').Select(keys => Encoding.GetEncoding("us-ascii").GetBytes(keys)).ToArray(); }
     }
 

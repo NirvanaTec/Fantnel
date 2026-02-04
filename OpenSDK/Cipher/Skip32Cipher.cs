@@ -1,9 +1,7 @@
 namespace OpenSDK.Cipher;
 
-public static class Skip32Cipher
-{
-    private static readonly byte[] FTable =
-    [
+public static class Skip32Cipher {
+    private static readonly byte[] FTable = [
         0xa3, 0xd7, 0x09, 0x83, 0xf8, 0x48,
         0xf6, 0xf4, 0xb3, 0x21, 0x15, 0x78, 0x99, 0xb1, 0xaf, 0xf9, 0xe7,
         0x2d, 0x4d, 0x8a, 0xce, 0x4c, 0xca, 0x2e, 0x52, 0x95, 0xd9, 0x1e,
@@ -48,13 +46,10 @@ public static class Skip32Cipher
         int k;
         int step;
 
-        if (encrypt)
-        {
+        if (encrypt) {
             step = 1;
             k = 0;
-        }
-        else
-        {
+        } else {
             step = -1;
             k = 23;
         }
@@ -63,8 +58,7 @@ public static class Skip32Cipher
         var wr = (buf[2] << 8) + buf[3];
 
         var i = 0;
-        while (i < 24 / 2)
-        {
+        while (i < 24 / 2) {
             wr ^= G(key, k, wl) ^ k;
             k += step;
             wl ^= G(key, k, wr) ^ k;

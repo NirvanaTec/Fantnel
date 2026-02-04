@@ -1,12 +1,11 @@
-﻿using OpenSDK.Entities.Config;
+﻿using NirvanaAPI.Entities;
+using NirvanaAPI.Utils.CodeTools;
+using OpenSDK.Entities.Config;
 using Serilog;
-using WPFLauncherApi.Entities;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Manager;
 
-public static class InfoManager
-{
+public static class InfoManager {
     // 登录成功后的游戏账号列表
     public static readonly List<EntityAccount> GameAccountList = [];
 
@@ -24,8 +23,7 @@ public static class InfoManager
     public static void AddAccount(EntityAccount account)
     {
         // 账号已存在 | 移除旧账号
-        foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account)))
-        {
+        foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
             GameAccountList.Remove(gameAccount);
             break;
         }

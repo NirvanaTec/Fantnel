@@ -2,8 +2,7 @@
 
 namespace NirvanaPublic.Entities.NEL;
 
-public class EntityProxy : EntityProxyBase
-{
+public class EntityProxy : EntityProxyBase {
     private Process? Proxy { get; set; }
     public required EntityProxyItem Interceptor { get; init; }
 

@@ -5,18 +5,15 @@ using OpenSDK.Cipher;
 
 namespace OpenSDK.Extensions;
 
-public static class YggdrasilExtensions
-{
-    extension(byte[] input)
-    {
+public static class YggdrasilExtensions {
+    extension(byte[] input) {
         public byte[] EncodeSha256()
         {
             return SHA256.HashData(input);
         }
     }
 
-    extension(int value)
-    {
+    extension(int value) {
         public byte[] ToByteArray(bool littleEndian = true)
         {
             var bytes = BitConverter.GetBytes(value);
@@ -34,8 +31,7 @@ public static class YggdrasilExtensions
         }
     }
 
-    extension(long value)
-    {
+    extension(long value) {
         private byte[] ToByteArray(bool littleEndian = true)
         {
             var bytes = BitConverter.GetBytes(value);
@@ -53,8 +49,7 @@ public static class YggdrasilExtensions
         }
     }
 
-    extension(ChaChaPacker packer)
-    {
+    extension(ChaChaPacker packer) {
         public byte[] PackMessage(byte type, byte[] data)
         {
             var message = new byte[data.Length + 10];
@@ -91,8 +86,7 @@ public static class YggdrasilExtensions
         }
     }
 
-    extension(MemoryStream stream)
-    {
+    extension(MemoryStream stream) {
         public void WriteInt(int value, bool littleEndian = true)
         {
             var bytes = value.ToByteArray(littleEndian);
@@ -133,13 +127,13 @@ public static class YggdrasilExtensions
         public void WriteShortString(string value, bool littleEndian = true)
         {
             var bytes = Encoding.UTF8.GetBytes(value);
-            WriteShort(stream, bytes.Length, littleEndian);
+            stream.WriteShort(bytes.Length, littleEndian);
             stream.Write(bytes);
         }
 
         public void WriteShortBytes(byte[] data, bool littleEndian = true)
         {
-            WriteShort(stream, data.Length, littleEndian);
+            stream.WriteShort(data.Length, littleEndian);
             stream.Write(data);
         }
     }

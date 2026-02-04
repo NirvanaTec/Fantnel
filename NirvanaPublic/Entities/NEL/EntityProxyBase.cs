@@ -2,8 +2,7 @@
 
 namespace NirvanaPublic.Entities.NEL;
 
-public abstract class EntityProxyBase
-{
+public abstract class EntityProxyBase {
     public int Id { get; init; }
     public string? UserId { get; init; }
     public string? UserToken { get; init; }

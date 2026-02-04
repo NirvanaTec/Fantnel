@@ -2,10 +2,8 @@
 
 namespace OpenSDK.Extensions;
 
-public static class StreamExtensions
-{
-    extension(NetworkStream stream)
-    {
+public static class StreamExtensions {
+    extension(NetworkStream stream) {
         public async Task<MemoryStream> ReadSteamWithInt16Async()
         {
             var lengthBytes = new byte[2];
@@ -20,8 +18,7 @@ public static class StreamExtensions
             var buffer = new byte[1024];
             int remainingBytes = length;
 
-            while (remainingBytes > 0)
-            {
+            while (remainingBytes > 0) {
                 var bytesToRead = Math.Min(buffer.Length, remainingBytes);
                 var read = await stream.ReadAsync(buffer.AsMemory(0, bytesToRead));
 

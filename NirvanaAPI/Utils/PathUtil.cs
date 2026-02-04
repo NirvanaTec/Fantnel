@@ -1,21 +1,18 @@
-using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
-namespace Codexus.Game.Launcher.Utils;
+namespace NirvanaAPI.Utils;
 
-public static class PathUtil
-{
+public static class PathUtil {
     public static readonly string CachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".game_cache");
 
     public static readonly string ResourcePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources");
 
     public static readonly string UpdaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "updater");
-    
+
     // 脚本后缀
     public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" : ".sh";
-    
+
     public static readonly string ScriptPath = Path.Combine(UpdaterPath, "update" + ScriptSuffix);
 
     public static readonly string CustomModsPath = Path.Combine(ResourcePath, "mods");
@@ -27,6 +24,9 @@ public static class PathUtil
     public static readonly string GameModsPath = Path.Combine(CachePath, "GameMods");
 
     public static readonly string CppGamePath = Path.Combine(CachePath, "CppGame");
+
+    // 分割路径
+    public static readonly string PathSeparator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ";" : ":";
 
     public static string JavaExePath => GetJavaExePath(); // javaw.exe
 
@@ -51,18 +51,13 @@ public static class PathUtil
             return cacheJava;
         var reg4399 = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Netease\PC4399_MCLauncher");
         var reg163 = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Netease\MCLauncher");
-        if (reg4399?.GetValue("DownloadPath") is string patch)
-        {
+        if (reg4399?.GetValue("DownloadPath") is string patch) {
             var javaPath = Path.Combine(patch, "ext", "jre-v64-220420");
             if (ExistJava(javaPath)) return javaPath;
-        }
-        else if (reg163?.GetValue("DownloadPath") is string patch2)
-        {
+        } else if (reg163?.GetValue("DownloadPath") is string patch2) {
             var javaPath = Path.Combine(patch2, "ext", "jre-v64-220420");
             if (ExistJava(javaPath)) return javaPath;
-        }
-        else
-        {
+        } else {
             var wpf = Path.Combine("C:/MCLDownload", "ext", "jre-v64-220420");
             if (ExistJava(wpf)) return wpf;
             wpf = Path.Combine("D:/MCLDownload", "ext", "jre-v64-220420");

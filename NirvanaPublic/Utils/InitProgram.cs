@@ -1,19 +1,18 @@
-﻿using Codexus.Game.Launcher.Utils;
+﻿using NirvanaAPI.Entities;
+using NirvanaAPI.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils.ViewLogger;
 using OpenSDK.Yggdrasil;
 using Serilog;
 using Serilog.Events;
-using WPFLauncherApi.Entities;
 using WPFLauncherApi.Http;
 using WPFLauncherApi.Protocol;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Utils;
 
-public static class InitProgram
-{
+public static class InitProgram {
     private static Services? Services { get; set; }
 
     public static Services GetServices()
@@ -88,14 +87,12 @@ public static class InitProgram
     private static void VersionCheck()
     {
         // 检查是否为发布版本
-        if (!PublicProgram.Release)
-        {
+        if (!PublicProgram.Release) {
             Log.Error("调试版，已跳过版本检测！");
             return;
         }
 
-        if (InfoManager.FantnelInfo?.Versions == null)
-        {
+        if (InfoManager.FantnelInfo?.Versions == null) {
             Log.Error("该版本已被禁用，请前往 https://npyyds.top/ 查看最新版本！");
             Thread.Sleep(6000);
             Environment.Exit(1);
@@ -117,8 +114,7 @@ public static class InitProgram
                 // win_1.3.0
                 isVersion = false;
 
-        if (!isVersion)
-        {
+        if (!isVersion) {
             Log.Error("该版本已被禁用，请前往 https://npyyds.top/ 查看最新版本！");
             Thread.Sleep(6000);
             Environment.Exit(1);
@@ -132,29 +128,22 @@ public static class InitProgram
     // Fantnel 在线检测
     private static async void Online()
     {
-        try
-        {
+        try {
             while (true)
-                try
-                {
+                try {
                     // 60 * 3 = 180 秒 (3分钟)
                     for (var i = 0; i < 180; i++) await Task.Delay(1000);
                     await X19Extensions.Nirvana.Api<EntityResponse<string>>("/api/tick?mode=fantnel",
-                        new Dictionary<string, string>
-                        {
+                        new Dictionary<string, string> {
                             { "system", PublicProgram.Mode },
                             { "arch", PublicProgram.Arch },
                             { "version", PublicProgram.Version },
                             { "versionId", PublicProgram.VersionId.ToString() }
                         });
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     Log.Warning(" 在线检测异常! 错误信息: {Exception}", e.Message);
                 }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.Warning(" 在线检测出错! 错误信息: {Exception}", e.Message);
         }
     }
@@ -163,8 +152,7 @@ public static class InitProgram
     private static async Task FantnelInit(bool exitOnError = true)
     {
         var entity = await X19Extensions.Nirvana.Api<EntityInfo>("/fantnel.json");
-        if (entity == null)
-        {
+        if (entity == null) {
             if (!exitOnError) return;
             Log.Error("连接服务器失败!");
             Thread.Sleep(6000);
@@ -179,8 +167,7 @@ public static class InitProgram
     private static Services CreateServices()
     {
         if (InfoManager.FantnelInfo == null || InfoManager.FantnelInfo.CrcSalt == null ||
-            InfoManager.FantnelInfo.GameVersion == null)
-        {
+            InfoManager.FantnelInfo.GameVersion == null) {
             Log.Error("CRC Salt 计算失败!");
             Thread.Sleep(6000);
             Environment.Exit(1);

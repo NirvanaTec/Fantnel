@@ -1,14 +1,12 @@
 using System.Text.Json;
-using WPFLauncherApi.Entities;
+using NirvanaAPI.Entities;
 
-namespace WPFLauncherApi.Utils.CodeTools;
+namespace NirvanaAPI.Utils.CodeTools;
 
-public static class Code
-{
+public static class Code {
     public static EntityResponse<string> ToJson(Exception t)
     {
-        var json = new EntityResponse<string>
-        {
+        var json = new EntityResponse<string> {
             Code = -1,
             Msg = t.Message
         };
@@ -40,8 +38,7 @@ public static class Code
 
     public static string GetMessage(ErrorCode code)
     {
-        return code switch
-        {
+        return code switch {
             ErrorCode.Failure => "失败",
             ErrorCode.Success => "成功",
             ErrorCode.FileExists => "文件不存在",

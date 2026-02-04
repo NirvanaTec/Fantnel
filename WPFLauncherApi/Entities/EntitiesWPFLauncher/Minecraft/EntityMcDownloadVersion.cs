@@ -2,7 +2,6 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
 
-public class EntityMcDownloadVersion
-{
+public class EntityMcDownloadVersion {
     [JsonPropertyName("mc_version")] public required uint McVersion { get; set; }
 }

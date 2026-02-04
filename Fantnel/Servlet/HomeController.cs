@@ -1,18 +1,16 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
-using Codexus.Game.Launcher.Utils;
 using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic;
 using NirvanaPublic.Manager;
-using NirvanaPublic.Utils;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet;
 
 [ApiController]
 [Route("[controller]")]
-public class HomeController : ControllerBase
-{
+public class HomeController : ControllerBase {
     // 设置主题
     [HttpGet("/api/theme/set")]
     public IActionResult SetTheme(string name)
@@ -41,8 +39,7 @@ public class HomeController : ControllerBase
     [HttpGet("/api/version")]
     public IActionResult GetVersion()
     {
-        var version = new JsonObject
-        {
+        var version = new JsonObject {
             ["version"] = PublicProgram.Version,
             ["id"] = PublicProgram.VersionId,
             ["mode"] = PublicProgram.Mode,

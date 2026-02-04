@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
 
-public class EntityQuerySkinByNameRequest
-{
+public class EntityQuerySkinByNameRequest {
     [JsonPropertyName("is_has")] public required bool IsHas { get; set; }
 
     [JsonPropertyName("is_sync")] public required int IsSync { get; set; }

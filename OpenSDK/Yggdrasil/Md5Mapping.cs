@@ -1,9 +1,7 @@
 ﻿namespace OpenSDK.Yggdrasil;
 
-public static class Md5Mapping
-{
-    private static readonly Dictionary<string, Md5Pair> Mapping = new()
-    {
+public static class Md5Mapping {
+    private static readonly Dictionary<string, Md5Pair> Mapping = new() {
         { "1.7.10", new Md5Pair("A895FE657915D58F55919CEACD30209D", "538D33D5F35EF01736EDA30F94C61DF6") },
         { "1.8.9", new Md5Pair("A895FE657915D58F55919CEACD30209D", "0CF2074AA7D4B543E35A3D6BB57AF861") },
         { "1.16", new Md5Pair("7B101583C3965371B89A3C9115B27526", "B0712F34B0A584D05D9D29FA68759E29") },
@@ -20,8 +18,7 @@ public static class Md5Mapping
             : pair;
     }
 
-    public class Md5Pair(string bootstrapMd5, string datFileMd5)
-    {
+    public class Md5Pair(string bootstrapMd5, string datFileMd5) {
         public string BootstrapMd5 { get; } = bootstrapMd5;
         public string DatFileMd5 { get; } = datFileMd5;
     }

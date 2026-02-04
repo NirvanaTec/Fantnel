@@ -16,8 +16,7 @@ InitProgram.NelInit1();
 Log.Information("请输入cookie内容: ");
 
 // 登录 cookie
-var cookie = new EntityAccount
-{
+var cookie = new EntityAccount {
     Account = "admin123",
     Type = "cookie",
     Password = Console.ReadLine()
@@ -27,8 +26,7 @@ Log.Information("登录中...");
 AccountMessage.Login(cookie);
 
 while (InfoManager.GameAccount == null || InfoManager.GameAccount.UserId == null ||
-       InfoManager.GameAccount.Token == null)
-{
+       InfoManager.GameAccount.Token == null) {
     Log.Information("请输入cookie内容: ");
     cookie.Password = Console.ReadLine();
     Log.Information("登录中...");
@@ -39,8 +37,7 @@ while (InfoManager.GameAccount == null || InfoManager.GameAccount.UserId == null
 const string serverId = "77114517833647104";
 string? gameName = null;
 
-while (gameName == null)
-{
+while (gameName == null) {
     Log.Information("请输入角色名称: ");
     gameName = Console.ReadLine();
 }

@@ -3,10 +3,8 @@ using System.Text;
 
 namespace OpenSDK.Cipher.Nirvana;
 
-public class Skip32Cipher(byte[] key)
-{
-    private static readonly byte[] FTable =
-    [
+public class Skip32Cipher(byte[] key) {
+    private static readonly byte[] FTable = [
         163, 215, 9, 131, 248, 72, 246, 244, 179, 33,
         21, 120, 153, 177, 175, 249, 231, 45, 77, 138,
         206, 76, 202, 46, 82, 149, 217, 30, 78, 56,
@@ -46,8 +44,7 @@ public class Skip32Cipher(byte[] key)
 
     public int Encrypt(int value)
     {
-        int[] buf =
-        [
+        int[] buf = [
             (value >> 24) & byte.MaxValue,
             (value >> 16) & byte.MaxValue,
             (value >> 8) & byte.MaxValue,
@@ -61,21 +58,17 @@ public class Skip32Cipher(byte[] key)
     {
         int num;
         int k1;
-        if (encrypt)
-        {
+        if (encrypt) {
             num = 1;
             k1 = 0;
-        }
-        else
-        {
+        } else {
             num = -1;
             k1 = 23;
         }
 
         var w1 = (buf[0] << 8) + buf[1];
         var w2 = (buf[2] << 8) + buf[3];
-        for (var index = 0; index < 12; ++index)
-        {
+        for (var index = 0; index < 12; ++index) {
             w2 ^= G(_key, k1, w1) ^ k1;
             var k2 = k1 + num;
             w1 ^= G(_key, k2, w2) ^ k2;
@@ -122,8 +115,7 @@ public class Skip32Cipher(byte[] key)
 
     private int Decrypt(int value)
     {
-        int[] buf =
-        [
+        int[] buf = [
             (value >> 24) & byte.MaxValue,
             (value >> 16) & byte.MaxValue,
             (value >> 8) & byte.MaxValue,

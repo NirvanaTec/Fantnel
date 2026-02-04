@@ -1,7 +1,6 @@
 ﻿namespace WPFLauncherApi.Utils;
 
-public static class StringGenerator
-{
+public static class StringGenerator {
     private static readonly Random Random = new();
 
     public static string GenerateHexString(int length)

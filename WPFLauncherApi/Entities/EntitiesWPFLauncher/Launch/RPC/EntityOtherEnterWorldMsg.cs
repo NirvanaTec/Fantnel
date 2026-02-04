@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Launch.RPC;
 
-public class EntityOtherEnterWorldMsg
-{
+public class EntityOtherEnterWorldMsg {
     [JsonPropertyName("id")] public short Id { get; set; }
 
     [JsonPropertyName("len")] public ushort Length { get; set; }

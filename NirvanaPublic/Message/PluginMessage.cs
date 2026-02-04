@@ -3,16 +3,15 @@ using Codexus.Development.SDK.Attributes;
 using Codexus.Development.SDK.Manager;
 using Codexus.Development.SDK.Plugin;
 using Codexus.Interceptors;
+using NirvanaAPI.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Manager;
-using NirvanaPublic.Utils;
 using Serilog;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
-public static class PluginMessage
-{
+public static class PluginMessage {
     private static readonly string[] PluginExtensions = [".ug", ".dll"];
 
     /**
@@ -35,12 +34,10 @@ public static class PluginMessage
         var filesPath = GetPluginDirectoryList();
         // 插件状态 数组
         var pluginStates = new List<EntityPluginState>();
-        foreach (var filePath in filesPath)
-        {
+        foreach (var filePath in filesPath) {
             // 获取插件信息
             var plugins = GetPluginToPath(filePath);
-            pluginStates.AddRange(plugins.Select(plugin => new EntityPluginState
-            {
+            pluginStates.AddRange(plugins.Select(plugin => new EntityPluginState {
                 Name = plugin.Name,
                 Version = plugin.Version,
                 Author = plugin.Author,
@@ -94,8 +91,7 @@ public static class PluginMessage
         List<Plugin> plugins = [];
         List<Assembly> assemblies = [];
         List<IPlugin> instances = [];
-        try
-        {
+        try {
             // 检查是否已经加载了相同名称的程序集
             var assemblyName = AssemblyName.GetAssemblyName(pluginPath);
             var assembly = AppDomain.CurrentDomain.GetAssemblies()
@@ -106,27 +102,21 @@ public static class PluginMessage
                 assembly = Assembly.LoadFrom(pluginPath);
             foreach (var type in assembly.GetTypes().Where((Func<Type, bool>)(type =>
                          typeof(IPlugin).IsAssignableFrom(type) &&
-                         type is { IsAbstract: false, IsInterface: false })))
-            {
+                         type is { IsAbstract: false, IsInterface: false }))) {
                 Plugin? customAttribute;
-                try
-                {
+                try {
                     customAttribute = type.GetCustomAttribute<Plugin>(false);
-                }
-                catch (MissingMemberException)
-                {
+                } catch (MissingMemberException) {
                     Log.Warning("插件 {TypeFullName} 没有插件属性", type.FullName);
                     continue;
                 }
 
-                if (customAttribute == null)
-                {
+                if (customAttribute == null) {
                     Log.Warning("插件 {TypeFullName} 没有插件属性", type.FullName);
                     continue;
                 }
 
-                if (Activator.CreateInstance(type) is not IPlugin instance)
-                {
+                if (Activator.CreateInstance(type) is not IPlugin instance) {
                     Log.Warning("插件 {TypeFullName} 没有继承 IPlugin", type.FullName);
                     continue;
                 }
@@ -135,9 +125,7 @@ public static class PluginMessage
                 instances.Add(instance);
                 plugins.Add(customAttribute);
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.Error("无法加载插件: {Message}", ex.Message);
         }
 
@@ -155,16 +143,12 @@ public static class PluginMessage
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
         Directory.CreateDirectory(path);
         var filesPath = Directory.GetFiles(path);
-        foreach (var filePath in filesPath)
-        {
+        foreach (var filePath in filesPath) {
             // 删除 处于 待删除状态的插件文件
             if (!filePath.EndsWith(".delete")) continue;
-            try
-            {
+            try {
                 File.Delete(filePath);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Log.Warning("删除插件: {FilePath} 失败: {Exception}", filePath, e.Message);
             }
         }
@@ -176,54 +160,41 @@ public static class PluginMessage
     public static void CleanSameIdPlugin()
     {
         var plugins = GetPluginList();
-        foreach (var plugin in plugins.ToList())
-        {
+        foreach (var plugin in plugins.ToList()) {
             if (plugin.Version == null || plugin.Path == null) continue;
 
             var verA = new Version(plugin.Version);
-            foreach (var plugin1 in plugins.ToList())
-            {
+            foreach (var plugin1 in plugins.ToList()) {
                 if (plugin1.Version == null || plugin1.Path == null) continue;
 
                 var verB = new Version(plugin1.Version);
                 var verCompare = verA.CompareTo(verB);
                 if (plugin.Id != plugin1.Id || plugin == plugin1 || verCompare > 0) continue;
                 var plugin1Name = Path.GetFileName(plugin1.Path);
-                if (verCompare < -1)
-                {
+                if (verCompare < -1) {
                     Log.Warning("清理旧插件: {FilePath}", plugin1Name);
                     DeletePlugin(plugin1);
                     plugin1.Path = null;
-                }
-                else
-                {
+                } else {
                     // 根据修改日期 清理, 保留最新插件
                     var pluginFile = new FileInfo(plugin.Path);
                     var plugin1File = new FileInfo(plugin1.Path);
-                    if (pluginFile.LastWriteTime > plugin1File.LastWriteTime)
-                    {
+                    if (pluginFile.LastWriteTime > plugin1File.LastWriteTime) {
                         Log.Warning("清理同名插件: {FilePath}", plugin1Name);
                         DeletePlugin(plugin1);
                         plugin1.Path = null;
-                    }
-                    else if (plugin1File.LastWriteTime > pluginFile.LastWriteTime)
-                    {
+                    } else if (plugin1File.LastWriteTime > pluginFile.LastWriteTime) {
                         DeletePlugin(plugin);
                         plugin.Path = null;
                         break;
-                    }
-                    else
-                    {
+                    } else {
                         // 根据名称长度 清理, 保留短名插件
                         var pluginName = Path.GetFileName(plugin.Path);
-                        if (plugin1Name.Length > pluginName.Length)
-                        {
+                        if (plugin1Name.Length > pluginName.Length) {
                             Log.Warning("清理同名插件: {FilePath}", plugin1Name);
                             DeletePlugin(plugin1);
                             plugin1.Path = null;
-                        }
-                        else
-                        {
+                        } else {
                             DeletePlugin(plugin);
                             plugin.Path = null;
                             break;
@@ -237,8 +208,7 @@ public static class PluginMessage
     // 插件初始化
     public static void InitializeAuto()
     {
-        try
-        {
+        try {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
             Directory.CreateDirectory(path);
             PlugInstoreMessage.AutoUpdateCheck(); // 自动更新插件
@@ -246,9 +216,7 @@ public static class PluginMessage
             PacketManager.Instance.EnsureRegistered(); // 确保注册
             PluginManager.Instance.EnsureUninstall(); // 备用卸载
             PluginManager.Instance.LoadPlugins(path); // 加载插件
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.Error("应用初始化失败：{e}", e);
         }
     }
@@ -262,7 +230,9 @@ public static class PluginMessage
     public static bool IsPluginChanged()
     {
         var plugins = GetPluginList();
-        return PluginManager.Instance.Plugins.Count > plugins.Count || PluginManager.Instance.Plugins.Any(plugin => plugins.Where(plugin1 => plugin.Value.Id == plugin1.Id).Any(plugin1 => plugin.Value.Version != plugin1.Version));
+        return PluginManager.Instance.Plugins.Count > plugins.Count || PluginManager.Instance.Plugins.Any(plugin =>
+            plugins.Where(plugin1 => plugin.Value.Id == plugin1.Id)
+                .Any(plugin1 => plugin.Value.Version != plugin1.Version));
     }
 
     private static EntityPluginState? GetPluginToId(string id)
@@ -279,38 +249,29 @@ public static class PluginMessage
      */
     public static void TogglePlugin(string id, int auto = -1)
     {
-        lock (LockManager.PluginStatesLock)
-        {
+        lock (LockManager.PluginStatesLock) {
             var plugin = GetPluginToId(id);
             if (plugin?.Path == null) throw new ErrorCodeException(ErrorCode.PluginNotFound);
-            switch (auto)
-            {
-                case -1:
-                {
-                    if (plugin.Path.EndsWith(".disable"))
-                    {
+            switch (auto) {
+                case -1: {
+                    if (plugin.Path.EndsWith(".disable")) {
                         File.Move(plugin.Path, plugin.Path[..^8]);
-                    }
-                    else
-                    {
+                    } else {
                         File.Move(plugin.Path, plugin.Path + ".disable");
                         DependenciesPlugin(id);
                     }
 
                     break;
                 }
-                case 0:
-                {
-                    if (!plugin.Path.EndsWith(".disable"))
-                    {
+                case 0: {
+                    if (!plugin.Path.EndsWith(".disable")) {
                         File.Move(plugin.Path, plugin.Path + ".disable");
                         DependenciesPlugin(id);
                     }
 
                     break;
                 }
-                case 1:
-                {
+                case 1: {
                     if (plugin.Path.EndsWith(".disable"))
                         File.Move(plugin.Path, plugin.Path[..^8]);
                     break;
@@ -324,8 +285,7 @@ public static class PluginMessage
     {
         var pluginList = new List<string>();
         var plugins = GetPluginList();
-        foreach (var plugin in plugins)
-        {
+        foreach (var plugin in plugins) {
             if (plugin.Dependencies == null) continue;
             if (plugin.Dependencies.All(dependency => dependency != id)) continue;
             TogglePlugin(plugin.Id, 0);
@@ -338,8 +298,7 @@ public static class PluginMessage
     // 删除插件
     public static void DeletePlugin(string id)
     {
-        lock (LockManager.PluginStatesLock)
-        {
+        lock (LockManager.PluginStatesLock) {
             var plugin = GetPluginToId(id);
             if (plugin?.Path == null) throw new ErrorCodeException(ErrorCode.PluginNotFound);
 
@@ -364,13 +323,10 @@ public static class PluginMessage
         File.Move(path, path1);
         if (File.Exists(path1)) path = path1;
 
-        try
-        {
+        try {
             // 删除插件文件
             File.Delete(path);
-        }
-        catch (Exception)
-        {
+        } catch (Exception) {
             Log.Warning("插件 {name} 已标记为待删除状态", Path.GetFileName(plugin.Path));
         }
     }

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesPc4399;
 
-public class EntityMgbSdkSAuthJson
-{
+public class EntityMgbSdkSAuthJson {
     [JsonPropertyName("aim_info")]
     // ReSharper disable once UnusedMember.Global
     public string AimInfo { get; set; } = "{\"aim\":\"127.0.0.1\",\"tz\":\"+0800\",\"tzid\":\"\",\"country\":\"CN\"}";

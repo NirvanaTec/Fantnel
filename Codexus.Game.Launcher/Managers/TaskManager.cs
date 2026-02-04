@@ -2,8 +2,7 @@ using System.Threading.Tasks;
 
 namespace Codexus.Game.Launcher.Managers;
 
-public class TaskManager
-{
+public class TaskManager {
     private static TaskManager _instance;
 
     private TaskFactory _factory;

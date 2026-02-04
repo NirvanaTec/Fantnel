@@ -1,11 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using NirvanaAPI.Utils.CodeTools;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace OpenSDK.Entities.Config;
 
-public class EntityAccount : EntityUserInfo
-{
+public class EntityAccount : EntityUserInfo {
     // 基础信息
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
     [JsonPropertyName("name")] public string? Name { get; init; }

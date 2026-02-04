@@ -3,8 +3,7 @@ using System.Text.Json;
 
 namespace NirvanaPublic.Entities.Nirvana;
 
-public class EntityStackTrace
-{
+public class EntityStackTrace {
     public EntityStackTrace(StackFrame stackTrace)
     {
         var method = stackTrace.GetMethod();

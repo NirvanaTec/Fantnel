@@ -7,8 +7,7 @@ using Serilog;
 namespace OpenSDK.Cipher.Nirvana.Protocols;
 
 public class AuthLibProtocol(IPAddress address, int port, string modList, string version, string accessToken)
-    : IDisposable
-{
+    : IDisposable {
     private readonly CancellationTokenSource _cts = new();
 
     private Task? _acceptLoopTask;
@@ -31,16 +30,12 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
     private void Dispose(bool disposing)
     {
         if (_disposed) return;
-        if (disposing)
-        {
+        if (disposing) {
             _cts.Cancel();
             _listener?.Stop();
-            try
-            {
+            try {
                 _acceptLoopTask?.Wait(TimeSpan.FromSeconds(5L));
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Log.Error("Authentication failed. {Message}", ex.Message);
             }
 
@@ -52,14 +47,11 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
 
     public void Start()
     {
-        if (!_disposed)
-        {
+        if (!_disposed) {
             _listener = new TcpListener(address, port);
             _listener.Start();
             _acceptLoopTask = AcceptLoopAsync(_cts.Token);
-        }
-        else
-        {
+        } else {
             throw new ObjectDisposedException("AuthLibProtocol");
         }
     }
@@ -72,17 +64,12 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
     private async Task AcceptLoopAsync(CancellationToken token)
     {
         while (!token.IsCancellationRequested && !_disposed)
-            try
-            {
+            try {
                 if (_listener != null)
                     await HandleClientAsync(await _listener.AcceptTcpClientAsync(token).ConfigureAwait(false), token);
-            }
-            catch (ObjectDisposedException)
-            {
+            } catch (ObjectDisposedException) {
                 break;
-            }
-            catch (Exception ex2)
-            {
+            } catch (Exception ex2) {
                 Log.Warning("Accept loop error: {Message}", ex2.Message);
                 break;
             }
@@ -92,8 +79,7 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
         CancellationToken token)
     {
         int num;
-        for (var read = 0; read < count; read += num)
-        {
+        for (var read = 0; read < count; read += num) {
             num = await stream.ReadAsync(buffer.AsMemory(offset + read, count - read), token).ConfigureAwait(false);
             if (num == 0) throw new EndOfStreamException();
         }
@@ -101,12 +87,10 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
 
     private async Task HandleClientAsync(TcpClient client, CancellationToken token)
     {
-        using (client)
-        {
+        using (client) {
             await using var stream = client.GetStream();
             var responseCode = 1u;
-            try
-            {
+            try {
                 var lenBuf = new byte[4];
 
                 await ReadExactAsync(stream, lenBuf, 0, 4, token).ConfigureAwait(false);
@@ -126,23 +110,16 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
                 var serverIdBuf = new byte[serverIdLen];
                 await ReadExactAsync(stream, serverIdBuf, 0, serverIdLen, token).ConfigureAwait(false);
                 var serverId = Encoding.UTF8.GetString(serverIdBuf);
-                
+
                 await NetEaseConnection.CreateAuthenticatorAsync(serverId, gameId, version, modList,
                     int.Parse(userId), accessToken, () => { responseCode = 0u; }).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Log.Warning("Client handling error: {Message}", ex.Message);
-            }
-            finally
-            {
-                try
-                {
+            } finally {
+                try {
                     var bytes = BitConverter.GetBytes(responseCode);
                     await stream.WriteAsync(bytes, token).ConfigureAwait(false);
-                }
-                catch (Exception ex2)
-                {
+                } catch (Exception ex2) {
                     Log.Warning("Response writing error: {Message}", ex2.Message);
                 }
             }

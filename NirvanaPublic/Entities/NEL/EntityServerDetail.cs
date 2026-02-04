@@ -1,12 +1,11 @@
 ﻿using System.Text.Json.Serialization;
+using NirvanaAPI.Utils.CodeTools;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Entities.NEL;
 
-public class EntityServerDetail
-{
+public class EntityServerDetail {
     [JsonPropertyName("id")] public string? Id { get; set; }
 
     [JsonPropertyName("name")] public string? Name { get; set; }

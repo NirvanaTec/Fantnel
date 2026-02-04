@@ -4,14 +4,12 @@ using System.Threading;
 
 namespace Codexus.Game.Launcher.Utils.Progress;
 
-public static class SyncProgressBarUtil
-{
+public static class SyncProgressBarUtil {
     private static readonly Lock Lock = new();
 
     private static string GetAnsiColorCode(ConsoleColor color)
     {
-        return color switch
-        {
+        return color switch {
             ConsoleColor.Black => "\e[30m",
             ConsoleColor.DarkRed => "\e[31m",
             ConsoleColor.DarkGreen => "\e[32m",
@@ -32,8 +30,7 @@ public static class SyncProgressBarUtil
         };
     }
 
-    public class ProgressBarOptions
-    {
+    public class ProgressBarOptions {
         public int Width { get; set; } = 45;
 
         public char FillChar { get; set; } = '■';
@@ -63,8 +60,7 @@ public static class SyncProgressBarUtil
         public bool LastLineNewline { get; set; } = true;
     }
 
-    public class ProgressBar(int total = 100, ProgressBarOptions options = null) : IDisposable
-    {
+    public class ProgressBar(int total = 100, ProgressBarOptions options = null) : IDisposable {
         private readonly ProgressBarOptions _options = options ?? new ProgressBarOptions();
 
         private readonly char[] _spinnerChars = ['|', '/', '─', '\\'];
@@ -79,8 +75,7 @@ public static class SyncProgressBarUtil
 
         public void Dispose()
         {
-            if (!_disposed)
-            {
+            if (!_disposed) {
                 if (_current < total) Update(total, "Done");
                 _disposed = true;
             }
@@ -105,24 +100,19 @@ public static class SyncProgressBarUtil
 
         private void Display(string action)
         {
-            using (Lock.EnterScope())
-            {
+            using (Lock.EnterScope()) {
                 ClearCurrent();
                 var num = _current / total;
                 var num2 = (int)(num * _options.Width);
                 var stringBuilder = new StringBuilder();
                 stringBuilder.Append(_options.Prefix);
-                if (_options.ShowSpinner)
-                {
-                    if (_current < total)
-                    {
+                if (_options.ShowSpinner) {
+                    if (_current < total) {
                         stringBuilder.Append(GetAnsiColorCode(_options.SpinnerColor));
                         stringBuilder.Append(_spinnerChars[_spinnerIndex]);
                         stringBuilder.Append(GetAnsiColorCode(ConsoleColor.White));
                         stringBuilder.Append(' ');
-                    }
-                    else if (_current >= total)
-                    {
+                    } else if (_current >= total) {
                         stringBuilder.Append(GetAnsiColorCode(ConsoleColor.Green));
                         stringBuilder.Append('✓');
                         stringBuilder.Append(GetAnsiColorCode(ConsoleColor.White));
@@ -142,8 +132,7 @@ public static class SyncProgressBarUtil
                 handler.AppendLiteral("] ");
                 handler.AppendFormatted(action);
                 stringBuilder3.Append(ref handler);
-                if (_options.ShowPercentage)
-                {
+                if (_options.ShowPercentage) {
                     stringBuilder2 = stringBuilder;
                     var stringBuilder4 = stringBuilder2;
                     handler = new StringBuilder.AppendInterpolatedStringHandler(1, 1, stringBuilder2);
@@ -153,8 +142,7 @@ public static class SyncProgressBarUtil
                 }
 
                 var value = DateTime.Now - _startTime;
-                if (_options.ShowElapsedTime)
-                {
+                if (_options.ShowElapsedTime) {
                     stringBuilder2 = stringBuilder;
                     var stringBuilder5 = stringBuilder2;
                     handler = new StringBuilder.AppendInterpolatedStringHandler(10, 1, stringBuilder2);
@@ -163,8 +151,7 @@ public static class SyncProgressBarUtil
                     stringBuilder5.Append(ref handler);
                 }
 
-                if (_options.ShowEta && _current > 0)
-                {
+                if (_options.ShowEta && _current > 0) {
                     var value2 = TimeSpan.FromMilliseconds(value.TotalMilliseconds / _current * (total - _current));
                     stringBuilder2 = stringBuilder;
                     var stringBuilder6 = stringBuilder2;
@@ -187,8 +174,7 @@ public static class SyncProgressBarUtil
         }
     }
 
-    public class ProgressReport
-    {
+    public class ProgressReport {
         public double Percent { get; set; }
 
         public string Message { get; set; } = "";

@@ -132,8 +132,8 @@ const handleCloseAll = async () => {
 
   try {
     // 依次关闭所有游戏实例
-    for (const game of gameLaunchList.value) {
-      await closeGameLaunch(game.game_id)
+    for(var index = 0; index < gameLaunchList.value.length; index++){
+      await closeGameLaunch(index)
     }
     // 清空游戏实例列表
     gameLaunchList.value = []

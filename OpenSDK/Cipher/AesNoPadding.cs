@@ -2,8 +2,7 @@
 
 namespace OpenSDK.Cipher;
 
-public static class AesNoPadding
-{
+public static class AesNoPadding {
     public static byte[] Encrypt(byte[] data, byte[] key, bool encryption = true)
     {
         using var aesNoPadding = Aes.Create();

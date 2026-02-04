@@ -3,8 +3,7 @@ using System.Text;
 
 namespace WPFLauncherApi.Utils.Cipher;
 
-public static class TokenUtil
-{
+public static class TokenUtil {
     private static readonly Aes Aes;
 
     static TokenUtil()

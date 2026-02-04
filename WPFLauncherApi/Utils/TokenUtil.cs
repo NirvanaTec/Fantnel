@@ -1,10 +1,9 @@
 ﻿using System.Text;
-using WPFLauncherApi.Utils.CodeTools;
+using NirvanaAPI.Utils.CodeTools;
 
 namespace WPFLauncherApi.Utils;
 
-public static class TokenUtil
-{
+public static class TokenUtil {
     public static Dictionary<string, string> Compute(
         string requestPath,
         string sendBody)
@@ -41,8 +40,7 @@ public static class TokenUtil
         var bytes = Encoding.UTF8.GetBytes(lowerInvariant);
         ProcessBinaryBlock(secretBin, bytes);
         var str2 = (Convert.ToBase64String(bytes, 0, 12) + "1").Replace('+', 'm').Replace('/', 'o');
-        return new Dictionary<string, string>
-        {
+        return new Dictionary<string, string> {
             ["user-id"] = userId,
             ["user-token"] = str2
         };
@@ -50,8 +48,7 @@ public static class TokenUtil
 
     private static void ProcessBinaryBlock(string secretBin, byte[] httpToken)
     {
-        for (var index1 = 0; index1 < secretBin.Length / 8; ++index1)
-        {
+        for (var index1 = 0; index1 < secretBin.Length / 8; ++index1) {
             var readOnlySpan = secretBin.AsSpan(index1 * 8, Math.Min(8, secretBin.Length - index1 * 8));
             byte num = 0;
             for (var index2 = 0; index2 < readOnlySpan.Length; ++index2)

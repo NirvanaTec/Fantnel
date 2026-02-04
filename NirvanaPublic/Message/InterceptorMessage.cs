@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using Codexus.Development.SDK.Entities;
 using Codexus.Interceptors;
+using NirvanaAPI.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
 using OpenSDK.Entities.Config;
@@ -12,14 +14,17 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.RentalGame;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.RentalGame.GameCharacters;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
-public class InterceptorMessage
-{
+public class InterceptorMessage {
+    private readonly EntityAccount _availableUser;
+
+    private readonly string _entityId;
+    private readonly string _mods;
+    private readonly string _versionName;
     public readonly Interceptor Interceptor;
-    
+
     public InterceptorMessage(
         EntityQueryNetGameDetailItem server,
         EntityGameCharacter character,
@@ -49,7 +54,8 @@ public class InterceptorMessage
         );
     }
 
-    public InterceptorMessage(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName, EntityRentalGameServerAddress address, string mods, int port)
+    public InterceptorMessage(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName,
+        EntityRentalGameServerAddress address, string mods, int port)
     {
         _mods = mods;
         _versionName = versionName;
@@ -72,27 +78,19 @@ public class InterceptorMessage
             port
         );
     }
-    
-    private readonly string _entityId;
-    private readonly string _versionName;
-    private readonly string _mods;
-    private readonly EntityAccount _availableUser;
 
     private void YggdrasilCallback(string serverId)
     {
         Log.Warning("认证中: {serverId}", serverId);
         var signal = new SemaphoreSlim(0);
-        Task.Run(async () =>
-        {
-            try
-            {
+        Task.Run(async () => {
+            try {
                 var pair = Md5Mapping.GetMd5FromGameVersion(_versionName);
 
                 var modsJson = JsonSerializer.Deserialize<ModList>(_mods);
                 if (modsJson == null) throw new ErrorCodeException(ErrorCode.ModsError);
 
-                var success = await InitProgram.GetServices().Yggdrasil.JoinServerAsync(new GameProfile
-                {
+                var success = await InitProgram.GetServices().Yggdrasil.JoinServerAsync(new GameProfile {
                     GameId = _entityId,
                     GameVersion = _versionName,
                     BootstrapMd5 = pair.BootstrapMd5,
@@ -106,17 +104,12 @@ public class InterceptorMessage
                     Log.Information("认证完成!");
                 else
                     Log.Error("认证失败: {Error}", success.Error);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Log.Fatal("认证出错: {ex}", ex.Message);
-            }
-            finally
-            {
+            } finally {
                 signal.Release();
             }
         });
         signal.Wait();
     }
-    
 }

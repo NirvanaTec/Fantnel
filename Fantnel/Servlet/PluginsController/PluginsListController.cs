@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Message;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.PluginsController;
 
 // plugins
 [ApiController]
 [Route("[controller]")]
-public class PluginsListController : ControllerBase
-{
+public class PluginsListController : ControllerBase {
     [HttpGet("/api/plugins/get")]
     public IActionResult GetPluginsListHttp()
     {

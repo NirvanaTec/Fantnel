@@ -1,7 +1,6 @@
 ﻿namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Launch.Skin;
 
-public enum EnumSkinMode
-{
+public enum EnumSkinMode {
     Default,
     Slim
 }

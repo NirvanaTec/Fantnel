@@ -1,7 +1,6 @@
 ﻿namespace WPFLauncherApi.Utils;
 
-public class QueryBuilder
-{
+public class QueryBuilder {
     private readonly Dictionary<string, string> _parameters = new();
     private string? _baseUrl;
 
@@ -30,8 +29,7 @@ public class QueryBuilder
     public static QueryBuilder FromObject(object obj)
     {
         var queryBuilder = new QueryBuilder();
-        foreach (var property in obj.GetType().GetProperties())
-        {
+        foreach (var property in obj.GetType().GetProperties()) {
             var obj1 = property.GetValue(obj);
             if (obj1 != null)
                 queryBuilder.Add(property.Name, obj1.ToString() ?? string.Empty);
@@ -49,8 +47,7 @@ public class QueryBuilder
         var queryString = url[(queryStart + 1)..];
         var parameters = queryString.Split('&');
 
-        foreach (var param in parameters)
-        {
+        foreach (var param in parameters) {
             var parts = param.Split('=');
             if (parts.Length == 2) queryBuilder.Add(parts[0], Uri.UnescapeDataString(parts[1]));
         }
@@ -182,12 +179,9 @@ public class QueryBuilder
 
     private void ParseUrl(string url)
     {
-        if (!url.Contains('?'))
-        {
+        if (!url.Contains('?')) {
             _baseUrl = url;
-        }
-        else
-        {
+        } else {
             var strArray = url.Split('?', 2);
             _baseUrl = strArray[0];
             ParseQueryString(strArray[1]);
@@ -199,8 +193,7 @@ public class QueryBuilder
         if (string.IsNullOrEmpty(queryString))
             return;
         foreach (var str in queryString.Split('&'))
-            if (!string.IsNullOrWhiteSpace(str))
-            {
+            if (!string.IsNullOrWhiteSpace(str)) {
                 var strArray = str.Split('=', 2);
                 if (strArray.Length == 2)
                     _parameters[Uri.UnescapeDataString(strArray[0])] = Uri.UnescapeDataString(strArray[1]);
@@ -209,8 +202,7 @@ public class QueryBuilder
 
     public QueryBuilder Clone()
     {
-        var queryBuilder = new QueryBuilder
-        {
+        var queryBuilder = new QueryBuilder {
             _baseUrl = _baseUrl
         };
         foreach (var parameter in _parameters)

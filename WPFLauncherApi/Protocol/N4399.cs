@@ -5,8 +5,7 @@ using QueryBuilder = WPFLauncherApi.Utils.QueryBuilder;
 
 namespace WPFLauncherApi.Protocol;
 
-public static class N4399
-{
+public static class N4399 {
     public static string LoginWithPasswordAsync(
         string username,
         string password,
@@ -20,8 +19,7 @@ public static class N4399
         parameters.Add("sessionId", sessionId);
         parameters.Add("inputCaptcha", captcha);
 
-        var client = new HttpClient(new HttpClientHandler
-        {
+        var client = new HttpClient(new HttpClientHandler {
             UseCookies = true,
             CookieContainer = new CookieContainer()
         });
@@ -86,8 +84,7 @@ public static class N4399
 
 
         HttpResponseMessage checkResponse;
-        while (true)
-        {
+        while (true) {
             var request = new HttpRequestMessage(HttpMethod.Get, checkUrl);
             request.Headers.Add("Cookie", cookieString);
             checkResponse = await client.SendAsync(request);
@@ -123,8 +120,7 @@ public static class N4399
         string platform = "pc")
     {
         var str = Guid.NewGuid().ToString("N");
-        return JsonSerializer.Serialize(new EntityMgbSdkSAuthJson
-        {
+        return JsonSerializer.Serialize(new EntityMgbSdkSAuthJson {
             AppChannel = channel,
             ClientLoginSn = str,
             DeviceId = str,

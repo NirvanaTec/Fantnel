@@ -1,16 +1,15 @@
 ﻿using System.Text.Json;
-using Serilog;
 using WPFLauncherApi.Protocol;
 using WPFLauncherApi.Utils;
 
 namespace WPFLauncherApi.Http;
 
-public class X19Extensions(string url, bool token = true)
-{
+public class X19Extensions(string url, bool token = true) {
     public static readonly X19Extensions Gateway = new("https://x19apigatewayobt.nie.netease.com");
     public static readonly X19Extensions Client = new("https://x19mclobt.nie.netease.com");
     public static readonly X19Extensions Core = new("https://x19obtcore.nie.netease.com:8443", false);
     public static readonly X19Extensions Nirvana = new("http://110.42.70.32:13423", false);
+    public static readonly X19Extensions Bmcl = new("https://bmclapi2.bangbang93.com", false);
 
     public readonly HttpWrapper HttpWrapper = new(url,
         options => { options.UserAgent("WPFLauncher/0.0.0.0"); });
@@ -20,8 +19,7 @@ public class X19Extensions(string url, bool token = true)
         if (body == null) return await HttpWrapper.GetAsync(url);
 
         return await HttpWrapper.PostAsync(url, body, "application/json",
-            options =>
-            {
+            options => {
                 if (userId != null && userToken != null)
                     options.AddHeaders(TokenUtil.Compute(url, body, userId, userToken));
                 else if (token) options.AddHeaders(TokenUtil.Compute(url, body));

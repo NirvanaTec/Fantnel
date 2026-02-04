@@ -5,8 +5,7 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 namespace Codexus.Game.Launcher.Entities;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-public class EntityLaunchPeGame
-{
+public class EntityLaunchPeGame {
     [JsonPropertyName("game_name")] public string GameName { get; set; }
 
     [JsonPropertyName("game_id")] public string GameId { get; set; }

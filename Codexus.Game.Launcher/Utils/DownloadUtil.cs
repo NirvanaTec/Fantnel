@@ -9,21 +9,19 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Codexus.Game.Launcher.Utils.Progress;
 using Serilog;
 
 namespace Codexus.Game.Launcher.Utils;
 
-public static class DownloadUtil
-{
+public static class DownloadUtil {
     private static readonly HttpClient HttpClient;
 
     static DownloadUtil()
     {
-        HttpClient = new HttpClient(new HttpClientHandler
-        {
+        HttpClient = new HttpClient(new HttpClientHandler {
             MaxConnectionsPerServer = 16
-        })
-        {
+        }) {
             Timeout = TimeSpan.FromMinutes(10L)
         };
     }
@@ -36,8 +34,7 @@ public static class DownloadUtil
         long totalRead;
         Stopwatch stopwatch;
         int lastReportedProgress;
-        try
-        {
+        try {
             var directoryName = Path.GetDirectoryName(destinationPath);
             if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName))
                 Directory.CreateDirectory(directoryName);
@@ -54,27 +51,21 @@ public static class DownloadUtil
                 return await SingleDownloadAsync(url, destinationPath, downloadProgress, cancellationToken);
             var mmFile = MemoryMappedFile.CreateFromFile(destinationPath, FileMode.Create, null, totalSize,
                 MemoryMappedFileAccess.ReadWrite);
-            try
-            {
+            try {
                 var errors = new ConcurrentBag<Exception>();
                 IEnumerable<(long, long)> source = CalculateRanges(maxConcurrentSegments * 3, totalSize);
                 totalRead = 0L;
                 stopwatch = Stopwatch.StartNew();
                 lastReportedProgress = -1;
                 var semaphore = new SemaphoreSlim(maxConcurrentSegments, maxConcurrentSegments);
-                try
-                {
-                    await Task.WhenAll(source.Select(async ((long Start, long End) range) =>
-                    {
+                try {
+                    await Task.WhenAll(source.Select(async ((long Start, long End) range) => {
                         // ReSharper disable once AccessToDisposedClosure
                         await semaphore.WaitAsync(cancellationToken);
-                        try
-                        {
-                            for (var attempt = 1; attempt <= 3; attempt++)
-                            {
+                        try {
+                            for (var attempt = 1; attempt <= 3; attempt++) {
                                 cancellationToken.ThrowIfCancellationRequested();
-                                try
-                                {
+                                try {
                                     using var req = new HttpRequestMessage(HttpMethod.Get, url);
                                     req.Headers.Range = new RangeHeaderValue(range.Start, range.End);
                                     using var resp = await HttpClient.SendAsync(req,
@@ -87,8 +78,7 @@ public static class DownloadUtil
                                         range.End - range.Start + 1,
                                         MemoryMappedFileAccess.Write);
                                     var buffer = new byte[8192];
-                                    while (true)
-                                    {
+                                    while (true) {
                                         int num;
                                         var bytesRead = num =
                                             await netStream.ReadAsync(buffer, cancellationToken);
@@ -99,19 +89,13 @@ public static class DownloadUtil
                                     }
 
                                     break;
-                                }
-                                catch (Exception ex2) when (attempt < 3 && ex2 is not OperationCanceledException)
-                                {
+                                } catch (Exception ex2) when (attempt < 3 && ex2 is not OperationCanceledException) {
                                     await Task.Delay(500 * attempt, cancellationToken);
                                 }
                             }
-                        }
-                        catch (Exception item)
-                        {
+                        } catch (Exception item) {
                             errors.Add(item);
-                        }
-                        finally
-                        {
+                        } finally {
                             // ReSharper disable once AccessToDisposedClosure
                             semaphore.Release();
                         }
@@ -119,25 +103,17 @@ public static class DownloadUtil
                     if (!errors.IsEmpty) throw new AggregateException(errors);
                     downloadProgress?.Invoke(100);
                     return true;
-                }
-                finally
-                {
+                } finally {
                     semaphore.Dispose();
                 }
-            }
-            finally
-            {
+            } finally {
                 mmFile.Dispose();
             }
             // return await SingleDownloadAsync(url, destinationPath, downloadProgress, cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
+        } catch (OperationCanceledException) {
             Log.Information("Download canceled: {Url}", url);
             throw;
-        }
-        catch (Exception exception)
-        {
+        } catch (Exception exception) {
             Log.Error(exception, "Download failed for {Url}", url);
             return false;
         }
@@ -154,6 +130,27 @@ public static class DownloadUtil
         }
     }
 
+    /**
+     * 更新文件
+     * @param url 下载地址
+     * @param path 保存路径
+     * @param name 下载名称
+     */
+    public static async Task DownloadAsync(string url, string path, string name)
+    {
+        // 下载插件 进度条 初始化
+        var progress = new SyncProgressBarUtil.ProgressBar();
+        // 下载插件 进度条 回调
+        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update =>
+            progress.Update(update.Percent, update.Message));
+
+        await DownloadAsync(url, path, dp => {
+            uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
+                Percent = dp,
+                Message = $"Downloading {name}"
+            });
+        });
+    }
 
     private static async Task<bool> SingleDownloadAsync(string url, string destinationPath,
         Action<int> downloadProgress, CancellationToken cancellationToken)
@@ -168,8 +165,7 @@ public static class DownloadUtil
         var buffer = new byte[8192];
         var stopwatch = Stopwatch.StartNew();
         var lastReportedProgress = -1;
-        while (true)
-        {
+        while (true) {
             int num;
             var n = num = await input.ReadAsync(buffer, cancellationToken);
             if (num <= 0) break;
@@ -191,8 +187,7 @@ public static class DownloadUtil
     private static IEnumerable<(long Start, long End)> CalculateRanges(int segments, long totalSize)
     {
         var segmentSize = totalSize / segments;
-        for (var i = 0; i < segments; i++)
-        {
+        for (var i = 0; i < segments; i++) {
             var item = i * segmentSize;
             var item2 = i == segments - 1 ? totalSize - 1 : (i + 1) * segmentSize - 1;
             yield return (Start: item, End: item2);

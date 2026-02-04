@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
 
-public class EntitySkinSettings
-{
+public class EntitySkinSettings {
     [JsonPropertyName("client_type")] public required string ClientType { get; set; }
 
     [JsonPropertyName("game_type")] public required int GameType { get; set; }

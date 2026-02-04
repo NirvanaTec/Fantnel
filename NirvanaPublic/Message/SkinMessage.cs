@@ -3,8 +3,7 @@ using WPFLauncherApi.Protocol;
 
 namespace NirvanaPublic.Message;
 
-public static class SkinMessage
-{
+public static class SkinMessage {
     // 皮肤列表 - 缓存
     private static readonly List<EntityQueryNetSkinItem> SkinList = [];
 
@@ -19,8 +18,7 @@ public static class SkinMessage
             GetSkinList(SkinList.Count, size, false, false);
         // 分页
         size = (offset == 0 ? 1 : offset) * pageSize;
-        if (SkinList.Count >= size)
-        {
+        if (SkinList.Count >= size) {
             var list = SkinList.Skip(size - pageSize).Take(pageSize).ToArray();
             if (!safeImage) return list;
             // 修复没有图片的游戏项
@@ -36,8 +34,7 @@ public static class SkinMessage
         var items = WPFLauncher.GetFreeSkinListAsync(offset, pageSize).Result;
 
         // safeImage: 没有图片的游戏项 就从 详情页 获取图片
-        foreach (var item in items)
-        {
+        foreach (var item in items) {
             if (safeImage) item.TitleImageUrl = WPFLauncher.GetFirstImage(item.EntityId).Result;
             AddSkinList(item);
         }
@@ -48,8 +45,7 @@ public static class SkinMessage
     // 皮肤列表 - 添加
     private static void AddSkinList(EntityQueryNetSkinItem skinItem)
     {
-        foreach (var item in SkinList.Where(item => item.EntityId == skinItem.EntityId))
-        {
+        foreach (var item in SkinList.Where(item => item.EntityId == skinItem.EntityId)) {
             if (item.TitleImageUrl == "" && skinItem.TitleImageUrl != "")
                 item.TitleImageUrl = skinItem.TitleImageUrl;
             return;
@@ -65,8 +61,7 @@ public static class SkinMessage
      */
     public static EntityQueryNetSkinItem? GetSkinId(string id)
     {
-        for (var i = 0; i < 100; i++)
-        {
+        for (var i = 0; i < 100; i++) {
             var server = SkinList.Find(server => server.EntityId == id);
             if (server != null) return server;
             GetSkinList(10 * i, 10, false);
@@ -80,8 +75,7 @@ public static class SkinMessage
         var result = WPFLauncher.GetFreeSkinByNameAsync(name, offset, pageSize).Result;
 
         var items = new List<EntityQueryNetSkinItem>();
-        foreach (var item in result)
-        {
+        foreach (var item in result) {
             item.TitleImageUrl = await WPFLauncher.GetFirstImage(item.EntityId);
             if (item.TitleImageUrl != "") items.Add(item);
         }

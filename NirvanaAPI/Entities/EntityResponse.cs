@@ -1,16 +1,14 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace WPFLauncherApi.Entities;
+namespace NirvanaAPI.Entities;
 
-public class EntityResponse<T>
-{
+public class EntityResponse<T> {
     [JsonPropertyName("code")] public int? Code { get; set; }
     [JsonPropertyName("data")] public T? Data { get; set; }
     [JsonPropertyName("msg")] public string? Msg { get; set; }
 }
 
-public class EntityInfo
-{
+public class EntityInfo {
     [JsonPropertyName("versions")] public string[]? Versions { get; init; }
 
     [JsonPropertyName("disabled_version")] public string[] DisabledVersions { get; init; } = [];
@@ -26,8 +24,7 @@ public class EntityInfo
     [JsonPropertyName("gameVersion")] public string? GameVersion { get; init; }
 }
 
-public class Advertisement
-{
+public class Advertisement {
     [JsonPropertyName("name")] public string? Name { get; set; }
 
     [JsonPropertyName("text")] public string? Text { get; set; }
