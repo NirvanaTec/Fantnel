@@ -1,11 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using NirvanaAPI.Utils.CodeTools;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Entities.NEL;
 
-public class EntitySkinDetail
-{
+public class EntitySkinDetail {
     [JsonPropertyName("entity_id")] public string? EntityId { get; set; }
 
     [JsonPropertyName("brief_summary")] public string? BriefSummary { get; set; }

@@ -9,8 +9,7 @@ using WPFLauncherApi.Http;
 
 namespace OpenSDK.Yggdrasil;
 
-public class StandardYggdrasil(string address, int port)
-{
+public class StandardYggdrasil(string address, int port) {
     private static readonly byte[] ChaChaNonce = "163 NetEase\n"u8.ToArray();
 
     private StandardYggdrasil(YggdrasilServer server)
@@ -30,8 +29,7 @@ public class StandardYggdrasil(string address, int port)
     {
         using var client = new TcpClient();
 
-        try
-        {
+        try {
             var addresses = await ResolveAddressAsync(Address);
             await client.ConnectAsync(addresses[0], Port);
 
@@ -47,13 +45,9 @@ public class StandardYggdrasil(string address, int port)
             return initiated.IsFailure
                 ? Result.Clone(initiated)
                 : await MakeRequest(stream, profile, serverId, initiated.Value!);
-        }
-        catch (SocketException ex)
-        {
+        } catch (SocketException ex) {
             return Result.Failure($"Network error: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             return Result.Failure($"Unexpected error: {ex.Message}");
         }
     }
@@ -85,7 +79,8 @@ public class StandardYggdrasil(string address, int port)
             : Result<byte[]>.Success(loginSeed);
     }
 
-    private static async Task<Result> MakeRequest(NetworkStream stream, GameProfile profile, string serverId, byte[] loginSeed)
+    private static async Task<Result> MakeRequest(NetworkStream stream, GameProfile profile, string serverId,
+        byte[] loginSeed)
     {
         var token = profile.User.GetAuthToken();
 
@@ -107,15 +102,12 @@ public class StandardYggdrasil(string address, int port)
         if (IPAddress.TryParse(address, out var ipAddress))
             return [ipAddress];
 
-        try
-        {
+        try {
             var addresses = await Dns.GetHostAddressesAsync(address);
             return addresses.Length == 0
                 ? throw new InvalidOperationException($"Unable to resolve host: {address}")
                 : addresses;
-        }
-        catch (SocketException ex)
-        {
+        } catch (SocketException ex) {
             throw new InvalidOperationException($"DNS resolution failed for {address}", ex);
         }
     }
@@ -132,5 +124,4 @@ public class StandardYggdrasil(string address, int port)
         var random = new Random();
         return servers[random.Next(servers.Length)];
     }
-
 }

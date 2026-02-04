@@ -8,9 +8,10 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Codexus.Development.SDK.Manager;
+using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Managers;
 using Codexus.Game.Launcher.Services.Java.RPC.Events;
-using Codexus.Game.Launcher.Utils;
+using NirvanaAPI.Utils;
 using OpenSDK.Cipher.Nirvana;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Launch.RPC;
@@ -22,15 +23,10 @@ using WPFLauncherApi.Utils;
 
 namespace Codexus.Game.Launcher.Services.Java.RPC;
 
-public sealed class GameRpcService(
+public class GameRpcService(
     int port,
-    string serverIp,
-    string serverPort,
-    string roleName,
-    string userId,
-    string userToken,
-    EnumGameVersion gameVersion)
-{
+    EntityLaunchGame launchGame,
+    EnumGameVersion gameVersion) {
     private readonly HttpClient _httpClient = new();
     private readonly Lock _lockObj = new();
     private readonly SocketCallback _mSocketCallbackFuc = new();
@@ -63,16 +59,13 @@ public sealed class GameRpcService(
 
     private void StartControlConnection(int tryTimes)
     {
-        try
-        {
+        try {
             _mMcControlListener = new TcpListener(IPAddress.Loopback, port);
             _mMcControlListener.Start();
             new Thread(ListenControlConnect).Start();
             Console.WriteLine();
             Log.Information("[RPC] Control connection started on port {Port}", port);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             if (tryTimes > 0)
                 StartControlConnection(tryTimes - 1);
             else
@@ -87,53 +80,37 @@ public sealed class GameRpcService(
         _mIsNormalExit = true;
 
         // 关闭监听器
-        try
-        {
+        try {
             _mMcControlListener?.Stop();
-        }
-        catch
-        {
+        } catch {
             // ignored
         }
 
         _mMcControlListener = null;
 
         // 清理连接资源
-        lock (_lockObj)
-        {
-            try
-            {
+        lock (_lockObj) {
+            try {
                 _reader?.Dispose();
-            }
-            catch
-            {
+            } catch {
                 // ignored
             }
 
-            try
-            {
+            try {
                 _writer?.Dispose();
-            }
-            catch
-            {
+            } catch {
                 // ignored
             }
 
-            try
-            {
+            try {
                 _stream?.Dispose();
-            }
-            catch
-            {
+            } catch {
                 // ignored
             }
 
-            try
-            {
+            try {
                 _client?.Close();
-            }
-            catch
-            {
+            } catch {
                 // ignored
             }
 
@@ -150,20 +127,21 @@ public sealed class GameRpcService(
     private void HandleAuthenticationNewVersion(byte[] data)
     {
         if (gameVersion <= EnumGameVersion.V_1_18) return;
-        var array = SimplePack.Pack((ushort)1799, serverIp, int.Parse(serverPort), roleName);
+        var array = SimplePack.Pack((ushort)1799, launchGame.ServerIp, launchGame.ServerPort, launchGame.RoleName);
         if (array != null) SendControlData(array);
         Log.Information(
             "[RPC] Sent new-version authentication to {ServerIP}:{ServerPort} | User: {UserID} | Role: {RoleName} | Protocol: {GameVersion}",
-            serverIp, serverPort, userId, roleName, gameVersion);
+            launchGame.ServerIp, launchGame.ServerPort, launchGame.UserId, launchGame.RoleName, gameVersion);
     }
 
     private void HandleAuthentication(byte[] data)
     {
-        var array = SimplePack.Pack((ushort)1031, serverIp, int.Parse(serverPort), roleName, false);
+        var array = SimplePack.Pack((ushort)1031, launchGame.ServerIp, launchGame.ServerPort, launchGame.RoleName,
+            false);
         if (array != null) SendControlData(array);
         Log.Information(
             "[RPC] Sent authentication to {ServerIP}:{ServerPort} | User: {UserID} | Role: {RoleName} | Protocol: {GameVersion}",
-            serverIp, serverPort, userId, roleName, gameVersion);
+            launchGame.ServerIp, launchGame.ServerPort, launchGame.UserId, launchGame.RoleName, gameVersion);
     }
 
     private void OnHeartBeat(byte[] data)
@@ -188,29 +166,26 @@ public sealed class GameRpcService(
 
     private async Task ProcessPlayerSkin(EntityOtherEnterWorldMsg msg)
     {
-        var list = await WPFLauncher.GetSkinListInGameAsync(userId, userToken, new EntityUserGameTextureRequest
-        {
-            UserId = _skip32Cipher.ComputeUserIdFromUuid(msg.Uuid).ToString(),
-            ClientType = EnumGameClientType.Java
-        });
+        var list = await WPFLauncher.GetSkinListInGameAsync(launchGame.UserId, launchGame.AccessToken,
+            new EntityUserGameTextureRequest {
+                UserId = _skip32Cipher.ComputeUserIdFromUuid(msg.Uuid).ToString(),
+                ClientType = EnumGameClientType.Java
+            });
         var filePath = string.Empty;
         var skinMode = EnumSkinMode.Default;
-        foreach (var item in list.Where(s => s.SkinId.Length > 5))
-        {
+        foreach (var item in list.Where(s => s.SkinId.Length > 5)) {
             skinMode = (EnumSkinMode)item.SkinMode;
             var tempPath = Path.Combine(_dirSkinPath, "skin_" + item.SkinId + ".png");
-            if (File.Exists(tempPath) && FileUtil.IsFileReadable(tempPath))
-            {
+            if (File.Exists(tempPath) && FileUtil.IsFileReadable(tempPath)) {
                 filePath = tempPath;
                 break;
             }
 
-            try
-            {
-                var entityAvailableUser = IUserManager.Instance?.GetAvailableUser(userId);
+            try {
+                var entityAvailableUser = IUserManager.Instance?.GetAvailableUser(launchGame.UserId);
                 if (entityAvailableUser == null) continue;
                 var entity =
-                    await WPFLauncher.GetNetGameComponentDownloadListAsync(userId, entityAvailableUser.AccessToken,
+                    await WPFLauncher.GetNetGameComponentDownloadListAsync(launchGame.UserId, launchGame.AccessToken,
                         item.SkinId);
                 var text = entity.SubEntities.Select(sub => sub.ResUrl).FirstOrDefault();
                 if (text == null) continue;
@@ -219,16 +194,11 @@ public sealed class GameRpcService(
                 if (!File.Exists(tempPath) || !FileUtil.IsFileReadable(tempPath)) continue;
                 filePath = tempPath;
                 break;
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Log.Error(ex, "[RPC] Failed to handle skin for player {Name}", msg.Name);
-                try
-                {
+                try {
                     if (File.Exists(tempPath)) File.Delete(tempPath);
-                }
-                catch
-                {
+                } catch {
                     Log.Error(ex, "[RPC] Failed to delete temp file {Path}", filePath);
                 }
             }
@@ -255,8 +225,7 @@ public sealed class GameRpcService(
     {
         EntityCheckPlayerMessage content = null;
         new SimpleUnpack(data).Unpack(ref content);
-        if (content != null)
-        {
+        if (content != null) {
             var array = SimplePack.Pack((ushort)18, content.Length, content.Message);
             if (array != null) SendControlData(array);
         }
@@ -267,23 +236,17 @@ public sealed class GameRpcService(
 
     private void ListenControlConnect()
     {
-        try
-        {
-            while (!_mIsNormalExit)
-            {
+        try {
+            while (!_mIsNormalExit) {
                 var tcpClient = _mMcControlListener?.AcceptTcpClient();
                 if (tcpClient == null) continue;
 
                 // 验证连接来源
                 var remoteEndPoint = tcpClient.Client.RemoteEndPoint as IPEndPoint;
-                if (remoteEndPoint?.Address.ToString() != IPAddress.Loopback.ToString())
-                {
-                    try
-                    {
+                if (remoteEndPoint?.Address.ToString() != IPAddress.Loopback.ToString()) {
+                    try {
                         tcpClient.Close();
-                    }
-                    catch
-                    {
+                    } catch {
                         // ignored
                     }
 
@@ -293,42 +256,29 @@ public sealed class GameRpcService(
                 Log.Information("[RPC] Accepted control connection from {RemoteEndPoint}", remoteEndPoint);
 
                 // 清理旧连接并保存新连接
-                lock (_lockObj)
-                {
+                lock (_lockObj) {
                     // 关闭旧连接
-                    try
-                    {
+                    try {
                         _reader?.Dispose();
-                    }
-                    catch
-                    {
+                    } catch {
                         // ignored
                     }
 
-                    try
-                    {
+                    try {
                         _writer?.Dispose();
-                    }
-                    catch
-                    {
+                    } catch {
                         // ignored
                     }
 
-                    try
-                    {
+                    try {
                         _stream?.Dispose();
-                    }
-                    catch
-                    {
+                    } catch {
                         // ignored
                     }
 
-                    try
-                    {
+                    try {
                         _client?.Close();
-                    }
-                    catch
-                    {
+                    } catch {
                         // ignored
                     }
 
@@ -342,12 +292,10 @@ public sealed class GameRpcService(
                 // 发送缓存数据
                 SendCacheControlData();
 
-                // 启动新的接收线程
+                // 接收数据
                 new Thread(OnRecvControlData).Start();
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             if (!_mIsNormalExit) // 忽略正常退出时的异常
             {
                 Log.Error(ex, "[RPC] Failed to listen control connection");
@@ -358,57 +306,40 @@ public sealed class GameRpcService(
 
     private void SendControlData(byte[] message)
     {
-        lock (_lockObj)
-        {
-            if (_writer == null)
-            {
+        lock (_lockObj) {
+            if (_writer == null) {
                 _sendCache.Add(message);
                 return;
             }
 
-            try
-            {
+            try {
                 var buffer = BitConverter.GetBytes((ushort)message.Length).Concat(message).ToArray();
                 _writer.Write(buffer);
                 _writer.Flush();
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Log.Error(ex, "[RPC] Failed to send control data");
                 // 连接可能已关闭，清理资源
-                try
-                {
+                try {
                     _reader?.Dispose();
-                }
-                catch
-                {
+                } catch {
                     // ignored
                 }
 
-                try
-                {
+                try {
                     _writer?.Dispose();
-                }
-                catch
-                {
+                } catch {
                     // ignored
                 }
 
-                try
-                {
+                try {
                     _stream?.Dispose();
-                }
-                catch
-                {
+                } catch {
                     // ignored
                 }
 
-                try
-                {
+                try {
                     _client?.Close();
-                }
-                catch
-                {
+                } catch {
                     // ignored
                 }
 
@@ -426,16 +357,13 @@ public sealed class GameRpcService(
     private void OnRecvControlData()
     {
         while (!_mIsNormalExit)
-            try
-            {
+            try {
                 BinaryReader currentReader;
-                lock (_lockObj)
-                {
+                lock (_lockObj) {
                     currentReader = _reader;
                 }
 
-                if (currentReader == null)
-                {
+                if (currentReader == null) {
                     Thread.Sleep(100); // 避免忙等待
                     continue;
                 }
@@ -446,24 +374,16 @@ public sealed class GameRpcService(
 
                 // 处理消息
                 HandleMcControlMessage(message);
-            }
-            catch (EndOfStreamException)
-            {
+            } catch (EndOfStreamException) {
                 Log.Information("[RPC] Connection closed by remote host");
                 break;
-            }
-            catch (IOException)
-            {
+            } catch (IOException) {
                 Log.Information("[RPC] Network error occurred");
                 break;
-            }
-            catch (ObjectDisposedException)
-            {
+            } catch (ObjectDisposedException) {
                 Log.Information("[RPC] Connection disposed");
                 break;
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Log.Error(ex, "[RPC] Error receiving control data");
                 if (!_mIsNormalExit) CloseControlConnection();
                 break;
@@ -474,8 +394,7 @@ public sealed class GameRpcService(
     {
         var num = BitConverter.ToUInt16(message);
         var parameters = message.Skip(2).ToArray();
-        if (!_mIsLaunchIdxReady && num == 261)
-        {
+        if (!_mIsLaunchIdxReady && num == 261) {
             _mIsLaunchIdxReady = true;
             Log.Information("[RPC] Launch index ready, executed ready actions");
         }
@@ -493,28 +412,21 @@ public sealed class GameRpcService(
     {
         if (_sendCache.Count == 0) return;
 
-        lock (_lockObj)
-        {
+        lock (_lockObj) {
             if (_writer == null) return;
 
             foreach (var item in _sendCache)
-                try
-                {
+                try {
                     var buffer = BitConverter.GetBytes((ushort)item.Length).Concat(item).ToArray();
                     _writer.Write(buffer);
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     Log.Error(ex, "[RPC] Failed to send cached control data");
                     break;
                 }
 
-            try
-            {
+            try {
                 _writer.Flush();
-            }
-            catch
-            {
+            } catch {
                 // ignored
             }
 

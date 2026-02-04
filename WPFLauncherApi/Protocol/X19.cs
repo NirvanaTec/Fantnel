@@ -1,10 +1,9 @@
 ﻿using System.Text.Json;
-using WPFLauncherApi.Utils.CodeTools;
+using NirvanaAPI.Utils.CodeTools;
 
 namespace WPFLauncherApi.Protocol;
 
-public static class X19
-{
+public static class X19 {
     public const string Channel = "netease";
 
     // CRC盐值

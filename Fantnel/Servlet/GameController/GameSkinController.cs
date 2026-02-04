@@ -1,15 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Message;
 using WPFLauncherApi.Protocol;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
 [ApiController]
 [Route("[controller]")]
-public class GameSkinController : ControllerBase
-{
+public class GameSkinController : ControllerBase {
     [HttpGet("/api/gameskin/get")]
     public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10,
         [FromQuery] string? name = null)

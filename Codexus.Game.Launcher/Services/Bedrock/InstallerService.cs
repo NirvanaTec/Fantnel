@@ -4,15 +4,14 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
+using NirvanaAPI.Utils;
 
 namespace Codexus.Game.Launcher.Services.Bedrock;
 
-public static class InstallerService
-{
+public static class InstallerService {
     public static async Task<bool> DownloadMinecraftAsync()
     {
-        try
-        {
+        try {
             var paths = GetInstallationPaths();
             if (IsMinecraftInstalledAsync(paths).GetAwaiter().GetResult()) return true;
             FileUtil.CleanDirectorySafe(paths.BasePath);
@@ -24,13 +23,9 @@ public static class InstallerService
             await SavePackageHash(paths.ArchivePath, paths.HashPath);
             await CleanupTemporaryFiles(paths.ArchivePath, progress);
             return true;
-        }
-        catch (Exception innerException)
-        {
+        } catch (Exception innerException) {
             throw new InvalidOperationException("Failed to download and install Minecraft", innerException);
-        }
-        finally
-        {
+        } finally {
             SyncProgressBarUtil.ProgressBar.ClearCurrent();
         }
     }
@@ -47,13 +42,10 @@ public static class InstallerService
         (string BasePath, string ArchivePath, string HashPath, string ExecutablePath) paths)
     {
         if (!File.Exists(paths.ExecutablePath) || !File.Exists(paths.HashPath)) return false;
-        try
-        {
+        try {
             return string.Equals(Convert.ToHexStringLower(await File.ReadAllBytesAsync(paths.HashPath)),
                 "50ac5016023c295222b979565b9c707b", StringComparison.OrdinalIgnoreCase);
-        }
-        catch (Exception)
-        {
+        } catch (Exception) {
             return false;
         }
     }
@@ -61,8 +53,7 @@ public static class InstallerService
     private static Progress<SyncProgressBarUtil.ProgressReport> CreateProgressReporter(
         SyncProgressBarUtil.ProgressBar progressBar)
     {
-        return new Progress<SyncProgressBarUtil.ProgressReport>(update =>
-        {
+        return new Progress<SyncProgressBarUtil.ProgressReport>(update => {
             progressBar.Update(update.Percent, update.Message);
         });
     }
@@ -72,10 +63,8 @@ public static class InstallerService
     {
         return await DownloadUtil.DownloadAsync(
             "https://x19.gdl.netease.com/release2_20250402_3.4.Win32.Netease.r20.OGL.Publish_3.4.5.273310_20250627104722.7z",
-            archivePath, percentage =>
-            {
-                progress.Report(new SyncProgressBarUtil.ProgressReport
-                {
+            archivePath, percentage => {
+                progress.Report(new SyncProgressBarUtil.ProgressReport {
                     Percent = percentage,
                     Message = "Downloading Minecraft Bedrock"
                 });
@@ -85,14 +74,12 @@ public static class InstallerService
     private static async Task<bool> ValidateDownloadedPackage(string archivePath,
         IProgress<SyncProgressBarUtil.ProgressReport> progress)
     {
-        progress.Report(new SyncProgressBarUtil.ProgressReport
-        {
+        progress.Report(new SyncProgressBarUtil.ProgressReport {
             Percent = 0,
             Message = "Checking package validation"
         });
         if (!await ValidatePackageAsync(archivePath, "50ac5016023c295222b979565b9c707b")) return false;
-        progress.Report(new SyncProgressBarUtil.ProgressReport
-        {
+        progress.Report(new SyncProgressBarUtil.ProgressReport {
             Percent = 100,
             Message = "Package validation succeeded"
         });
@@ -102,10 +89,8 @@ public static class InstallerService
     private static async Task ExtractMinecraftPackage(string archivePath, string basePath,
         IProgress<SyncProgressBarUtil.ProgressReport> progress)
     {
-        await CompressionUtil.ExtractAsync(archivePath, basePath, percentage =>
-        {
-            progress.Report(new SyncProgressBarUtil.ProgressReport
-            {
+        await CompressionUtil.ExtractAsync(archivePath, basePath, percentage => {
+            progress.Report(new SyncProgressBarUtil.ProgressReport {
                 Percent = percentage,
                 Message = "Extracting Minecraft Bedrock"
             });
@@ -121,14 +106,12 @@ public static class InstallerService
     private static async Task CleanupTemporaryFiles(string archivePath,
         IProgress<SyncProgressBarUtil.ProgressReport> progress)
     {
-        progress.Report(new SyncProgressBarUtil.ProgressReport
-        {
+        progress.Report(new SyncProgressBarUtil.ProgressReport {
             Percent = 0,
             Message = "Cleaning up game resources"
         });
         FileUtil.DeleteFileSafe(archivePath);
-        progress.Report(new SyncProgressBarUtil.ProgressReport
-        {
+        progress.Report(new SyncProgressBarUtil.ProgressReport {
             Percent = 100,
             Message = "Cleanup completed"
         });

@@ -1,7 +1,6 @@
 ﻿namespace WPFLauncherApi.Http;
 
-public class HttpWrapperBuilder(string baseUrl, string url, string body)
-{
+public class HttpWrapperBuilder(string baseUrl, string url, string body) {
     private readonly Dictionary<string, string> _headers = new();
 
     public string BaseUrl => baseUrl;

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 
-public class EntityAuthenticationVersion
-{
+public class EntityAuthenticationVersion {
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
     [JsonPropertyName("version")] public required string Version { get; set; }
 

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
 
-public class EntityGameCharacter
-{
+public class EntityGameCharacter {
     [JsonPropertyName("game_id")] public string GameId { get; set; } = string.Empty;
 
     [JsonPropertyName("game_type")] public int GameType { get; set; } = 2;

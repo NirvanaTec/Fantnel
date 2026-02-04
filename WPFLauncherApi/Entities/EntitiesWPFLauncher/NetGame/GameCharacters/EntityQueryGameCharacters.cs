@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
 
-public class EntityQueryGameCharacters
-{
+public class EntityQueryGameCharacters {
     [JsonPropertyName("offset")] public int Offset { get; set; }
 
     [JsonPropertyName("length")] public int Length { get; set; } = 10;

@@ -2,7 +2,6 @@
 
 namespace OpenSDK.Entities.Yggdrasil;
 
-public class ModList
-{
+public class ModList {
     [JsonPropertyName("mods")] public List<Mod> Mods { get; init; } = [];
 }

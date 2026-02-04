@@ -3,8 +3,7 @@
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher;
 
 // ReSharper disable once InconsistentNaming
-public class EntityWPFResponse
-{
+public class EntityWPFResponse {
     [JsonPropertyName("code")] public int Code { get; set; }
 
     [JsonPropertyName("message")] public string Message { get; set; } = string.Empty;

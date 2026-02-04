@@ -1,9 +1,8 @@
-﻿using NirvanaPublic.Utils;
+﻿using NirvanaAPI.Utils;
 
 namespace NirvanaPublic;
 
-public static class PublicProgram
-{
+public static class PublicProgram {
     // Fantnel 版本
     public const string Version = "1.4.0";
     public const int VersionId = 4;

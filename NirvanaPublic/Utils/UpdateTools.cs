@@ -1,14 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
-using Codexus.Game.Launcher.Utils;
-using Codexus.Game.Launcher.Utils.Progress;
 using Serilog;
 using WPFLauncherApi.Http;
 
 namespace NirvanaPublic.Utils;
 
-public static class UpdateTools
-{
+public static class UpdateTools {
     // 检查更新
     public static async Task CheckUpdate(string[] args)
     {
@@ -20,8 +17,7 @@ public static class UpdateTools
             if (args.Any(arg => arg == "--update_false"))
                 update = 2;
 
-        switch (update)
-        {
+        switch (update) {
             // 不检查 - 提醒
             // case 1:
             // {
@@ -43,7 +39,7 @@ public static class UpdateTools
 
         await CheckUpdate("static", "Resource");
         await CheckUpdate("static." + PublicProgram.Mode, "Resource");
-        await CheckUpdate("static." + PublicProgram.Mode + "." + PublicProgram.Arch, "Resource", false,false);
+        await CheckUpdate("static." + PublicProgram.Mode + "." + PublicProgram.Arch, "Resource", false, false);
     }
 
     /**
@@ -56,8 +52,7 @@ public static class UpdateTools
         var jsonObj =
             await X19Extensions.Nirvana.Api<JsonObject>(
                 $"/api/fantnel/update/get?mode={mode}");
-        if (jsonObj == null)
-        {
+        if (jsonObj == null) {
             if (!failureLog) return -1;
             Log.Error("{name}: {mode}", name, mode);
             Log.Error("检查更新失败, 建议更新至最新版本!");
@@ -65,8 +60,7 @@ public static class UpdateTools
         }
 
         var data = jsonObj["data"];
-        if (data == null)
-        {
+        if (data == null) {
             if (!failureLog) return -1;
             Log.Error("{name}: {mode}", name, mode);
             Log.Error("检查更新失败, 建议更新至最新版本!");
@@ -76,29 +70,5 @@ public static class UpdateTools
         var array = data.AsArray();
         await ThreadUpdateTools.CheckUpdate(array, name, safe);
         return array.Count;
-    }
-
-    /**
-     * 更新文件
-     * @param url 下载地址
-     * @param path 保存路径
-     * @param name 下载名称
-     */
-    public static async Task Update(string url, string path, string name)
-    {
-        // 下载插件 进度条 初始化
-        var progress = new SyncProgressBarUtil.ProgressBar();
-        // 下载插件 进度条 回调
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update =>
-            progress.Update(update.Percent, update.Message));
-
-        await DownloadUtil.DownloadAsync(url, path, dp =>
-        {
-            uiProgress.Report(new SyncProgressBarUtil.ProgressReport
-            {
-                Percent = dp,
-                Message = $"Downloading {name}"
-            });
-        });
     }
 }

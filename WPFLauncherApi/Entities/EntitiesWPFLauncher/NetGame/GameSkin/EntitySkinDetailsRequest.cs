@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
 
-public class EntitySkinDetailsRequest
-{
+public class EntitySkinDetailsRequest {
     [JsonPropertyName("channel_id")] public required int ChannelId { get; set; }
 
     [JsonPropertyName("entity_ids")] public required List<string> EntityIds { get; set; }

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.GameMods;
 
-public class EntityModsInfo
-{
+public class EntityModsInfo {
     [JsonPropertyName("modPath")] public required string ModPath { get; set; }
 
     [JsonPropertyName("name")] public required string Name { get; set; } = "";

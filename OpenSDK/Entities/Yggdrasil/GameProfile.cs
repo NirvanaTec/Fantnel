@@ -2,8 +2,7 @@
 
 namespace OpenSDK.Entities.Yggdrasil;
 
-public class GameProfile
-{
+public class GameProfile {
     public required string GameId { get; init; }
     public required string GameVersion { get; init; }
     public required string BootstrapMd5 { get; init; }
@@ -15,5 +14,4 @@ public class GameProfile
     {
         return Mods == null ? string.Empty : JsonSerializer.Serialize(Mods);
     }
-    
 }

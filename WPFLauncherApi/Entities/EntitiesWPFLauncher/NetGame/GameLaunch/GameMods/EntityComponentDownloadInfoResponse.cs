@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.GameMods;
 
-public class EntityComponentDownloadInfoResponse
-{
+public class EntityComponentDownloadInfoResponse {
     [JsonPropertyName("entity_id")] public required string EntityId { get; set; }
 
     [JsonPropertyName("item_id")] public required string ItemId { get; set; }

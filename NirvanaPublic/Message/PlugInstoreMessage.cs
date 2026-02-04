@@ -1,23 +1,21 @@
-﻿using NirvanaPublic.Entities.Nirvana;
+﻿using Codexus.Game.Launcher.Utils;
+using NirvanaAPI.Entities;
+using NirvanaAPI.Utils.CodeTools;
+using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Entities.Plugin;
 using NirvanaPublic.Manager;
-using NirvanaPublic.Utils;
-using WPFLauncherApi.Entities;
 using WPFLauncherApi.Http;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
-public static class PlugInstoreMessage
-{
+public static class PlugInstoreMessage {
     // 插件列表 - 缓存
     private static readonly List<EntityComponents> PluginList = [];
 
     public static async Task<EntityComponents[]> GetPluginList(int offset = 0, int limit = 10)
     {
         // PluginList 有 就用缓存
-        lock (LockManager.PluginListLock)
-        {
+        lock (LockManager.PluginListLock) {
             // 分页 异常顺序 检测
             var size = offset + (limit - 10);
             if (PluginList.Count < size) GetPluginList(0, size).Wait();
@@ -46,8 +44,7 @@ public static class PlugInstoreMessage
     // 插件列表 - 添加
     private static void AddServerList(EntityComponents entity)
     {
-        lock (LockManager.PluginListLock)
-        {
+        lock (LockManager.PluginListLock) {
             // 插件列表 没有 就添加
             if (PluginList.All(plugin => plugin.Id != entity.Id))
                 PluginList.Add(entity);
@@ -79,15 +76,12 @@ public static class PlugInstoreMessage
         PluginMessage.CleanSameIdPlugin();
 
         var plugins = PluginMessage.GetPluginList();
-        foreach (var plugin in plugins)
-        {
+        foreach (var plugin in plugins) {
             var downloadInfo = GetDownloadInfoUrl(plugin.Id);
             if (downloadInfo?.Data == null || downloadInfo.Code != 1) continue;
-            lock (plugin.Id)
-            {
+            lock (plugin.Id) {
                 // 检测 插件 是否需要更新
-                if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize))
-                {
+                if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize)) {
                     PluginMessage.DeletePlugin(plugin.Id);
                     Download(plugin.Id);
                 }
@@ -98,8 +92,7 @@ public static class PlugInstoreMessage
 
             // 检测 依赖插件 是否需要更新
             foreach (var item in downloadInfo.Data.Dependencies)
-                lock (plugin.Id)
-                {
+                lock (plugin.Id) {
                     if (!NoEqualsPlugin(item.FileHash, item.FileSize)) continue;
                     PluginMessage.DeletePlugin(plugin.Id);
                     Download(item.Id);
@@ -121,7 +114,8 @@ public static class PlugInstoreMessage
         Directory.CreateDirectory(path);
         // 自动插件 插件 文件名
         path = Path.Combine(path, detail.Data.Name + " [" + detail.Data.Version + "].dll");
-        UpdateTools.Update(GetDownloadUrl(id), path, detail.Data.Name + " [" + detail.Data.Version + "]").Wait();
+        DownloadUtil.DownloadAsync(GetDownloadUrl(id), path, detail.Data.Name + " [" + detail.Data.Version + "]")
+            .Wait();
     }
 
     /**
@@ -134,8 +128,7 @@ public static class PlugInstoreMessage
     {
         // 获取 插件目录数组 和 md5数组
         var filesPath = PluginMessage.GetPluginDirectoryAndMd5List();
-        for (var i = 0; i < filesPath.Item2.Length; i++)
-        {
+        for (var i = 0; i < filesPath.Item2.Length; i++) {
             // MD5 不匹配 则跳过
             if (fileMd5 is { Length: > 31 } && !filesPath.Item2[i].Equals(fileMd5)) continue;
             // 文件大小 匹配 则返回
@@ -148,8 +141,7 @@ public static class PlugInstoreMessage
 
     public static void Install(string id)
     {
-        lock (id)
-        {
+        lock (id) {
             var downloadInfo = GetDownloadInfoUrl(id);
             if (downloadInfo?.Data == null || downloadInfo.Code != 1)
                 throw new ErrorCodeException(ErrorCode.Failure, downloadInfo);

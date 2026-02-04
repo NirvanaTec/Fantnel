@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Message;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
 // game-launch
 [ApiController]
 [Route("[controller]")]
-public class GameLaunchController : ControllerBase
-{
+public class GameLaunchController : ControllerBase {
     [HttpGet("/api/gamelaunch/launch")]
     public IActionResult LaunchGame([FromQuery] string id, [FromQuery] string name, [FromQuery] string mode = "net")
     {

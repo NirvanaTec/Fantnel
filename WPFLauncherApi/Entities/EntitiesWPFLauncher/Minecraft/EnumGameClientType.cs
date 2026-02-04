@@ -1,7 +1,6 @@
 ﻿namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
 
-public enum EnumGameClientType
-{
+public enum EnumGameClientType {
     All,
     Java,
     Cpp

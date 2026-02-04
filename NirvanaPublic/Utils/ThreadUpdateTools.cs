@@ -1,16 +1,16 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json.Nodes;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
+using NirvanaAPI.Utils;
 using NirvanaPublic.Entities;
 using Serilog;
+using Tools = NirvanaAPI.Utils.Tools;
 
 namespace NirvanaPublic.Utils;
 
-public static class ThreadUpdateTools
-{
+public static class ThreadUpdateTools {
     /**
      * 检查更新
      * path: Fantnel1.dll,
@@ -23,8 +23,7 @@ public static class ThreadUpdateTools
         var downloadSize = 0;
         List<IntPtrReference> progress = [];
 
-        foreach (var item in jsonArray)
-        {
+        foreach (var item in jsonArray) {
             // 下载进度
             var newProgress = new IntPtrReference();
             progress.Add(newProgress);
@@ -56,20 +55,11 @@ public static class ThreadUpdateTools
             DownloadWithRetryAsync(url, resourcesPath1, newProgress, name, progress, jsonArray.Count);
         }
 
-        if (safeMode && downloadSize > 0)
-        {
+        if (safeMode && downloadSize > 0) {
             Log.Information("正在更新核心资源，这会自动重启[1次]，请稍后...");
             var scriptPath = PathUtil.ScriptPath;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                await File.WriteAllTextAsync(scriptPath, GenerateUpdateScript(), Encoding.GetEncoding(936)); // GBK 编码
-            }
-            else
-            {
-                await File.WriteAllTextAsync(scriptPath, GenerateUpdateScript());
-            }
-            Process.Start(new ProcessStartInfo
-            {
+            await Tools.SaveShellScript(scriptPath, GenerateUpdateScript());
+            Process.Start(new ProcessStartInfo {
                 FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
                 Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                     ? "/C \"" + scriptPath + "\""
@@ -124,8 +114,7 @@ public static class ThreadUpdateTools
 
         // 检查文件大小
         var size = item["size"];
-        if (size != null)
-        {
+        if (size != null) {
             var expectedSize = size.GetValue<long>();
             var actualSize = new FileInfo(filePath).Length;
             if (actualSize != expectedSize) return true;

@@ -1,7 +1,6 @@
 ﻿namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 
-public enum EnumGType
-{
+public enum EnumGType {
     None = -1, // 0xFFFFFFFF
     SingleGame = 1, // 单人游戏
     NetGame = 2, // 网络游戏

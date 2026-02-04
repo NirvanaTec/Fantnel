@@ -2,8 +2,7 @@
 
 namespace NirvanaPublic.Entities.Plugin;
 
-public class EntityPlugin
-{
+public class EntityPlugin {
     [JsonPropertyName("detailDescription")]
     public string? DetailDescription { get; set; }
 

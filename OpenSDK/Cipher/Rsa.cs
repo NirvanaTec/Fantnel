@@ -5,8 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace OpenSDK.Cipher;
 
-public static class Rsa
-{
+public static class Rsa {
     public static AsymmetricKeyParameter LoadPublicKey(string base64PublicKey)
     {
         var keyBytes = Convert.FromBase64String(base64PublicKey);
@@ -27,8 +26,7 @@ public static class Rsa
         var blockSize = cipher.GetInputBlockSize();
         using var ms = new MemoryStream();
         var offset = 0;
-        while (offset < data.Length)
-        {
+        while (offset < data.Length) {
             var chunkSize = Math.Min(blockSize, data.Length - offset);
             var chunk = cipher.ProcessBlock(data, offset, chunkSize);
             ms.Write(chunk, 0, chunk.Length);

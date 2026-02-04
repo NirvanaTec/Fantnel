@@ -3,8 +3,7 @@
 namespace OpenSDK.Entities.Yggdrasil;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-public class Mod
-{
+public class Mod {
     // ReSharper disable once UnusedMember.Global
     [JsonPropertyName("modPath")] public required string ModPath { get; set; }
 

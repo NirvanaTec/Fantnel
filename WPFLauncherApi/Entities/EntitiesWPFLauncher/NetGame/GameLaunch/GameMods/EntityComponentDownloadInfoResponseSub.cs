@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.GameMods;
 
-public class EntityComponentDownloadInfoResponseSub
-{
+public class EntityComponentDownloadInfoResponseSub {
     [JsonPropertyName("java_version")] public required int JavaVersion { get; set; }
 
     [JsonPropertyName("mc_version_name")] public required string McVersionName { get; set; }

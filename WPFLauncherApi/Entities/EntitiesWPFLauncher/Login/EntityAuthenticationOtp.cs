@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 
-public class EntityAuthenticationOtp
-{
+public class EntityAuthenticationOtp {
     [JsonPropertyName("entity_id")] public string EntityId { get; set; } = string.Empty;
 
     [JsonPropertyName("account")] public string Account { get; set; } = string.Empty;

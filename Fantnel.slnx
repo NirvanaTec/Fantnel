@@ -2,6 +2,7 @@
     <Project Path="Codexus.Game.Launcher/Codexus.Game.Launcher.csproj"/>
     <Project Path="ConsoleAppTest/ConsoleAppTest.csproj"/>
     <Project Path="Fantnel/Fantnel.csproj"/>
+    <Project Path="NirvanaAPI/NirvanaAPI.csproj"/>
     <Project Path="NirvanaPublic/NirvanaPublic.csproj"/>
     <Project Path="OpenSDK/OpenSDK.csproj"/>
     <Project Path="WPFLauncherApi/WPFLauncherApi.csproj"/>

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
 
-public class EntityFreeSkinListRequest
-{
+public class EntityFreeSkinListRequest {
     [JsonPropertyName("is_has")] public required bool IsHas { get; set; }
 
     [JsonPropertyName("item_type")] public required int ItemType { get; set; }

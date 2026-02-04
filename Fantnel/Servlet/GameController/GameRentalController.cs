@@ -1,16 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Message;
 using WPFLauncherApi.Protocol;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
 // game-rental
 [ApiController]
 [Route("[controller]")]
-public class GameRentalController: ControllerBase
-{
+public class GameRentalController : ControllerBase {
     [HttpGet("/api/gamerental/get")]
     public IActionResult GetRentalGameListHttp([FromQuery] int offset, [FromQuery] int pageSize)
     {
@@ -24,7 +23,7 @@ public class GameRentalController: ControllerBase
         RentalGameMessage.SortServerList();
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
-    
+
     [HttpGet("/api/gamerental/getlaunch")]
     public IActionResult GetRentalInfo([FromQuery] string id)
     {
@@ -33,8 +32,7 @@ public class GameRentalController: ControllerBase
         // 全部游戏角色
         var games = WPFLauncher.GetRentalGameRolesListAsync(id).Result;
         // 合并
-        var text = new
-        {
+        var text = new {
             accounts,
             games
         };
@@ -49,7 +47,7 @@ public class GameRentalController: ControllerBase
         serverDetail.Set(WPFLauncher.GetGameRentalAddressAsync(id).Result);
         return Content(Code.ToJson(ErrorCode.Success, serverDetail), "application/json");
     }
-    
+
     [HttpPost("/api/gamerental/createname")]
     public IActionResult CreateGameName([FromBody] EntityNewName name)
     {
@@ -59,5 +57,4 @@ public class GameRentalController: ControllerBase
         RentalGameMessage.GetUserName(name.Id, name.Name).Wait(); // 防止缓存
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
-    
 }

@@ -6,14 +6,12 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Codexus.Game.Launcher.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using Serilog;
-using WPFLauncherApi.Utils.CodeTools;
 
-namespace NirvanaPublic.Utils;
+namespace NirvanaAPI.Utils;
 
-public static class Tools
-{
+public static class Tools {
     private static bool _isDebugMode;
 
     [Conditional("DEBUG")]
@@ -35,13 +33,10 @@ public static class Tools
         if (!File.Exists(path)) return (entity.ToArray(), path);
 
         var json = File.ReadAllText(path, Encoding.UTF8);
-        try
-        {
+        try {
             // 异常格式处理
             entity = JsonSerializer.Deserialize<List<T>>(json);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Console.WriteLine(e.Message);
         }
 
@@ -58,8 +53,7 @@ public static class Tools
     // 获取异常信息 【简化版】
     public static string GetMessage(Exception exception)
     {
-        if (exception is AggregateException aggregateException)
-        {
+        if (exception is AggregateException aggregateException) {
             var message = aggregateException.InnerExceptions.Aggregate("",
                 (current, innerException) => current + GetMessage(innerException) + ", ");
             return message.TrimEnd(',', ' ');
@@ -87,21 +81,6 @@ public static class Tools
         var hashBytes = md5.ComputeHash(stream);
         // 去除分隔符并转为小写（符合通用MD5格式）
         return Convert.ToHexStringLower(hashBytes);
-    }
-
-    /**
-     * 获取中间文本
-     */
-    public static string GetBetweenStrings(string source, string startString, string endString)
-    {
-        var startIndex = source.IndexOf(startString, StringComparison.Ordinal);
-        if (startIndex == -1)
-            return string.Empty;
-
-        startIndex += startString.Length;
-
-        var endIndex = source.IndexOf(endString, startIndex, StringComparison.Ordinal);
-        return endIndex == -1 ? string.Empty : source.Substring(startIndex, endIndex - startIndex);
     }
 
     /**
@@ -180,7 +159,10 @@ public static class Tools
      */
     public static string DetectArchitectureMode()
     {
-        return RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+        return RuntimeInformation.ProcessArchitecture switch {
+            Architecture.Arm64 or Architecture.Arm or Architecture.Armv6 => "arm64",
+            _ => "x64"
+        };
     }
 
     /**
@@ -192,8 +174,7 @@ public static class Tools
     {
         var fileName = GetProcessLocation();
         var arg = GetProcessArguments(arguments);
-        var startInfo = new ProcessStartInfo
-        {
+        var startInfo = new ProcessStartInfo {
             FileName = fileName,
             Arguments = arg,
             UseShellExecute = true
@@ -224,13 +205,41 @@ public static class Tools
     {
         var currentProcess = Process.GetCurrentProcess();
         var mainModule = currentProcess.MainModule;
-        if (mainModule != null)
-        {
+        if (mainModule != null) {
             var fileName1 = mainModule.FileName;
             if (!string.IsNullOrEmpty(fileName1)) return fileName1;
         }
 
         var fileName2 = Environment.ProcessPath;
         return string.IsNullOrEmpty(fileName2) ? throw new Exception("无法确定自身运行路径，无法重启当前进程。") : fileName2;
+    }
+
+    /**
+    * 获取中间文本
+    */
+    public static string GetBetweenStrings(string source, string startString, string endString)
+    {
+        var startIndex = source.IndexOf(startString, StringComparison.Ordinal);
+        if (startIndex == -1) {
+            return string.Empty;
+        }
+
+        startIndex += startString.Length;
+
+        var endIndex = source.IndexOf(endString, startIndex, StringComparison.Ordinal);
+        return endIndex == -1 ? string.Empty : source.Substring(startIndex, endIndex - startIndex);
+    }
+
+    // 保存Shell脚本
+    public static async Task SaveShellScript(string filePath, string content)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            await File.WriteAllTextAsync(filePath, content, Encoding.GetEncoding(936)); // GBK 编码
+        } else {
+            await File.WriteAllTextAsync(filePath, content);
+            // 设置权限
+            Log.Information("设置权限: {filePath}", filePath);
+            FileUtil.SetUnixFilePermissions(filePath);
+        }
     }
 }

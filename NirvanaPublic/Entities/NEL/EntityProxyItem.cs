@@ -1,7 +1,6 @@
 ﻿namespace NirvanaPublic.Entities.NEL;
 
-public class EntityProxyItem
-{
+public class EntityProxyItem {
     public required string NickName { get; set; }
     public required int LocalPort { get; set; }
     public required string ForwardAddress { get; set; }

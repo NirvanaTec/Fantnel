@@ -1,7 +1,6 @@
-﻿namespace WPFLauncherApi.Utils.CodeTools;
+﻿namespace NirvanaAPI.Utils.CodeTools;
 
-public enum ErrorCode
-{
+public enum ErrorCode {
     Failure = 0,
     Success = 1,
     FileExists = 2,

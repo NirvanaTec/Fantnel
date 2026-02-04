@@ -3,8 +3,7 @@ using WPFLauncherApi.Utils;
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 
-public class EntityAuthenticationDetail
-{
+public class EntityAuthenticationDetail {
     [JsonPropertyName("os_name")] public string OsName { get; set; } = "windows";
 
     [JsonPropertyName("os_ver")] public string OsVer { get; set; } = "Microsoft Windows 11 专业版";

@@ -7,8 +7,7 @@ using WPFLauncherApi.Protocol;
 
 namespace OpenSDK.Generator;
 
-public static class YggdrasilGenerator
-{
+public static class YggdrasilGenerator {
     private const string PrcCheck = "[]";
     private const int ClientKeyLength = 19;
     private const int CheckSumLength = 32;

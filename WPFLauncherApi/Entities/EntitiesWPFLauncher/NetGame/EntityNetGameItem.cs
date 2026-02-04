@@ -4,8 +4,7 @@ using WPFLauncherApi.Entities.EntitiesConverter;
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-public class EntityNetGameItem
-{
+public class EntityNetGameItem {
     [JsonPropertyName("entity_id")] public string EntityId { get; set; } = string.Empty;
 
     [JsonPropertyName("brief_summary")] public string BriefSummary { get; set; } = string.Empty;

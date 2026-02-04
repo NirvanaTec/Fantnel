@@ -10,6 +10,7 @@ using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Services.Java.RPC;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
+using NirvanaAPI.Utils;
 using OpenSDK.Cipher.Nirvana;
 using OpenSDK.Cipher.Nirvana.Protocols;
 using Serilog;
@@ -21,13 +22,10 @@ using TokenUtil = WPFLauncherApi.Utils.Cipher.TokenUtil;
 
 namespace Codexus.Game.Launcher.Services.Java;
 
-public sealed class LauncherService : IDisposable
-{
-
+public sealed class LauncherService : IDisposable {
     private readonly Skip32Cipher _skip32;
 
     private readonly int _socketPort;
-
     private AuthLibProtocol _authLibProtocol;
 
     private bool _disposed;
@@ -56,9 +54,6 @@ public sealed class LauncherService : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    // ReSharper disable once EventNeverSubscribedTo.Global
-    public event Action<Guid> Exited;
-
     public Process GetProcess()
     {
         return GameProcess;
@@ -66,18 +61,14 @@ public sealed class LauncherService : IDisposable
 
     public Task ShutdownAsync()
     {
-        try
-        {
+        try {
             _gameRpcService?.CloseControlConnection();
-            if (IsRunning())
-            {
+            if (IsRunning()) {
                 _authLibProtocol?.Dispose();
                 _gameRpcService?.CloseControlConnection();
                 GameProcess.Kill();
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.Warning(ex, "Error occurred during shutdown");
         }
 
@@ -95,12 +86,9 @@ public sealed class LauncherService : IDisposable
 
     public async Task<LauncherService> LaunchGameAsync()
     {
-        try
-        {
+        try {
             await ExecuteLaunchStepsAsync();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.Error(ex, "Failed to launch game");
             throw;
         }
@@ -161,11 +149,12 @@ public sealed class LauncherService : IDisposable
     {
         var commandService = new CommandService();
         var availablePort = NetworkUtil.GetAvailablePort(11413);
-        commandService.Init(enumVersion,
-            Entity.MaxGameMemory, Entity.RoleName, Entity.ServerIp,
-            Entity.ServerPort, Entity.UserId, TokenUtil.GenerateEncryptToken(Entity.AccessToken), Entity.GameId,
+
+        commandService.Init(enumVersion, Entity,
+            TokenUtil.GenerateEncryptToken(Entity.AccessToken),
             workingDirectory, _skip32.GenerateRoleUuid(Entity.RoleName, Convert.ToUInt32(Entity.UserId)), _socketPort,
-            X19.GameVersion, true, availablePort);
+            X19.GameVersion, availablePort);
+
         return (commandService, rpcPort: availablePort);
     }
 
@@ -173,8 +162,7 @@ public sealed class LauncherService : IDisposable
     {
         var text = Path.Combine(PathUtil.CachePath, "Skins");
         Directory.CreateDirectory(text);
-        _gameRpcService = new GameRpcService(rpcPort, Entity.ServerIp, Entity.ServerPort.ToString(), Entity.RoleName,
-            Entity.UserId, Entity.AccessToken, gameVersion);
+        _gameRpcService = new GameRpcService(rpcPort, Entity, gameVersion);
         _gameRpcService.Connect(text);
     }
 
@@ -213,6 +201,8 @@ public sealed class LauncherService : IDisposable
         Log.Error("Game launch failed. Game Version: {GameVersion}, Role: {Role}", Entity.GameVersion, Entity.RoleName);
     }
 
+    public event Action<Guid> Exited;
+
     private void OnGameProcessExited(object sender, EventArgs e)
     {
         Exited?.Invoke(Identifier);
@@ -222,19 +212,15 @@ public sealed class LauncherService : IDisposable
     {
         if (_disposed) return;
         if (disposing)
-            try
-            {
+            try {
                 _authLibProtocol?.Dispose();
                 _gameRpcService?.CloseControlConnection();
                 var gameProcess = GameProcess;
-                if (gameProcess is { HasExited: false })
-                {
+                if (gameProcess is { HasExited: false }) {
                     GameProcess.Kill();
                     GameProcess.Dispose();
                 }
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Log.Warning(ex, "Error occurred during disposal");
             }
 

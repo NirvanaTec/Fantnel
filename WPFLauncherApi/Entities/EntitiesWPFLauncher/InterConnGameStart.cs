@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher;
 
-public class InterConnGameStart
-{
+public class InterConnGameStart {
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
     [JsonPropertyName("game_id")] public required string GameId { get; set; }
 

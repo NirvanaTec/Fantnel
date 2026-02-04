@@ -2,17 +2,12 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.RentalGame;
 
-public class EntityRentalGameServerAddress
-{
+public class EntityRentalGameServerAddress {
+    [JsonPropertyName("mcserver_host")] public string McServerHost { get; set; } = string.Empty;
 
-    [JsonPropertyName("mcserver_host")]
-    public string McServerHost { get; set; } = string.Empty;
+    [JsonPropertyName("mcserver_port")] public ushort McServerPort { get; set; }
 
-    [JsonPropertyName("mcserver_port")]
-    public ushort McServerPort { get; set; }
-
-    [JsonPropertyName("state")]
-    public EnumServerStatus State { get; set; }
+    [JsonPropertyName("state")] public EnumServerStatus State { get; set; }
 
     [JsonPropertyName("cmcc_mcserver_host")]
     public string CmccMcServerHost { get; set; } = string.Empty;
@@ -32,6 +27,5 @@ public class EntityRentalGameServerAddress
     [JsonPropertyName("cucc_mcserver_port")]
     public int CussMcServerPort { get; set; }
 
-    [JsonPropertyName("isp_enable")]
-    public bool IspEnable { get; set; }
+    [JsonPropertyName("isp_enable")] public bool IspEnable { get; set; }
 }

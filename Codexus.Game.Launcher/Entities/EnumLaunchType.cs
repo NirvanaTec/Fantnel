@@ -1,7 +1,6 @@
 namespace Codexus.Game.Launcher.Entities;
 
-public enum EnumLaunchType
-{
+public enum EnumLaunchType {
     Custom,
     Official
 }

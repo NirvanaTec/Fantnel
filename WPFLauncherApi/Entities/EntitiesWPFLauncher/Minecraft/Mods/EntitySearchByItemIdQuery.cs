@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft.Mods;
 
-public class EntitySearchByItemIdQuery
-{
+public class EntitySearchByItemIdQuery {
     [JsonPropertyName("item_id")] public required string ItemId { get; set; }
 
     [JsonPropertyName("length")] public required int Length { get; set; }

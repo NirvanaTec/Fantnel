@@ -1,19 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.Login;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
-using NirvanaPublic.Utils;
 using OpenSDK.Entities.Config;
 using Serilog;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet.GameController;
 
 // game-accounts
 [ApiController]
 [Route("[controller]")]
-public class GameAccountController : ControllerBase
-{
+public class GameAccountController : ControllerBase {
     [HttpGet("/api/gameaccount/get")]
     public IActionResult GetAccountHttp()
     {
@@ -47,12 +46,9 @@ public class GameAccountController : ControllerBase
     [HttpGet("/api/gameaccount/select")]
     public IActionResult SelectAccount([FromQuery] int id)
     {
-        try
-        {
+        try {
             AccountMessage.Login(id);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.Error("登录失败: {Id}: {Message}", id, Tools.GetMessage(e));
             throw;
         }
@@ -63,12 +59,9 @@ public class GameAccountController : ControllerBase
     [HttpGet("/api/gameaccount/delete")]
     public IActionResult DeleteAccountHttp([FromQuery] int id)
     {
-        try
-        {
+        try {
             AccountMessage.DeleteAccount(id);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.Error("删除账号失败: {Id}: {Message}", id, Tools.GetMessage(e));
             throw;
         }

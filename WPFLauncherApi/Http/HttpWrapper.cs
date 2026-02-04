@@ -5,8 +5,7 @@ using System.Text.Json;
 
 namespace WPFLauncherApi.Http;
 
-public class HttpWrapper : IDisposable
-{
+public class HttpWrapper : IDisposable {
     private readonly string _baseUrl;
 
     private readonly HttpRequestOptions _defaultOptions;
@@ -15,11 +14,9 @@ public class HttpWrapper : IDisposable
         HttpClientHandler? handler = null)
     {
         _baseUrl = baseUrl.TrimEnd('/');
-        Client = new HttpClient(handler ?? new HttpClientHandler
-        {
+        Client = new HttpClient(handler ?? new HttpClientHandler {
             AutomaticDecompression = DecompressionMethods.All
-        })
-        {
+        }) {
             Timeout = TimeSpan.FromSeconds(30L)
         };
         _defaultOptions = new HttpRequestOptions();

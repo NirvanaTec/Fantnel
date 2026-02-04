@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Utils;
 
-public enum EnumGameVersion : uint
-{
+public enum EnumGameVersion : uint {
     // ReSharper disable once InconsistentNaming
     [XmlEnum(Name = "")] NONE = 0,
 

@@ -1,9 +1,7 @@
 ﻿namespace OpenSDK.Extensions;
 
-public static class ByteArrayExtensions
-{
-    extension(byte[] content)
-    {
+public static class ByteArrayExtensions {
+    extension(byte[] content) {
         public byte[] Xor(byte[] key)
         {
             if (content.Length != key.Length)

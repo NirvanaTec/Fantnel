@@ -4,8 +4,7 @@ using Serilog;
 
 namespace NirvanaPublic.Utils;
 
-public static class RestartTools
-{
+public static class RestartTools {
     /**
      * 根据参数自动执行
      * @param args 参数
@@ -37,24 +36,20 @@ public static class RestartTools
     {
         var pidString = Get("MainPid", args);
         var pid = -1;
-        if (!string.IsNullOrEmpty(pidString))
-        {
+        if (!string.IsNullOrEmpty(pidString)) {
             pid = int.Parse(pidString);
         }
-        while (true)
-        {
-            if (pid == -1)
-            {
+
+        while (true) {
+            if (pid == -1) {
                 Thread.Sleep(9000);
                 continue;
             }
+
             Thread.Sleep(1000);
-            try
-            {
+            try {
                 Process.GetProcessById(pid);
-            }
-            catch (ArgumentException)
-            {
+            } catch (ArgumentException) {
                 Log.Error("主进程 {pid} 已退出", pid);
                 Log.Error("将于 3秒 后退出！");
                 Thread.Sleep(1000);

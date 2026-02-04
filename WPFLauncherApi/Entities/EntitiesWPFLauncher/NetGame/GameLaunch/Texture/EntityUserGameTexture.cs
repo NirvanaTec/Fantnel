@@ -3,8 +3,7 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 
-public class EntityUserGameTexture
-{
+public class EntityUserGameTexture {
     [JsonPropertyName("entity_id")] public string EntityId { get; set; } = string.Empty;
 
     [JsonPropertyName("game_type")]

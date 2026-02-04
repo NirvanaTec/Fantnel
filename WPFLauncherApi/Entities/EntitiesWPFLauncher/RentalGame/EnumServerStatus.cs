@@ -1,7 +1,6 @@
 ﻿namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.RentalGame;
 
-public enum EnumServerStatus
-{
+public enum EnumServerStatus {
     None = -1, // 0xFFFFFFFF
     ServerOff = 0,
     ServerOn = 1,
@@ -12,5 +11,5 @@ public enum EnumServerStatus
     SaveCleaning = 6,
     Resetting = 7,
     Upgrading = 8,
-    DiscOverflow = 9,
+    DiscOverflow = 9
 }

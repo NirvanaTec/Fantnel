@@ -1,7 +1,8 @@
-﻿using System.Runtime.InteropServices;
-using Codexus.Game.Launcher.Entities;
+﻿using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Game.Launcher.Utils;
+using NirvanaAPI.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
 using Serilog;
@@ -9,20 +10,18 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 using WPFLauncherApi.Protocol;
 using WPFLauncherApi.Utils;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace NirvanaPublic.Message;
 
-public static class LaunchMessage
-{
+public static class LaunchMessage {
     // 启动游戏
     public static async Task LaunchGame(string id, string name, string mode = "net")
     {
-        if ("rental".Equals(mode))
-        {
+        if ("rental".Equals(mode)) {
             await LaunchGameRental(id, name);
             return;
         }
+
         await LaunchGameNet(id, name);
     }
 
@@ -33,7 +32,7 @@ public static class LaunchMessage
 
         Log.Information("正在启动白端游戏...");
         Log.Information("名称：{name}", name);
-        
+
         // 服务器详细信息
         var server = await WPFLauncher.GetRentalGameDetailsAsync(id);
 
@@ -51,8 +50,7 @@ public static class LaunchMessage
         // 服务器地址
         var address = await WPFLauncher.GetGameRentalAddressAsync(server.EntityId);
 
-        var launchRequest = new EntityLaunchGame
-        {
+        var launchRequest = new EntityLaunchGame {
             GameName = server.ServerName,
             GameId = server.EntityId,
             RoleName = character.Name,
@@ -99,8 +97,7 @@ public static class LaunchMessage
         // 服务器地址
         var address = await WPFLauncher.GetNetGameServerAddressAsync(server.EntityId);
 
-        var launchRequest = new EntityLaunchGame
-        {
+        var launchRequest = new EntityLaunchGame {
             GameName = server.Name,
             GameId = server.EntityId,
             RoleName = character.Name,
@@ -125,21 +122,6 @@ public static class LaunchMessage
     private static void ExEnvironment(EnumGameVersion gameVersion)
     {
         ExEnvironmentByJava(gameVersion);
-        ExEnvironmentByNatives(gameVersion);
-    }
-
-    // 检测并自动处理natives
-    private static void ExEnvironmentByNatives(EnumGameVersion gameVersion)
-    {
-        // Win 使用盒子资源
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
-        var version = GameVersionUtil.GetGameVersionFromEnum(gameVersion);
-        var mode = PublicProgram.Mode + "." + version + ".natives";
-        var num = UpdateTools.CheckUpdate(mode, "Natives").Result;
-        // 没有更新的资源
-        if (num > 0) return;
-        Log.Error("version:{version}", mode);
-        Log.Error("该版本可能不支持，如有需要，建议联系开发者。");
     }
 
     // 检测并自动安装java环境
@@ -148,23 +130,20 @@ public static class LaunchMessage
         // 检查并安装Java环境
         string javaName;
         string javaPath;
-        if (gameVersion >= EnumGameVersion.V_1_16)
-        {
+        if (gameVersion >= EnumGameVersion.V_1_16) {
             javaName = "jdk17";
             javaPath = PathUtil.Jre17Path;
-        }
-        else
-        {
+        } else {
             javaName = "jre8";
             javaPath = PathUtil.Jre8Path;
         }
 
         // 不存在
-        if (!PathUtil.ExistJava(javaPath))
+        if (!PathUtil.ExistJava(javaPath)) {
             UpdateTools.CheckUpdate(PublicProgram.Mode + "." + PublicProgram.Arch + "." + javaName + ".java", "Java")
                 .Wait();
+        }
 
         Log.Information("Java Path: {JavaPath}", javaPath);
     }
-    
 }

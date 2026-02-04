@@ -5,20 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Mono.Unix;
+using NirvanaAPI.Utils;
 using Serilog;
 using SharpCompress.Archives;
 using SharpCompress.Common;
 
 namespace Codexus.Game.Launcher.Utils;
 
-public static class CompressionUtil
-{
+public static class CompressionUtil {
+    
     private static async Task ExtractZipAsync(string archivePath, string outPath,
-        Action<int> progress = null)
-    {
-        try
-        {
+        Action<int> progress = null) {
+        
+        try {
             // 1. 打开压缩包并获取所有条目
             using var archive = ArchiveFactory.OpenArchive(archivePath);
 
@@ -29,22 +28,18 @@ public static class CompressionUtil
             var allEntries = archive.Entries.Where(entry => !entry.IsDirectory).ToList();
             var totalEntries = allEntries.Count;
             foreach (var entry in allEntries) entriesQueue.Enqueue(entry);
-            if (totalEntries == 0)
-            {
+            if (totalEntries == 0) {
                 progress?.Invoke(100);
                 return; // 没有文件需要解压
             }
 
             // 初始化进度状态
-            var progressState = new ProgressState
-            {
+            var progressState = new ProgressState {
                 TotalEntries = totalEntries
             };
 
             await ProcessEntriesFromQueueAsync(entriesQueue, outPath, progress, progressState);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.Fatal("解压时出错: {filePath}", archivePath);
             Log.Fatal("解压错误：{message}", e.Message);
             throw;
@@ -74,9 +69,8 @@ public static class CompressionUtil
     {
         // 取文件信息
         var fileInfo = new FileInfo(archivePath);
-        // 超过 30mb
-        if (fileInfo.Length > 30 * 1024 * 1024)
-        {
+        // 超过 14mb 的 7z
+        if (fileInfo.Length > 14 * 1024 * 1024) {
             if (Extract7Z_7ZIP(archivePath, outPath, progress)) return;
             Log.Warning("使用通用模式解压7z文件中....");
             Log.Warning("Path: {archivePath}", archivePath);
@@ -91,15 +85,12 @@ public static class CompressionUtil
      */
     private static bool Extract7Z_7ZIP(string archivePath, string outputDirectory, Action<int> progress = null)
     {
-        if (!File.Exists(archivePath))
-        {
+        if (!File.Exists(archivePath)) {
             Log.Error("错误：压缩包文件不存在 - {ArchivePath}", archivePath);
             return false;
         }
 
-        try
-        {
-
+        try {
             var sevenZipExePath = Get7ZipPath();
             FileUtil.SetUnixFilePermissions(sevenZipExePath); // 添加 7zz 执行权限
 
@@ -118,9 +109,7 @@ public static class CompressionUtil
             // 7-Zip 成功时退出码通常为 0。
             // 1: 警告 (例如，有些文件被锁定)，2: 错误，其他值可能表示不同错误。
             return process.ExitCode is 0 or 1; // 根据实际需求判断成功条件
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.Error("解压过程中发生异常: \n{ExMessage}", ex.Message);
             return false;
         }
@@ -145,16 +134,12 @@ public static class CompressionUtil
         ProgressState progressState) // 传入封装了状态的对象
     {
         while (entriesQueue.TryDequeue(out var entry))
-            try
-            {
+            try {
                 // 5. 执行单个文件的解压和写入操作
                 await ExtractSingleEntryAsync(entry, destinationPath);
-            }
-            finally
-            {
+            } finally {
                 // 更新进度 - 必须在锁内进行
-                lock (progressState.Lock)
-                {
+                lock (progressState.Lock) {
                     progressState.ProcessedCount++;
                     var currentPercentage = progressState.ProcessedCount * 100 / progressState.TotalEntries;
                     progress?.Invoke(currentPercentage);
@@ -184,15 +169,13 @@ public static class CompressionUtil
         // 虽然我们不能直接异步写入单个文件（SharpCompress API 本身未提供异步写入单个文件的方法），
         // 但我们通过并发处理多个 *不同* 的文件条目来实现整体上的多线程效果。
         // SemaphoreSlim 在这里起到了控制并发文件写入数量的作用。
-        await entry.WriteToFileAsync(fullPath, new ExtractionOptions
-        {
+        await entry.WriteToFileAsync(fullPath, new ExtractionOptions {
             ExtractFullPath = true,
             Overwrite = true // 根据需要决定是否覆盖现有文件
         });
     }
 
-    private class ProgressState
-    {
+    private class ProgressState {
         public readonly object Lock = new();
         public int ProcessedCount;
         public int TotalEntries; // 添加总条目数作为字段

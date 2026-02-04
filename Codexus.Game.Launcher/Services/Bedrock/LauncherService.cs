@@ -5,15 +5,14 @@ using System.Threading.Tasks;
 using Codexus.Development.SDK.RakNet;
 using Codexus.Development.SDK.Utils;
 using Codexus.Game.Launcher.Entities;
-using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
+using NirvanaAPI.Utils;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 
 namespace Codexus.Game.Launcher.Services.Bedrock;
 
-public sealed class LauncherService : IDisposable
-{
+public sealed class LauncherService : IDisposable {
     private readonly object _disposeLock = new();
     private readonly IProgress<EntityProgressUpdate> _progress;
 
@@ -27,8 +26,7 @@ public sealed class LauncherService : IDisposable
     {
         _progress = new Progress<EntityProgressUpdate>();
         Entity = entityLaunchGame ?? throw new ArgumentNullException(nameof(entityLaunchGame));
-        LastProgress = new EntityProgressUpdate
-        {
+        LastProgress = new EntityProgressUpdate {
             Id = Identifier,
             Percent = 0,
             Message = "Initialized"
@@ -44,19 +42,15 @@ public sealed class LauncherService : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        lock (_disposeLock)
-        {
+        lock (_disposeLock) {
             if (_disposed) return;
             _disposed = true;
         }
 
-        try
-        {
-            if (_gameProcess != null)
-            {
+        try {
+            if (_gameProcess != null) {
                 _gameProcess.Exited -= OnGameProcessExited;
-                if (!_gameProcess.HasExited)
-                {
+                if (!_gameProcess.HasExited) {
                     _gameProcess.CloseMainWindow();
                     if (!_gameProcess.WaitForExit(5000)) _gameProcess.Kill();
                 }
@@ -64,19 +58,14 @@ public sealed class LauncherService : IDisposable
                 _gameProcess.Dispose();
                 _gameProcess = null;
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.Warning(ex, "Error disposing game process for {GameId}", Entity.GameId);
         }
 
-        try
-        {
+        try {
             _rakNet?.Shutdown();
             _rakNet = null;
-        }
-        catch (Exception ex2)
-        {
+        } catch (Exception ex2) {
             Log.Warning(ex2, "Error shutting down RakNet for {GameId}", Entity.GameId);
         }
     }
@@ -86,22 +75,16 @@ public sealed class LauncherService : IDisposable
 
     private async Task LaunchGameAsync()
     {
-        try
-        {
+        try {
             if (_disposed) return;
             await DownloadGameResourcesAsync().ConfigureAwait(false);
-            if (!_disposed)
-            {
+            if (!_disposed) {
                 var port = await LaunchProxyAsync().ConfigureAwait(false);
                 if (!_disposed) await StartGameProcessAsync(port).ConfigureAwait(false);
             }
-        }
-        catch (OperationCanceledException)
-        {
+        } catch (OperationCanceledException) {
             UpdateProgress(100, "Launch cancelled");
-        }
-        catch (Exception ex2)
-        {
+        } catch (Exception ex2) {
             Log.Error(ex2, "Error while launching game for {GameId}", Entity.GameId);
             UpdateProgress(100, "Launch failed");
         }
@@ -121,14 +104,11 @@ public sealed class LauncherService : IDisposable
         var availablePort2 = NetworkUtil.GetAvailablePort();
         var remoteAddress = $"{Entity.ServerIp}:{Entity.ServerPort}";
         var isRental = Entity.GameType == EnumGType.ServerGame;
-        try
-        {
+        try {
             _rakNet = RakNetLoader.ConstructLoader().Create(remoteAddress, Entity.AccessToken, Entity.GameId,
                 Convert.ToUInt32(Entity.UserId), Entity.AccessToken, Entity.GameName, Entity.RoleName, availablePort,
                 availablePort2, isRental);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.Error(ex, "Bedrock interceptor failed to launch for {GameId}", Entity.GameId);
             throw new InvalidOperationException("Failed to initialize RakNet proxy", ex);
         }
@@ -144,8 +124,7 @@ public sealed class LauncherService : IDisposable
         ConfigService.GenerateLaunchConfig(Entity.SkinPath, Entity.RoleName, Entity.GameId, port);
         var argumentsPath = Path.Combine(PathUtil.CppGamePath, "launch.cppconfig");
         var process = CommandService.StartGame(launchPath, argumentsPath);
-        if (process == null)
-        {
+        if (process == null) {
             Log.Error("Game launch failed for LaunchType: {EntityLaunchType}, Role: {EntityRoleName}",
                 Entity.LaunchType, Entity.RoleName);
             throw new InvalidOperationException("Failed to start game process");
@@ -180,12 +159,9 @@ public sealed class LauncherService : IDisposable
 
     private void OnGameProcessExited(object sender, EventArgs e)
     {
-        try
-        {
+        try {
             Exited?.Invoke(Identifier);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.Warning(ex, "Error in game process exit handler for {GameId}", Entity.GameId);
         }
     }
@@ -193,19 +169,15 @@ public sealed class LauncherService : IDisposable
     private void UpdateProgress(int percent, string message)
     {
         if (_disposed) return;
-        var value = LastProgress = new EntityProgressUpdate
-        {
+        var value = LastProgress = new EntityProgressUpdate {
             Id = Identifier,
             Percent = percent,
             Message = message
         };
-        try
-        {
+        try {
             _progress.Report(value);
             if (percent == 100) SyncProgressBarUtil.ProgressBar.ClearCurrent();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Log.Warning(ex, "Error reporting progress for {GameId}", Entity.GameId);
         }
     }

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
 
-public class EntityCoreLibResponse
-{
+public class EntityCoreLibResponse {
     [JsonPropertyName("core_lib_md5")] public required string CoreLibMd5 { get; set; }
 
     [JsonPropertyName("core_lib_name")] public required string CoreLibName { get; set; }

@@ -1,19 +1,18 @@
 ﻿using System.Text;
-using Codexus.Game.Launcher.Utils;
 using Fantnel.Servlet;
 using Microsoft.Extensions.FileProviders;
+using NirvanaAPI.Utils;
 using NirvanaPublic;
 using NirvanaPublic.Utils;
 using Serilog;
 
 namespace Fantnel;
 
-public static class Program
-{
+public static class Program {
     public static void Main(string[] args)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // 注册编码
-       
+
         InitProgram.LogoInit(); // 初始化日志
         LogoInit(); // 初始化日志
 
@@ -30,8 +29,7 @@ public static class Program
 
         // 将服务添加到容器中。
         builder.Services.AddOpenApi();
-        builder.Services.AddControllers(options =>
-        {
+        builder.Services.AddControllers(options => {
             // 添加全局异常过滤器
             options.Filters.Add<WebApiExceptionFilter>();
         });
@@ -55,8 +53,7 @@ public static class Program
 
         // 启用静态文件服务，从运行目录的 resources/static 目录提供文件
         if (Directory.Exists(resourcesPath))
-            app.UseStaticFiles(new StaticFileOptions
-            {
+            app.UseStaticFiles(new StaticFileOptions {
                 FileProvider = new PhysicalFileProvider(resourcesPath),
                 RequestPath = ""
             });
@@ -64,11 +61,9 @@ public static class Program
         app.MapControllers();
 
         // 处理 404 错误，将请求重定向到首页
-        app.Use(async (context, next) =>
-        {
+        app.Use(async (context, next) => {
             await next();
-            if (context.Response.StatusCode == 404)
-            {
+            if (context.Response.StatusCode == 404) {
                 context.Response.StatusCode = 200;
                 context.Response.ContentType = "text/html";
                 await context.Response.WriteAsync(HomeController.GetIndexHtml());
@@ -76,8 +71,7 @@ public static class Program
         });
 
         // 在应用启动前清空控制台并输出访问地址
-        app.Lifetime.ApplicationStarted.Register(() =>
-        {
+        app.Lifetime.ApplicationStarted.Register(() => {
             // 重置日志
             LogoInit1();
 

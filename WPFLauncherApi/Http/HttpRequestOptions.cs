@@ -1,7 +1,6 @@
 ﻿namespace WPFLauncherApi.Http;
 
-public class HttpRequestOptions
-{
+public class HttpRequestOptions {
     public Dictionary<string, string> Headers { get; } = new();
 
     public Dictionary<string, string> QueryParameters { get; } = new();
@@ -53,8 +52,7 @@ public class HttpRequestOptions
 
     internal HttpRequestOptions Clone()
     {
-        var httpRequestOptions = new HttpRequestOptions
-        {
+        var httpRequestOptions = new HttpRequestOptions {
             HttpVersion = HttpVersion
         };
         foreach (var header in Headers)

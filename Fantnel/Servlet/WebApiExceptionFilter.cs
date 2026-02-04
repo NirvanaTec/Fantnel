@@ -2,28 +2,24 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using NirvanaAPI.Entities;
+using NirvanaAPI.Utils;
+using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.Nirvana;
-using NirvanaPublic.Utils;
 using WPFLauncherApi.Entities;
-using WPFLauncherApi.Utils.CodeTools;
 
 namespace Fantnel.Servlet;
 
-public class WebApiExceptionFilter : ExceptionFilterAttribute
-{
+public class WebApiExceptionFilter : ExceptionFilterAttribute {
     // 异常处理
     public override Task OnExceptionAsync(ExceptionContext context)
     {
         EntityResponse<object>? response; // 信息
         var array = new JsonArray(); // 异常追踪
-        if (context.Exception is ErrorCodeException errorCodeException)
-        {
+        if (context.Exception is ErrorCodeException errorCodeException) {
             response = errorCodeException.GetJson();
-        }
-        else
-        {
-            response = new EntityResponse<object>
-            {
+        } else {
+            response = new EntityResponse<object> {
                 Code = -1,
                 Msg = Tools.GetMessage(context.Exception)
             };
@@ -33,8 +29,7 @@ public class WebApiExceptionFilter : ExceptionFilterAttribute
 
         var index = array.Count;
         var stackTrace = new StackTrace(context.Exception, true);
-        foreach (var frame in stackTrace.GetFrames())
-        {
+        foreach (var frame in stackTrace.GetFrames()) {
             var stackTraceFrame = new EntityStackTrace(frame);
             if (stackTraceFrame.IsIgnore()) continue;
             if (index++ > 8) break;
@@ -49,13 +44,10 @@ public class WebApiExceptionFilter : ExceptionFilterAttribute
 
     private static object? GetStackTrace(Exception exception)
     {
-        switch (exception)
-        {
-            case AggregateException aggregateException:
-            {
+        switch (exception) {
+            case AggregateException aggregateException: {
                 var jsonArray = new JsonArray();
-                foreach (var innerException in aggregateException.InnerExceptions)
-                {
+                foreach (var innerException in aggregateException.InnerExceptions) {
                     var stackTrace = GetStackTrace(innerException);
                     if (stackTrace != null) jsonArray.Add(stackTrace);
                 }

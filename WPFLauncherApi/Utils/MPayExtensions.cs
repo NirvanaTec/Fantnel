@@ -3,8 +3,7 @@ using System.Text;
 
 namespace WPFLauncherApi.Utils;
 
-public static class MPayExtensions
-{
+public static class MPayExtensions {
     public static string EncodeMd5(this string input)
     {
         return string.IsNullOrEmpty(input) ? string.Empty : Encoding.UTF8.GetBytes(input).EncodeMd5();

@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 
-public class EntityX19Cookie
-{
+public class EntityX19Cookie {
     [JsonPropertyName("gameid")] public string GameId { get; set; } = "x19";
 
     [JsonPropertyName("login_channel")] public string LoginChannel { get; set; } = "netease";

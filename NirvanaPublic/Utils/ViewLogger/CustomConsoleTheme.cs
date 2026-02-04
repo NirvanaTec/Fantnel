@@ -2,8 +2,7 @@
 
 namespace NirvanaPublic.Utils.ViewLogger;
 
-public class CustomConsoleTheme : ConsoleTheme
-{
+public class CustomConsoleTheme : ConsoleTheme {
     private readonly ConsoleColor _color;
 
     public CustomConsoleTheme(ConsoleColor color)
@@ -18,8 +17,7 @@ public class CustomConsoleTheme : ConsoleTheme
 
     public override int Set(TextWriter output, ConsoleThemeStyle style)
     {
-        switch (style)
-        {
+        switch (style) {
             case ConsoleThemeStyle.TertiaryText or ConsoleThemeStyle.SecondaryText:
                 Console.ForegroundColor = _color;
                 break;

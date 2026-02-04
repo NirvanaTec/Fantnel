@@ -4,8 +4,7 @@ using WPFLauncherApi.Entities.EntitiesMPay;
 
 namespace WPFLauncherApi.Entities.EntitiesMgbSdk;
 
-public class EntityMgbSdkCookie
-{
+public class EntityMgbSdkCookie {
     [JsonPropertyName("timestamp")] public required string Timestamp { get; set; }
 
     [JsonPropertyName("userid")] public required string UserId { get; set; }

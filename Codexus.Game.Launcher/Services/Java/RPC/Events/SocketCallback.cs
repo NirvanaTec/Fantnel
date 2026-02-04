@@ -3,8 +3,7 @@ using System.Collections.Generic;
 
 namespace Codexus.Game.Launcher.Services.Java.RPC.Events;
 
-public class SocketCallback
-{
+public class SocketCallback {
     private readonly Dictionary<ushort, Action<byte[]>> _receiveCallbacks = new();
 
     public Action<string> LostConnectCallback { get; set; }

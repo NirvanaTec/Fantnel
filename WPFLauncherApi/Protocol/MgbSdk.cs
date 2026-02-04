@@ -5,10 +5,8 @@ using WPFLauncherApi.Http;
 
 namespace WPFLauncherApi.Protocol;
 
-public class MgbSdk(string gameId) : IDisposable
-{
-    private static readonly JsonSerializerOptions DefaultOptions = new()
-    {
+public class MgbSdk(string gameId) : IDisposable {
+    private static readonly JsonSerializerOptions DefaultOptions = new() {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
@@ -30,8 +28,7 @@ public class MgbSdk(string gameId) : IDisposable
         string platform = "pc")
     {
         var upper = sessionId.ToUpper();
-        return JsonSerializer.Serialize(new EntityMgbSdkCookie
-        {
+        return JsonSerializer.Serialize(new EntityMgbSdkCookie {
             AppChannel = channel,
             ClientLoginSn = deviceId.ToUpper(),
             DeviceId = deviceId.ToUpper(),

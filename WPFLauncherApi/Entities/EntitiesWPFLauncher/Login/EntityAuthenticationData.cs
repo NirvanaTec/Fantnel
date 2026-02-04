@@ -2,8 +2,7 @@
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 
-public class EntityAuthenticationData
-{
+public class EntityAuthenticationData {
     [JsonPropertyName("sa_data")] public required string SaData { get; set; }
 
     [JsonPropertyName("sauth_json")] public required string AuthJson { get; set; }
