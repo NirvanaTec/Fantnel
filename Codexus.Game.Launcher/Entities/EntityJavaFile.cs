@@ -9,11 +9,10 @@ using Serilog;
 namespace Codexus.Game.Launcher.Entities;
 
 public class EntityJavaFile {
-    
     private string _filePath; // 完整路径
     private string _filePath1; // 相对路径，不保证是相对路径
-    public string Url = string.Empty; // 下载定制
     public bool IsNative = false; // 是 Native 文件, 不保证是 Native 文件
+    public string Url = string.Empty; // 下载定制
 
     public EntityJavaFile(string path)
     {
@@ -32,7 +31,7 @@ public class EntityJavaFile {
         it = it.Replace('/', Path.DirectorySeparatorChar); // 修复路径
         return it;
     }
-    
+
     private void SetPath(string path)
     {
         var it = FixPath(path);
@@ -45,10 +44,11 @@ public class EntityJavaFile {
         var it = FixPath(path);
         return _filePath1.Equals(it) || _filePath.Equals(it);
     }
-    
-    public bool Contains(string name)
+
+    public bool Contains(string value)
     {
-        return _filePath1.Contains(name);
+        var it = FixPath(value);
+        return _filePath1.Contains(it) || it.Contains(_filePath1);
     }
 
     private bool IsNullOrEmptyByUrl()
@@ -65,10 +65,11 @@ public class EntityJavaFile {
     {
         return files.Select(file => file.GetPath()).ToList();
     }
-    
-    public bool EndsWith(string path)
+
+    public bool EndsWith(string value)
     {
-        return _filePath1.EndsWith(path);
+        var it = FixPath(value);
+        return _filePath1.EndsWith(it);
     }
 
     public bool DownloadAuto()
@@ -76,10 +77,12 @@ public class EntityJavaFile {
         if (Exists()) {
             return true;
         }
+
         if (IsNullOrEmptyByUrl()) {
             Log.Warning("jar {ItemKey} url is empty", GetPath());
             return false;
         }
+
         DownloadAsync().Wait();
         return true;
     }
@@ -90,5 +93,4 @@ public class EntityJavaFile {
         url = url.Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/maven");
         await DownloadUtil.DownloadAsync(url, GetPath());
     }
-    
 }

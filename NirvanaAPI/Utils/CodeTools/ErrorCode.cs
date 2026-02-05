@@ -27,5 +27,6 @@ public enum ErrorCode {
     FormatError = 23,
     CaptchaNot = 24,
     CrcSaltNotSet = 25,
-    RestartFailed = 26
+    RestartFailed = 26,
+    GamePlugin = 27
 }

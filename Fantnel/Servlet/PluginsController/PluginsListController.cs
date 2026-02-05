@@ -30,4 +30,29 @@ public class PluginsListController : ControllerBase {
         Thread.Sleep(1000);
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
+
+    [HttpGet("/api/plugins/dependence")]
+    public IActionResult GetDependenceListHttp(string? id = null, string? version = null)
+    {
+        var entity = PluginMessage.GetDependenceList(id, version).Result;
+        var support = false; // 无支持插件
+        var size = 0; // 插件数量
+        foreach (var entity1 in entity.ToList()) {
+            foreach (var entity2 in entity1.Data) {
+                if (PluginMessage.IsPluginExist(entity2.Id)) {
+                    support = true; // 有支持插件
+                    entity.Remove(entity1);
+                }
+
+                size++;
+            }
+        }
+
+        // 无支持插件 并 没有可安装的插件
+        if (!support && size == 0) {
+            return Content(Code.ToJson(ErrorCode.GamePlugin), "application/json");
+        }
+
+        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
+    }
 }

@@ -243,3 +243,8 @@ export async function addRentalRole(id, name) {
 export async function getRentalInfo(id) {
     return axios.get(`/api/gamerental/getlaunch?id=${id}`).then(res => res.data);
 }
+
+// 获取服务器的依赖插件
+export async function getServerPlugins(id = "", version = "") {
+    return axios.get(`/api/plugins/dependence?id=${id}&version=${version}`).then(res => res.data);
+}

@@ -13,10 +13,9 @@ using SharpCompress.Common;
 namespace Codexus.Game.Launcher.Utils;
 
 public static class CompressionUtil {
-    
     private static async Task ExtractZipAsync(string archivePath, string outPath,
-        Action<int> progress = null) {
-        
+        Action<int> progress = null)
+    {
         try {
             // 1. 打开压缩包并获取所有条目
             using var archive = ArchiveFactory.OpenArchive(archivePath);
