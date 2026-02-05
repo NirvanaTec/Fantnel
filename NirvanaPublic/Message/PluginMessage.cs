@@ -3,11 +3,14 @@ using Codexus.Development.SDK.Attributes;
 using Codexus.Development.SDK.Manager;
 using Codexus.Development.SDK.Plugin;
 using Codexus.Interceptors;
+using NirvanaAPI.Entities;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.NEL;
+using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Manager;
 using Serilog;
+using WPFLauncherApi.Http;
 
 namespace NirvanaPublic.Message;
 
@@ -237,7 +240,7 @@ public static class PluginMessage {
 
     private static EntityPluginState? GetPluginToId(string id)
     {
-        return GetPluginList().FirstOrDefault(plugin => plugin.Id == id);
+        return GetPluginList().FirstOrDefault(plugin => plugin.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
     }
 
     /**
@@ -329,5 +332,21 @@ public static class PluginMessage {
         } catch (Exception) {
             Log.Warning("插件 {name} 已标记为待删除状态", Path.GetFileName(plugin.Path));
         }
+    }
+
+    /**
+     * 获取服务器依赖列表
+     */
+    public static async Task<List<EntityDependence>> GetDependenceList(string? id, string? version)
+    {
+        var entity = await X19Extensions.Nirvana.Api<EntityResponse<List<EntityDependence>>>(
+            "/api/fantnel/dependence?id=" + (id ?? "") + "&version=" + (version ?? ""));
+        return entity?.Data ?? throw new ErrorCodeException(ErrorCode.NotFound);
+    }
+
+    // 插件是否存在
+    public static bool IsPluginExist(string id)
+    {
+        return GetPluginToId(id) != null;
     }
 }

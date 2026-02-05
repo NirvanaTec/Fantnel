@@ -66,6 +66,7 @@ public static class Code {
             ErrorCode.CaptchaNot => "没有验证",
             ErrorCode.CrcSaltNotSet => "CRC 盐值未设置",
             ErrorCode.RestartFailed => "重启失败",
+            ErrorCode.GamePlugin => "该游戏可能不支持插件",
             _ => "未知错误"
         };
     }

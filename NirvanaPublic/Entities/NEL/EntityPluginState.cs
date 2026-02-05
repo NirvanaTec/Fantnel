@@ -4,6 +4,7 @@ namespace NirvanaPublic.Entities.NEL;
 
 public class EntityPluginState {
     public string[]? Dependencies; // 依赖插件ID [真实ID]
+
     [JsonPropertyName("id")] public required string Id { get; set; }
 
     [JsonPropertyName("name")] public string? Name { get; set; }

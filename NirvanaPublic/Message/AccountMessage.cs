@@ -41,9 +41,12 @@ public static class AccountMessage {
     private static EntityAccount GetAccount(int id)
     {
         var entity = GetAccountList();
-        foreach (var item in entity)
-            if (item.Id == id)
+        foreach (var item in entity) {
+            if (item.Id == id) {
                 return item;
+            }
+        }
+
         throw new ErrorCodeException(ErrorCode.NotFound);
     }
 
@@ -125,10 +128,13 @@ public static class AccountMessage {
                     result = WPFLauncher.LoginWithCookieAsync(account.Password).Result;
                     break;
                 case "4399": {
-                    if (_session4399Id == null || Captcha4399 == null)
+                    if (_session4399Id == null || Captcha4399 == null) {
                         throw new ErrorCodeException(ErrorCode.CaptchaNot);
+                    }
 
-                    if (account.Account == null) throw new ErrorCodeException(ErrorCode.AccountError);
+                    if (account.Account == null) {
+                        throw new ErrorCodeException(ErrorCode.AccountError);
+                    }
 
                     var cookie = N4399.LoginWithPasswordAsync(account.Account, account.Password, _session4399Id,
                         Captcha4399);
@@ -148,9 +154,9 @@ public static class AccountMessage {
 
 
             // 登录完成
-
-            if (result == null)
+            if (result == null) {
                 throw new ErrorCodeException(ErrorCode.LoginError);
+            }
 
             if (result.EntityId.Length < 1) return;
             account.UserId = result.EntityId;

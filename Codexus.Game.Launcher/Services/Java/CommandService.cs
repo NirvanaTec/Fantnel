@@ -21,7 +21,6 @@ using WPFLauncherApi.Utils.Cipher;
 namespace Codexus.Game.Launcher.Services.Java;
 
 public class CommandService {
-    
     private static readonly JsonSerializerOptions Options = new() {
         AllowTrailingCommas = true
     };
@@ -129,13 +128,14 @@ public class CommandService {
             if (!javaFile.IsNative) {
                 continue;
             }
+
             // 自动处理所需库
             if (!javaFile.DownloadAuto()) {
                 continue;
             }
+
             await CompressionUtil.ExtractAsync(javaFile.GetPath(), nativesPath);
         }
-
     }
 
     // 生成启动参数 【独立运行】
@@ -229,7 +229,7 @@ public class CommandService {
                     }
                 }
             }
-            
+
             // classifiers
             if (downElement.TryGetProperty("classifiers", out var classElement)) {
                 if (item.TryGetProperty("natives", out var natives)) {
@@ -239,6 +239,7 @@ public class CommandService {
                             if (string.IsNullOrEmpty(osName)) {
                                 continue;
                             }
+
                             var runArch = GetRunArch();
                             foreach (var archName in runArch) {
                                 var osNameArch = osName.Replace("${arch}", archName);
@@ -270,11 +271,11 @@ public class CommandService {
             Architecture.Arm64 => ["aarch_64", "arm64", "64"],
             Architecture.Arm => ["32"],
             Architecture.Armv6 => ["32"],
-            Architecture.X86 => ["x86","32"],
+            Architecture.X86 => ["x86", "32"],
             _ => ["64", "x86_64"]
         };
     }
-    
+
     // 已被禁用的架构
     private static string[] GetRunArchD()
     {
@@ -285,10 +286,10 @@ public class CommandService {
         };
     }
 
-    private static List<EntityJavaFile> AddJarList(List<EntityJavaFile> jarList, string path, string url, bool isNative = false)
+    private static List<EntityJavaFile> AddJarList(List<EntityJavaFile> jarList, string path, string url,
+        bool isNative = false)
     {
         if (jarList.Any(jar => jar.Equals(path))) {
-            
             // 获取已存在的值的url
             var value = string.Empty;
             foreach (var jar in jarList.Where(jar => jar.Equals(path))) {
@@ -303,6 +304,7 @@ public class CommandService {
                 return jarList;
             }
         }
+
         jarList.Add(new EntityJavaFile(path) {
             Url = url,
             IsNative = isNative
@@ -348,7 +350,7 @@ public class CommandService {
         // \versions\1.8.9\1.8.9.jar
         var verValue = Path.Combine("versions", version, version + ".jar");
         jarList.Add(new EntityJavaFile(verValue));
-        
+
         // 自动处理所需库
         return jarList.Where(item => item.DownloadAuto()).ToList();
     }
@@ -365,9 +367,9 @@ public class CommandService {
     // 所有操作系统
     private static string[] GetRunOsAll()
     {
-        return ["windows","osx", "macos", "linux"];
+        return ["windows", "osx", "macos", "linux"];
     }
-    
+
     private void BuildCommand(Dictionary<string, JsonElement> cfg, string version, int mem, int socketPort)
     {
         var jvmArguments = "";
@@ -393,12 +395,13 @@ public class CommandService {
             // 而外 lib 路径
             var classPath1 = GetArguments("cp", jvmArguments);
             var classPathList = classPath1.Split(PathUtil.PathSeparator);
-            
+
             // 过滤 重复路径
             foreach (var path in classPathList) {
                 if (string.IsNullOrEmpty(path)) {
                     continue;
                 }
+
                 var isAdd = classPaths.All(classPath => !classPath.Contains(path));
                 if (isAdd) {
                     classPaths.Add(new EntityJavaFile(path));
@@ -406,11 +409,13 @@ public class CommandService {
             }
 
             classPaths = FilterFile(classPaths);
-            jvmArguments = UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)), jvmArguments, 10);
+            jvmArguments = UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)),
+                jvmArguments, 10);
         }
 
         if (string.IsNullOrEmpty(jvmArguments)) {
-            jvmArguments = UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)), jvmArguments, 10);
+            jvmArguments = UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)),
+                jvmArguments, 10);
         }
 
         if (cfg.TryGetValue("mainClass", out var mainClassElement)) {
@@ -496,18 +501,20 @@ public class CommandService {
                         break;
                     }
                 }
-                
+
                 // -natives-windows-x86.jar
-                if (runArchList.Select(arch => "-natives-" + osName + "-" + arch).Any(osNameArch => classPath.EndsWith(osNameArch + ".jar"))) {
+                if (runArchList.Select(arch => "-natives-" + osName + "-" + arch)
+                    .Any(osNameArch => classPath.EndsWith(osNameArch + ".jar"))) {
                     isAdd = false;
                     break;
                 }
-
             }
+
             if (isAdd) {
                 list.Add(classPath);
             }
         }
+
         return list;
     }
 
@@ -608,7 +615,7 @@ public class CommandService {
             fullPath += PathUtil.PathSeparator; // 修复 linux/mac 引用出错
             fullPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", fullPath);
             fullPath1 = Path.Combine(PathUtil.GameBasePath, ".minecraft", fullPath1);
-            
+
             if (!File.Exists(fullPath1)) {
                 Log.Error("File not found: {fullPath}", fullPath1);
                 continue;
@@ -642,12 +649,12 @@ public class CommandService {
                     }
                 }
             }
-            
+
             if (file == null) {
                 Log.Error("File not found: {lwjglName}", lwjglName);
                 continue;
             }
-            
+
             // Log.Warning("{fullPath1} > {fullPath2}",fullPath1, file.GetPath());
             file.DownloadAuto();
             fullPath = file.GetPath();
@@ -665,6 +672,7 @@ public class CommandService {
             // mac 高版本修复
             stringBuilder.Append("-XstartOnFirstThread ");
         }
+
         return stringBuilder.ToString();
     }
 

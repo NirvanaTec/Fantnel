@@ -45,7 +45,7 @@
       <div class="modal-content">
         <h2>Launch 游戏</h2>
         <b>
-          <h6>部分服务器可能需要安装 插件 才能正常进入游戏。</h6>
+          <h6>出现问题可以前往论坛反馈哦~</h6>
         </b>
         <form @submit.prevent="launchGameBtn">
           <div class="form-group">
@@ -56,7 +56,7 @@
 
           </div>
           <div class="form-group">
-            <label><b>游戏名称: <h6 style="display: inline;">请先 添加 / 选择 游戏名称，才能启动游戏。</h6></b></label>
+            <label><b>游戏名称: <h6 style="display: inline;">请先 添加 / 选择 游戏名称，才能启动。</h6></b></label>
             <div class="select-with-add" v-if="games.length > 0">
               <select v-model="selectedGame">
                 <option v-for="game in games" :key="game.id" :value="game.name">{{ game.name }}</option>
@@ -79,6 +79,63 @@
       </div>
     </div>
 
+    <!-- 代理弹窗 -->
+    <div v-if="showProxyModal" class="modal">
+      <div class="modal-content">
+        <h2>启动代理</h2>
+        <b>
+          <h6>如果你未安装 核心依赖插件 这大概会导致验证失败。</h6>
+          <h6>部分服务器可能需要安装 插件 才能正常进入游戏。</h6>
+        </b>
+        <div class="plugins-section">
+          <div v-if="isLoadingPlugins" class="loading">加载中...</div>
+          <div v-else-if="pluginError" class="plugin-error">
+            <div class="error-message">{{ pluginError }}</div>
+          </div>
+          <div v-else class="plugins-container">
+            <!-- 当有base插件时显示左右对称布局 -->
+            <div v-if="basePlugins.length > 0" class="plugins-symmetric">
+              <div class="plugin-column">
+                <h4>服务器推荐插件：</h4>
+                <ul v-if="dependencePlugins.length > 0" class="plugin-list">
+                  <li v-for="(plugin, index) in dependencePlugins" :key="index">
+                    <a :href="`/plugin/${plugin.id}`" class="plugin-link">{{ plugin.name }}</a>
+                  </li>
+                </ul>
+                <div v-else class="no-plugins">无依赖插件</div>
+              </div>
+              <div class="plugin-column">
+                <h4>核心依赖插件：</h4>
+                <ul v-if="basePlugins.length > 0" class="plugin-list">
+                  <li v-for="(plugin, index) in basePlugins" :key="index">
+                    <a :href="`/plugin/${plugin.id}`" class="plugin-link">{{ plugin.name }}</a>
+                  </li>
+                </ul>
+                <div v-else class="no-plugins">无核心插件</div>
+              </div>
+            </div>
+
+            <!-- 当没有base插件时只显示dependence插件 -->
+            <div v-else>
+              <h4>服务器推荐插件：</h4>
+              <ul v-if="dependencePlugins.length > 0" class="plugin-list">
+                <li v-for="(plugin, index) in dependencePlugins" :key="index">
+                  <a :href="`/plugin/${plugin.id}`" class="plugin-link">{{ plugin.name }}</a>
+                </li>
+              </ul>
+              <div v-else class="no-plugins">无依赖插件</div>
+            </div>
+          </div>
+        </div>
+        <form @submit.prevent="launchProxyConfirm">
+          <div class="modal-actions">
+            <button type="submit" class="launch-game-btn">启动代理</button>
+            <button type="button" @click="showProxyModal = false" class="cancel-btn">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- 使用Alert组件 -->
     <Alert :show="showNotice" :message="noticeText" title="注意事项" :location="noticeLocation" @ok="handleNoticeOk"
       @close="showNotice = false" />
@@ -88,7 +145,7 @@
 <script setup>
 import { ref, onMounted, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
-import { selectServer, getServerInfo, addServerRole, launchGame, switchAccount, getGameAccount, launchProxy } from '../utils/Tools'
+import { selectServer, getServerInfo, addServerRole, launchGame, switchAccount, getGameAccount, launchProxy, getServerPlugins } from '../utils/Tools'
 import Alert from '../components/Alert.vue'
 import randomNameData from '../../public/random.name.json'
 
@@ -177,6 +234,13 @@ const showNotice = ref(false)
 const noticeText = ref("")
 const noticeLocation = ref("")
 
+// 代理弹窗
+const showProxyModal = ref(false)
+const dependencePlugins = ref([])
+const basePlugins = ref([])
+const isLoadingPlugins = ref(false)
+const pluginError = ref(null)
+
 onMounted(() => {
   selectServer(serverId).then(data => {
     if (data.code !== 1) {
@@ -253,14 +317,60 @@ function launchGameBtn() {
   showNotice.value = true;
 }
 
-function launchProxyBtn() {
+async function launchProxyBtn() {
+  // 加载服务器依赖插件
+  await loadServerPlugins();
+
+  // 检查是否有依赖插件（dependence或base）或插件加载错误
+  const hasPlugins = dependencePlugins.value.length > 0 || basePlugins.value.length > 0;
+  const hasError = pluginError.value !== null;
+
+  if (hasPlugins || hasError) {
+    // 有依赖插件或插件加载错误时显示代理弹窗
+    showProxyModal.value = true;
+  } else {
+    // 无依赖插件时直接启动代理
+    launchProxyConfirm();
+  }
+}
+
+function loadServerPlugins() {
+  return new Promise((resolve, reject) => {
+    isLoadingPlugins.value = true;
+    pluginError.value = null;
+    getServerPlugins(serverId, server.value.gameVersion).then(data => {
+      if (data.code === 1) {
+        // 处理插件数据，分离dependence和base模式的插件
+        const dependencePlugin = data.data.find(item => item.mode === 'dependence');
+        const basePlugin = data.data.find(item => item.mode === 'base');
+
+        dependencePlugins.value = dependencePlugin && dependencePlugin.data ? dependencePlugin.data : [];
+        basePlugins.value = basePlugin && basePlugin.data ? basePlugin.data : [];
+      } else {
+        dependencePlugins.value = [];
+        basePlugins.value = [];
+        pluginError.value = data.msg;
+      }
+      isLoadingPlugins.value = false;
+      resolve();
+    }).catch(err => {
+      dependencePlugins.value = [];
+      basePlugins.value = [];
+      pluginError.value = err.message;
+      isLoadingPlugins.value = false;
+      resolve(); // 即使出错也resolve，确保流程继续
+    });
+  });
+}
+
+function launchProxyConfirm() {
   if (!selectedGame.value) {
     noticeText.value = '请选择游戏名称';
     showNotice.value = true;
     return;
   }
-  // alert(`启动游戏: ${selectedGame.value}，账号: ${selectedAccount.value}`)
-  showLaunchModal.value = false
+  // 关闭弹窗
+  showProxyModal.value = false;
   noticeText.value = "正在启动代理中，请稍后.....";
   launchProxy(serverId, selectedGame.value).then(data => {
     // 启动代理完成，更多信息请查看控制台
@@ -532,5 +642,101 @@ function handleNoticeOk() {
 .cancel-btn {
   background-color: #f44336;
   color: white;
+}
+
+/* 插件列表样式 */
+.plugins-section {
+  margin: 15px 0;
+  padding: 10px;
+  background-color: var(--sidebar-bg);
+  border-radius: 5px;
+}
+
+.plugins-section h4 {
+  margin: 0 0 10px 0;
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+.plugins-container {
+  width: 100%;
+}
+
+/* 对称布局样式 */
+.plugins-symmetric {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.plugin-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.plugin-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.plugin-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.plugin-list li:last-child {
+  border-bottom: none;
+}
+
+.plugin-link {
+  font-size: 1rem;
+  color: var(--sidebar-active);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.plugin-link:hover {
+  text-decoration: underline;
+}
+
+.plugin-id {
+  font-size: 12px;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.loading {
+  color: var(--text-color);
+  font-size: 14px;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.no-plugins {
+  color: var(--text-color);
+  font-size: 14px;
+  padding: 10px 0;
+  font-style: italic;
+  text-align: center;
+}
+
+/* 插件错误信息样式 */
+.plugin-error {
+  padding: 20px;
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+.error-message {
+  color: #f44336;
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.5;
 }
 </style>
