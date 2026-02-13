@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using NirvanaAPI.Utils.CodeTools;
+using NirvanaAPI.Manager;
 
 namespace WPFLauncherApi.Utils;
 
@@ -8,9 +8,7 @@ public static class TokenUtil {
         string requestPath,
         string sendBody)
     {
-        if (WPFLauncherProgram.User.UserId == null || WPFLauncherProgram.User.Token == null)
-            throw new ErrorCodeException(ErrorCode.LogInNot);
-        return Compute(requestPath, sendBody, WPFLauncherProgram.User.UserId, WPFLauncherProgram.User.Token);
+        return Compute(requestPath, sendBody, InfoManager.GetUserId(), InfoManager.GetToken());
     }
 
     public static Dictionary<string, string> Compute(

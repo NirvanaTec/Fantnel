@@ -1,7 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
 using Codexus.Development.SDK.RakNet;
 using Codexus.Development.SDK.Utils;
 using Codexus.Game.Launcher.Entities;
@@ -18,9 +15,9 @@ public sealed class LauncherService : IDisposable {
 
     private volatile bool _disposed;
 
-    private Process _gameProcess;
+    private Process? _gameProcess;
 
-    private IRakNet _rakNet;
+    private IRakNet? _rakNet;
 
     private LauncherService(EntityLaunchPeGame entityLaunchGame)
     {
@@ -71,7 +68,7 @@ public sealed class LauncherService : IDisposable {
     }
 
     // ReSharper disable once EventNeverSubscribedTo.Global
-    public event Action<Guid> Exited;
+    public event Action<Guid>? Exited;
 
     private async Task LaunchGameAsync()
     {
@@ -105,7 +102,7 @@ public sealed class LauncherService : IDisposable {
         var remoteAddress = $"{Entity.ServerIp}:{Entity.ServerPort}";
         var isRental = Entity.GameType == EnumGType.ServerGame;
         try {
-            _rakNet = RakNetLoader.ConstructLoader().Create(remoteAddress, Entity.AccessToken, Entity.GameId,
+            _rakNet = RakNetLoader.ConstructLoader()?.Create(remoteAddress, Entity.AccessToken, Entity.GameId,
                 Convert.ToUInt32(Entity.UserId), Entity.AccessToken, Entity.GameName, Entity.RoleName, availablePort,
                 availablePort2, isRental);
         } catch (Exception ex) {
@@ -157,7 +154,7 @@ public sealed class LauncherService : IDisposable {
         _gameProcess.Exited += OnGameProcessExited;
     }
 
-    private void OnGameProcessExited(object sender, EventArgs e)
+    private void OnGameProcessExited(object? sender, EventArgs e)
     {
         try {
             Exited?.Invoke(Identifier);
@@ -182,9 +179,9 @@ public sealed class LauncherService : IDisposable {
         }
     }
 
-    public Process GetProcess()
+    public Process? GetProcess()
     {
-        return !_disposed ? _gameProcess : null;
+        return _disposed ? _gameProcess : null;
     }
 
     public void ShutdownAsync()

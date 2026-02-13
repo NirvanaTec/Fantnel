@@ -1,9 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using NirvanaPublic.Manager;
+using NirvanaAPI.Entities.Login;
+using NirvanaAPI.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils;
-using OpenSDK.Entities.Config;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
 using WPFLauncherApi.Protocol;
@@ -25,12 +25,15 @@ var cookie = new EntityAccount {
 Log.Information("登录中...");
 AccountMessage.Login(cookie);
 
-while (InfoManager.GameAccount == null || InfoManager.GameAccount.UserId == null ||
-       InfoManager.GameAccount.Token == null) {
-    Log.Information("请输入cookie内容: ");
-    cookie.Password = Console.ReadLine();
-    Log.Information("登录中...");
-    AccountMessage.Login(cookie);
+while (true) {
+    try {
+        InfoManager.GetGameAccount();
+    } catch (Exception) {
+        Log.Information("请输入cookie内容: ");
+        cookie.Password = Console.ReadLine();
+        Log.Information("登录中...");
+        AccountMessage.Login(cookie);
+    }
 }
 
 // 创建角色名称

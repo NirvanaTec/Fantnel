@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using NirvanaAPI.Manager;
 using NirvanaAPI.Utils.CodeTools;
 using Serilog;
 using WPFLauncherApi.Entities;
@@ -86,11 +87,10 @@ public static class WPFLauncher {
      */
     public static async Task<EntityGameCharacter[]> GetNetGameCharactersAsync(string gameId)
     {
-        if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityGameCharacter>>(
             "/game-character/query/user-game-characters", new EntityQueryGameCharacters {
                 GameId = gameId,
-                UserId = WPFLauncherProgram.User.UserId
+                UserId = InfoManager.GetUserId()
             });
         return response == null ? throw new ErrorCodeException() : response.Data;
     }
@@ -102,11 +102,10 @@ public static class WPFLauncher {
      */
     public static async Task CreateCharacterAsync(string gameId, string roleName)
     {
-        if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<object>("/game-character",
             new EntityGameCharacter {
                 GameId = gameId,
-                UserId = WPFLauncherProgram.User.UserId,
+                UserId = InfoManager.GetUserId(),
                 Name = roleName
             });
         if (response == null) throw new ErrorCodeException();
@@ -133,11 +132,10 @@ public static class WPFLauncher {
      */
     public static async Task CreateCharacterRentalAsync(string serverId, string roleName)
     {
-        if (WPFLauncherProgram.User.UserId == null) throw new ErrorCodeException(ErrorCode.LogInNot);
         var response = await X19Extensions.Gateway.Api<object>("/rental-server-player",
             new EntityAddRentalGameRole {
                 ServerId = serverId,
-                UserId = WPFLauncherProgram.User.UserId,
+                UserId = InfoManager.GetUserId(),
                 Name = roleName,
                 CreateTs = 555555,
                 IsOnline = false,
@@ -193,18 +191,20 @@ public static class WPFLauncher {
     {
         var entity = JsonSerializer.Deserialize<EntityX19Cookie>(cookie.Json);
         if (entity == null) throw new ErrorCodeException(ErrorCode.LoginError);
-        if (entity.LoginChannel != "netease")
+        if (entity.LoginChannel != "netease") {
             await Sdk.AuthSession(cookie.Json);
+        }
+
         Log.Information("Login with Cookie...");
         var otp = await LoginOtpAsync(cookie);
-        if (otp == null) throw new ErrorCodeException(ErrorCode.LoginError);
+        if (otp == null) {
+            throw new ErrorCodeException(ErrorCode.LoginError);
+        }
+
         var user = await AuthenticationOtpAsync(cookie, otp);
-        if (user == null) throw new ErrorCodeException(ErrorCode.LoginError);
-        WPFLauncherProgram.User.UserId = user.EntityId;
-        WPFLauncherProgram.User.Token = user.Token;
-        await InterConn.LoginStart();
+        // await InterConn.LoginStart();
         // await Task.Run((Func<Task>) (async () => await Http.GetAsync($"https://service.codexus.today/interconnection/report?id={user.EntityId}&token={user.Token}&version={this.MPay.GameVersion}")));
-        return user;
+        return user ?? throw new ErrorCodeException(ErrorCode.LoginError);
     }
 
     /**
@@ -254,7 +254,10 @@ public static class WPFLauncher {
                     OtpToken = otp.OtpToken,
                     LockTime = 0
                 }, DefaultOptions))))).Content.ReadAsByteArrayAsync()));
-        if (entity == null) throw new ErrorCodeException(ErrorCode.LoginError);
+        if (entity == null) {
+            throw new ErrorCodeException(ErrorCode.LoginError);
+        }
+
         return entity.Code == 0 ? entity.Data : throw new EntityX19Exception(entity.Message, entity);
     }
 
@@ -442,8 +445,7 @@ public static class WPFLauncher {
     public static async Task<EntityComponentDownloadInfoResponse> GetNetGameComponentDownloadListAsync(
         string serverId)
     {
-        return await GetNetGameComponentDownloadListAsync(WPFLauncherProgram.User.UserId, WPFLauncherProgram.User.Token,
-            serverId);
+        return await GetNetGameComponentDownloadListAsync(InfoManager.GetUserId(), InfoManager.GetToken(), serverId);
     }
 
     /**

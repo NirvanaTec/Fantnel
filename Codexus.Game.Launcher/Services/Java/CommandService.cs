@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Utils;
+using NirvanaAPI;
 using NirvanaAPI.Utils;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Launch;
@@ -57,7 +53,7 @@ public class CommandService {
 
     private EnumGameVersion _gameVersion;
 
-    private EntityLaunchGame _launcherGame;
+    private EntityLaunchGame? _launcherGame;
 
     private List<EntityJavaFile> _minecraft = []; // path, url
 
@@ -88,7 +84,11 @@ public class CommandService {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             // 获取原版信息
             var minecraft = X19Extensions.Bmcl.Api<Dictionary<string, JsonElement>>($"/version/{_version}/json").Result;
-            _minecraft = BuildJarListBase(minecraft);
+            if (minecraft != null) {
+                _minecraft = BuildJarListBase(minecraft);
+            } else {
+                Log.Error("BmclApi returned null, version: {version}", _version);
+            }
         }
 
         var path = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", _version, _version + ".json");
@@ -99,7 +99,12 @@ public class CommandService {
 
         var cfg = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(options: Options,
             json: File.ReadAllText(path));
-        BuildCommand(cfg, _version, entity.MaxGameMemory, socketPort);
+
+        if (cfg == null) {
+            throw new Exception("Game version JSON deserialize failed.");
+        }
+
+        BuildCommand(cfg, _version, socketPort);
         InstallNatives().Wait();
 
         // 保存到文件，方便调试
@@ -144,7 +149,7 @@ public class CommandService {
         return "cd \"" + _workPath + "\"" + "\n" + GetJavaPath(_gameVersion) + _cmd;
     }
 
-    public Process StartGame()
+    public Process? StartGame()
     {
         var javaPath = GetJavaPath(_gameVersion);
         FileUtil.SetUnixFilePermissions(javaPath); // 添加 Java 权限
@@ -286,7 +291,7 @@ public class CommandService {
         };
     }
 
-    private static List<EntityJavaFile> AddJarList(List<EntityJavaFile> jarList, string path, string url,
+    private static List<EntityJavaFile> AddJarList(List<EntityJavaFile> jarList, string path, string? url,
         bool isNative = false)
     {
         if (jarList.Any(jar => jar.Equals(path))) {
@@ -370,7 +375,7 @@ public class CommandService {
         return ["windows", "osx", "macos", "linux"];
     }
 
-    private void BuildCommand(Dictionary<string, JsonElement> cfg, string version, int mem, int socketPort)
+    private void BuildCommand(Dictionary<string, JsonElement> cfg, string version, int socketPort)
     {
         var jvmArguments = "";
         if (cfg.TryGetValue("jvm_arguments", out var jvmArguments1)) {
@@ -414,6 +419,7 @@ public class CommandService {
         }
 
         if (string.IsNullOrEmpty(jvmArguments)) {
+            jvmArguments ??= "";
             jvmArguments = UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)),
                 jvmArguments, 10);
         }
@@ -431,8 +437,13 @@ public class CommandService {
         jvmArguments = UpdateArguments("libraryDirectory",
             Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries"), jvmArguments, 4);
 
+        if (_launcherGame == null) {
+            throw new Exception("No Launcher Game Found");
+        }
+
         // 添加 验证信息
-        var stringBuilder = new StringBuilder().Append(" -Xmx").Append(mem).Append("M -Xmn128M ")
+        var stringBuilder = new StringBuilder().Append(" -Xmx").Append(NirvanaConfig.Config.GameMemory).Append("M ")
+            .Append(NirvanaConfig.Config.JvmArgs)
             .Append($" -DlauncherControlPort={socketPort}")
             .Append($" -DlauncherGameId={_launcherGame.GameId}")
             .Append($" -DuserId={_launcherGame.UserId}")
@@ -710,10 +721,14 @@ public class CommandService {
 
     private string GetUserProperties(string version)
     {
+        if (_launcherGame == null) {
+            throw new Exception("No Launcher Game Found");
+        }
+
         var format = version == "1.7.10"
             ? "\"uid\":[{0}],\"gameid\":[{1}],\"launcherport\":[{2}],\\\"filterkey\\\":[\\\"{3}\\\",\\\"0\\\"],\\\"filterpath\\\":[\\\"\\\",\\\"0\\\"],\\\"timedelta\\\":[0,0],\\\"launchversion\\\":[\\\"{3}\\\",\\\"0\\\"]"
             : "\\\"uid\\\":[{0},0],\\\"gameid\\\":[{1},0],\\\"launcherport\\\":[{2},0],\\\"filterkey\\\":[\\\"{3}\\\",\\\"0\\\"],\\\"filterpath\\\":[\\\"\\\",\\\"0\\\"],\\\"timedelta\\\":[0,0],\\\"launchversion\\\":[\\\"{4}\\\",\\\"0\\\"]";
-        object[] args = [
+        object?[] args = [
             _launcherGame.UserId, 0, _rpcPort, RandomUtil.GetRandomString(32, "abcdefghijklmnopqrstuvwxyz"),
             _protocolVersion
         ];

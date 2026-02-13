@@ -1,14 +1,7 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 using Codexus.Game.Launcher.Utils.Progress;
 using Serilog;
 
@@ -27,7 +20,7 @@ public static class DownloadUtil {
     }
 
     public static async Task<bool> DownloadAsync(string url, string destinationPath,
-        Action<int> downloadProgress = null, int maxConcurrentSegments = 8,
+        Action<int>? downloadProgress = null, int maxConcurrentSegments = 8,
         CancellationToken cancellationToken = default)
     {
         long totalSize;
@@ -153,7 +146,7 @@ public static class DownloadUtil {
     }
 
     private static async Task<bool> SingleDownloadAsync(string url, string destinationPath,
-        Action<int> downloadProgress, CancellationToken cancellationToken)
+        Action<int>? downloadProgress, CancellationToken cancellationToken)
     {
         using var resp = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         resp.EnsureSuccessStatusCode();

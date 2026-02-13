@@ -1,18 +1,14 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Codexus.Game.Launcher.Utils;
+﻿using Codexus.Game.Launcher.Utils;
 using NirvanaAPI.Utils;
 using Serilog;
 
 namespace Codexus.Game.Launcher.Entities;
 
 public class EntityJavaFile {
-    private string _filePath; // 完整路径
-    private string _filePath1; // 相对路径，不保证是相对路径
+    private string _filePath = string.Empty; // 完整路径
+    private string _filePath1 = string.Empty; // 相对路径，不保证是相对路径
     public bool IsNative = false; // 是 Native 文件, 不保证是 Native 文件
-    public string Url = string.Empty; // 下载定制
+    public string? Url = string.Empty; // 下载定制
 
     public EntityJavaFile(string path)
     {
@@ -89,6 +85,11 @@ public class EntityJavaFile {
 
     private async Task DownloadAsync()
     {
+        if (Url == null) {
+            Log.Warning("jar {ItemKey} url is empty", GetPath());
+            return;
+        }
+
         var url = Url;
         url = url.Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/maven");
         await DownloadUtil.DownloadAsync(url, GetPath());

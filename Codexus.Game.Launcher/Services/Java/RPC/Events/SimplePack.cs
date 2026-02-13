@@ -1,14 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Codexus.Game.Launcher.Services.Java.RPC.Events;
 
 public static class SimplePack {
-    public static byte[] Pack(params object[] data)
+    public static byte[]? Pack(params object[]? data)
     {
-        if (data == null) return null;
+        if (data == null) {
+            return null;
+        }
+
         var array = Array.Empty<byte>();
         foreach (var obj in data) {
             var array2 = Array.Empty<byte>();
@@ -19,26 +19,40 @@ public static class SimplePack {
                     if (type == typeof(byte[])) {
                         array2 = (byte[])obj;
                     } else if (type == typeof(List<uint>)) {
+                        if (obj is not List<uint> uints) {
+                            continue;
+                        }
+
+                        var bytes = BitConverter.GetBytes((ushort)(uints.Count * 4));
                         var list = new List<byte>();
-                        var bytes = BitConverter.GetBytes((ushort)(((List<uint>)obj).Count * 4));
                         list.AddRange(array2);
                         list.AddRange(bytes);
-                        foreach (var item in obj as List<uint>) list.AddRange(BitConverter.GetBytes(item));
+                        foreach (var item in uints) {
+                            list.AddRange(BitConverter.GetBytes(item));
+                        }
+
                         array2 = list.ToArray();
                     } else if (type == typeof(List<ulong>)) {
+                        if (obj is not List<ulong> ulongs) {
+                            continue;
+                        }
+
+                        var bytes2 = BitConverter.GetBytes((ushort)(ulongs.Count * 8));
                         var list2 = new List<byte>();
-                        var bytes2 = BitConverter.GetBytes((ushort)(((List<ulong>)obj).Count * 8));
                         list2.AddRange(array2);
                         list2.AddRange(bytes2);
-                        foreach (var item2 in obj as List<ulong>) list2.AddRange(BitConverter.GetBytes(item2));
+                        foreach (var item2 in ulongs) list2.AddRange(BitConverter.GetBytes(item2));
                         array2 = list2.ToArray();
                     } else {
-                        if (!(type == typeof(List<long>))) break;
+                        if (obj is not List<ulong> longs) {
+                            break;
+                        }
+
                         var list3 = new List<byte>();
-                        var bytes3 = BitConverter.GetBytes((ushort)(((List<long>)obj).Count * 8));
+                        var bytes3 = BitConverter.GetBytes((ushort)(longs.Count * 8));
                         list3.AddRange(array2);
                         list3.AddRange(bytes3);
-                        foreach (var item3 in obj as List<long>) list3.AddRange(BitConverter.GetBytes(item3));
+                        foreach (var item3 in longs) list3.AddRange(BitConverter.GetBytes(item3));
                         array2 = list3.ToArray();
                     }
 

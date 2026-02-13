@@ -1,9 +1,9 @@
 ﻿using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Game.Launcher.Utils;
+using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Manager;
 using NirvanaPublic.Utils;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
@@ -59,10 +59,9 @@ public static class LaunchMessage {
             GameType = EnumGType.ServerGame,
             GameVersionId = (int)gameVersion,
             GameVersion = versionName,
-            AccessToken = InfoManager.GetGameAccount().Token,
+            AccessToken = InfoManager.GetGameAccount().GetToken(),
             ServerIp = address.McServerHost,
             ServerPort = address.McServerPort,
-            MaxGameMemory = 4096,
             LoadCoreMods = true
         };
 
@@ -106,10 +105,9 @@ public static class LaunchMessage {
             GameType = EnumGType.NetGame,
             GameVersionId = (int)gameVersion,
             GameVersion = version.Name,
-            AccessToken = InfoManager.GetGameAccount().Token,
+            AccessToken = InfoManager.GetGameAccount().GetToken(),
             ServerIp = address.Host,
             ServerPort = address.Port,
-            MaxGameMemory = 4096,
             LoadCoreMods = true
         };
 

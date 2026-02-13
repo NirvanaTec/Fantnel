@@ -1,4 +1,4 @@
-﻿using OpenSDK.Entities.Config;
+﻿using NirvanaAPI.Entities.Login;
 
 namespace NirvanaPublic.Entities.NEL;
 

@@ -1,11 +1,9 @@
-using System.Threading.Tasks;
-
 namespace Codexus.Game.Launcher.Managers;
 
 public class TaskManager {
-    private static TaskManager _instance;
+    private static TaskManager? _instance;
 
-    private TaskFactory _factory;
+    private TaskFactory? _factory;
 
     private TaskManager()
     {

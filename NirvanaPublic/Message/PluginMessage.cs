@@ -6,6 +6,7 @@ using Codexus.Interceptors;
 using NirvanaAPI.Entities;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
+using NirvanaChat.Manager;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Manager;
@@ -219,6 +220,7 @@ public static class PluginMessage {
             PacketManager.Instance.EnsureRegistered(); // 确保注册
             PluginManager.Instance.EnsureUninstall(); // 备用卸载
             PluginManager.Instance.LoadPlugins(path); // 加载插件
+            ChatManager.Register();
         } catch (Exception e) {
             Log.Error("应用初始化失败：{e}", e);
         }

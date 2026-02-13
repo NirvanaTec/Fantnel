@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using NirvanaAPI.Entities.Login;
 using OpenSDK.Entities.Yggdrasil;
 using OpenSDK.Yggdrasil;
 using Serilog;
@@ -10,18 +11,17 @@ public static class NetEaseConnection {
         string modInfo, int userId, string userToken, Action handleSuccess)
     {
         Log.Warning("认证中: {serverId}", serverId);
-        var yggdrasil = new StandardYggdrasil();
         var pair = Md5Mapping.GetMd5FromGameVersion(gameVersion);
-        var success = await yggdrasil.JoinServerAsync(new GameProfile {
+        var success = await StandardYggdrasil.JoinServerAsync(new GameProfile {
             GameId = gameId,
             GameVersion = gameVersion,
             BootstrapMd5 = pair.BootstrapMd5,
             DatFileMd5 = pair.DatFileMd5,
             Mods = JsonSerializer.Deserialize<ModList>(modInfo),
-            User = new UserProfile {
-                UserId = userId,
-                UserToken = userToken
-            }
+            User = new UserProfile(new EntityUserInfo {
+                UserId = userId.ToString(),
+                Token = userToken
+            })
         }, serverId);
         if (success.IsSuccess) {
             Log.Information("认证完成!");

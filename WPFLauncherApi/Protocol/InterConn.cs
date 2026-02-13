@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using NirvanaAPI.Utils.CodeTools;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher;
 using WPFLauncherApi.Http;
@@ -14,8 +13,6 @@ public static class InterConn {
 
     public static async Task LoginStart()
     {
-        if (WPFLauncherProgram.User.UserId == null || WPFLauncherProgram.User.Token == null)
-            throw new ErrorCodeException(ErrorCode.LogInNot);
         Log.Debug("LoginStart response: {0}",
             await (await Core.PostAsync1("/interconn/web/game-play-v2/login-start", "{\"strict_mode\":true}",
                     "application/json",
@@ -27,8 +24,6 @@ public static class InterConn {
 
     public static async Task GameStart(string gameId)
     {
-        if (WPFLauncherProgram.User.UserId == null || WPFLauncherProgram.User.Token == null)
-            throw new ErrorCodeException(ErrorCode.LogInNot);
         Log.Debug("GameStart response: {0}", await (await Core.PostAsync1("/interconn/web/game-play-v2/start",
                 JsonSerializer.Serialize(new InterConnGameStart {
                     GameId = gameId,

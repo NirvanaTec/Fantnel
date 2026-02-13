@@ -67,6 +67,7 @@ public static class Code {
             ErrorCode.CrcSaltNotSet => "CRC 盐值未设置",
             ErrorCode.RestartFailed => "重启失败",
             ErrorCode.GamePlugin => "该游戏可能不支持插件",
+            ErrorCode.MemoryError => "内存不应该这样设置",
             _ => "未知错误"
         };
     }

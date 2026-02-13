@@ -2,6 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/nirvana/NirvanaLogin.vue')
+  },
+  {
     path: '/',
     name: 'Home',
     component: () => import('../views/Home.vue')
@@ -9,67 +14,77 @@ const routes = [
   {
     path: '/game-accounts',
     name: 'GameAccounts',
-    component: () => import('../views/GameAccounts.vue')
+    component: () => import('../views/game/GameAccounts.vue')
   },
   {
     path: '/servers',
     name: 'Servers',
-    component: () => import('../views/Servers.vue')
+    component: () => import('../views/game/netgame/Servers.vue')
   },
   {
     path: '/server/:id',
     name: 'ServerDetail',
-    component: () => import('../views/ServerDetail.vue')
+    component: () => import('../views/game/netgame/ServerDetail.vue')
   },
   {
     path: '/skins',
     name: 'Skins',
-    component: () => import('../views/Skins.vue')
+    component: () => import('../views/game/skin/Skins.vue')
   },
   {
     path: '/skin/:id',
     name: 'SkinDetail',
-    component: () => import('../views/SkinDetail.vue')
+    component: () => import('../views/game/skin/SkinDetail.vue')
   },
   {
     path: '/plugins',
     name: 'Plugins',
-    component: () => import('../views/Plugins.vue')
+    component: () => import('../views/plugin/Plugins.vue')
   },
   {
     path: '/plugin-store',
     name: 'PluginStore',
-    component: () => import('../views/PluginStore.vue')
+    component: () => import('../views/plugin/PluginStore.vue')
   },
   {
     path: '/plugin/:id',
     name: 'PluginDetail',
-    component: () => import('../views/PluginDetail.vue')
+    component: () => import('../views/plugin/PluginDetail.vue')
   },
   {
     path: '/proxy-manager',
     name: 'ProxyManager',
-    component: () => import('../views/ProxyManager.vue')
+    component: () => import('../views/game/ProxyManager.vue')
   },
   {
     path: '/version',
     name: 'Version',
-    component: () => import('../views/Version.vue')
+    component: () => import('../views/others/Version.vue')
   },
   {
     path: '/game-manager',
     name: 'GameManager',
-    component: () => import('../views/GameLaunchManager.vue')
+    component: () => import('../views/game/GameLaunchManager.vue')
   },
   {
     path: '/game-rental/',
     name: 'GameRental',
-    component: () => import('../views/GameRental.vue')
+    component: () => import('../views/game/rental/GameRental.vue')
   },
   {
     path: '/game-rental/:id',
     name: 'GameRentalDetail',
-    component: () => import('../views/GameRentalDetail.vue')
+    component: () => import('../views/game/rental/GameRentalDetail.vue')
+  },
+  {
+    path: '/user',
+    name: 'UserHome',
+    component: () => import('../views/nirvana/UserHome.vue')
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../views/Settings.vue')
   },
 ]
 

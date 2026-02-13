@@ -5,7 +5,7 @@
       <p v-if="!error">{{ text }}</p>
       <p v-else>
         {{ text }}<br>
-        <span v-if="countdown > 0" class="countdown-text">将在 {{ countdown }} 秒后返回插件商店...</span>
+        <span v-if="countdown > 0" class="countdown-text">将在 {{ countdown }} 秒后返回...</span>
       </p>
     </div>
   </div>
@@ -13,7 +13,6 @@
 
 <script setup>
 import { watch } from 'vue'
-import { useRouter } from 'vue-router'
 
 const props = defineProps({
   visible: {
@@ -33,8 +32,6 @@ const props = defineProps({
     default: 0
   }
 })
-
-const router = useRouter()
 
 // 监听countdown变化，实现倒计时跳转
 watch(() => props.countdown, (newValue) => {

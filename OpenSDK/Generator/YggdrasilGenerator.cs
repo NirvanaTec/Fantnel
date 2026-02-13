@@ -26,7 +26,7 @@ public static class YggdrasilGenerator {
     public static byte[] GenerateJoinMessage(GameProfile profile, string serverId, byte[] loginSeed)
     {
         var time = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var hashData = BuildHashData(profile, time, profile.User.UserId, loginSeed);
+        var hashData = BuildHashData(profile, time, profile.User.GetUserId(), loginSeed);
 
         using var stream = new MemoryStream();
 

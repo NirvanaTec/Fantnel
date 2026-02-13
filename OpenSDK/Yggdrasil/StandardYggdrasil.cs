@@ -9,38 +9,32 @@ using WPFLauncherApi.Http;
 
 namespace OpenSDK.Yggdrasil;
 
-public class StandardYggdrasil(string address, int port) {
+public static class StandardYggdrasil {
     private static readonly byte[] ChaChaNonce = "163 NetEase\n"u8.ToArray();
 
-    private StandardYggdrasil(YggdrasilServer server)
-        : this(server.Ip, server.Port)
-    {
-    }
+    private static readonly YggdrasilServer[] Address = RandomAuthServer();
 
-    public StandardYggdrasil()
-        : this(RandomAuthServer())
-    {
-    }
-
-    private string Address { get; } = address;
-    private int Port { get; } = port;
-
-    public async Task<Result> JoinServerAsync(GameProfile profile, string serverId, bool login = false)
+    public static async Task<Result> JoinServerAsync(GameProfile profile, string serverId, bool login = false)
     {
         using var client = new TcpClient();
 
         try {
-            var addresses = await ResolveAddressAsync(Address);
-            await client.ConnectAsync(addresses[0], Port);
+            var random = new Random();
+            var server = Address[random.Next(Address.Length)];
 
-            if (!client.Connected)
-                throw new TimeoutException($"Connecting to server {Address}:{Port} timed out");
+            // var addresses = await ResolveAddressAsync(server.Ip);
+            await client.ConnectAsync(server.Ip, server.Port);
+
+            if (!client.Connected) {
+                throw new TimeoutException($"Connecting to server {server.Ip}:{server.Port} timed out");
+            }
 
             var stream = client.GetStream();
             var initiated = await InitializeConnection(stream, profile);
 
-            if (login)
+            if (login) {
                 return initiated.IsSuccess ? Result.Success() : Result.Clone(initiated);
+            }
 
             return initiated.IsFailure
                 ? Result.Clone(initiated)
@@ -99,8 +93,9 @@ public class StandardYggdrasil(string address, int port) {
 
     private static async Task<IPAddress[]> ResolveAddressAsync(string address)
     {
-        if (IPAddress.TryParse(address, out var ipAddress))
+        if (IPAddress.TryParse(address, out var ipAddress)) {
             return [ipAddress];
+        }
 
         try {
             var addresses = await Dns.GetHostAddressesAsync(address);
@@ -112,16 +107,16 @@ public class StandardYggdrasil(string address, int port) {
         }
     }
 
-    private static YggdrasilServer RandomAuthServer()
+    private static YggdrasilServer[] RandomAuthServer()
     {
         var http = new HttpWrapper();
         var servers = http.GetAsync<YggdrasilServer[]>("https://x19.update.netease.com/authserver.list").GetAwaiter()
             .GetResult();
 
-        if (servers == null || servers.Length == 0)
+        if (servers == null || servers.Length == 0) {
             throw new Exception("No servers found.");
+        }
 
-        var random = new Random();
-        return servers[random.Next(servers.Length)];
+        return servers;
     }
 }
