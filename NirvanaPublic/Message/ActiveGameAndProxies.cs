@@ -2,9 +2,9 @@
 using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Interceptors;
+using NirvanaAPI.Manager;
 using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.NEL;
-using NirvanaPublic.Manager;
 using Serilog;
 using WPFLauncherApi.Protocol;
 
@@ -161,6 +161,19 @@ public static class ActiveGameAndProxies {
         }
     }
 
+    // 关闭代理
+    public static void CloseProxy(Interceptor interceptor)
+    {
+        lock (SafeLock) {
+            var proxy = ActiveProxies.FirstOrDefault(x => x.Interceptor == interceptor);
+            if (proxy != null) {
+                proxy.Interceptor.ShutdownAsync();
+                ActiveProxies.Remove(proxy);
+                Log.Information("已关闭代理 {Nickname} ({Id})", proxy.GetNickName(), proxy.Id);
+            }
+        }
+    }
+
     // 关闭白端游戏
     public static void CloseGame(string id)
     {
@@ -169,7 +182,7 @@ public static class ActiveGameAndProxies {
             if (launcher == null) return;
             ActiveLaunchers.Remove(launcher);
             launcher.ShutdownAsync();
-            Log.Information("白端游戏 {id} 已关闭", launcher.GetProcess().Id);
+            Log.Information("白端游戏 {id} 已关闭", launcher.GetPid());
         }
     }
 
@@ -211,7 +224,7 @@ public static class ActiveGameAndProxies {
     {
         lock (SafeLock) {
             foreach (var launcher in ActiveLaunchers.ToList().Where(launcher => !launcher.IsRunning())) {
-                Log.Information("白端游戏 {id} 已清理", launcher.GetProcess().Id);
+                Log.Information("白端游戏 {id} 已清理", launcher.GetPid());
                 ActiveLaunchers.Remove(launcher);
                 launcher.ShutdownAsync().Wait();
             }

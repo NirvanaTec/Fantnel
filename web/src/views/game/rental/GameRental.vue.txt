@@ -1,0 +1,492 @@
+<template>
+  <div class="servers">
+    <h1>租赁服</h1>
+    <p>租赁服页面，用于启动游戏服务器。</p>
+    <div class="search-bar">
+      <input type="text" v-model="searchQuery" placeholder="搜索服务器...">
+    </div>
+    <div class="server-list" @scroll="handleScroll">
+      <div v-for="server in filteredServers" class="server-item" @click="showLaunch(server)">
+        <div class="server-image">
+          <img :src="server.image_url" alt="服务器介绍图" width="307" height="173">
+        </div>
+        <div class="server-info">
+          <h3>{{ server.server_name }}</h3>
+          <p>{{server.capacity }} / {{ server.player_count}}</p>
+        <p> [ {{ server.mc_version}} ]</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Launch 弹窗 -->
+    <div v-if="showLaunchModal" class="modal">
+      <div class="modal-content">
+        <h2>Launch 游戏</h2>
+        <b>
+          <h6>部分服务器可能需要安装 插件 才能正常进入游戏。</h6>
+        </b>
+        <form @submit.prevent="launchGameBtn">
+          <div class="form-group">
+            <label><b>账号: <h6 style="display: inline;">登录成功后的账号才会显示在账号列表中。</h6></b></label>
+            <select v-model="selectedAccount" @change="selectAccount1">
+              <option v-for="account in accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
+            </select>
+            
+          </div>
+          <div class="form-group">
+            <label><b>游戏名称: <h6 style="display: inline;">请先 添加 / 选择 游戏名称，才能启动游戏。</h6></b></label>
+            <div class="select-with-add" v-if="games.length > 0">
+              <select v-model="selectedGame">
+                <option v-for="game in games" :key="game.id" :value="game.name">{{ game.name }}</option>
+              </select>
+            </div>
+            <div v-if="showAddGameInput" class="add-game-input">
+              <input v-model="newGameName" type="text" placeholder="输入新游戏名称">
+              <button type="button" class="save-game-btn" @click="addNewGame">保存</button>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="add-game-btn" @click="showAddGameInput = !showAddGameInput">
+              {{ showAddGameInput ? '取消添加' : '添加名称' }}
+            </button>
+            <button type="submit" class="launch-game-btn">启动游戏</button>
+            <button type="button" @click="launchProxyBtn" class="launch-proxy-btn">启动代理</button>
+            <button type="button" @click="showLaunchModal = false" class="cancel-btn">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 使用Alert组件 -->
+    <Alert :show="showNotice" :message="noticeText" title="注意事项" :location="noticeLocation" @ok="handleNoticeOk"
+      @close="showNotice = false" />
+  </div>
+</template>
+
+<script setup>
+
+import { ref, computed, onMounted, onUnmounted, watchEffect } from 'vue'
+import { getRentalServerList, getServerInfo, addServerRole, sortRentalServer, launchGame, switchAccount, getGameAccount, launchProxy } from '../utils/Tools'
+import randomNameData from '../../public/random.name.json'
+
+const searchQuery = ref('')
+const servers = ref([])
+const offset = ref(0)
+
+// Launch 弹窗相关
+const showLaunchModal = ref(false)
+const selectedServerId = ref('')
+const selectedAccount = ref('')
+const accounts = ref([])
+const games = ref([])
+const showAddGameInput = ref(false)
+const newGameName = ref('')
+const selectedGame = ref('')
+
+// 提示框
+const showNotice = ref(false)
+const noticeText = ref("")
+const noticeLocation = ref("")
+
+const isActive = ref(true)
+
+onMounted(async () => {
+  isActive.value = true
+  await sortRentalServer()
+  await loadServersInBatches()
+})
+
+onUnmounted(() => {
+  isActive.value = false
+})
+
+async function showLaunch(server){
+  selectedServerId.value = server.entity_id;
+  await getServerInfo1();
+  showLaunchModal.value = true;
+}
+
+// 初始加载服务器列表
+async function loadServersInBatches() {
+  // 只有第一次加载错误时，才抛出异常
+  let loading = true;
+  while (true) {
+
+    // 是否在当前页
+    if (!isActive.value) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      continue;
+    }
+
+    const ok = await loadMoreServers(15, loading)
+    loading = false;
+    // 如果没有更多服务器可加载，则跳出循环
+    if (!ok) {
+      break
+    }
+    // 每次加载完服务器后，等待 600 毫秒
+    await new Promise(resolve => setTimeout(resolve, 700))
+  }
+}
+
+const filteredServers = computed(() => {
+  if (!searchQuery.value) return servers.value;
+  return servers.value.filter(server =>
+    server.server_name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+function handleScroll(event) {
+  // const element = event.target;
+  // if (element.scrollTop + element.clientHeight >= element.scrollHeight - 10) {
+  //   // 滚动到底部，加载更多服务器
+  //   loadMoreServers();
+  // }
+}
+
+function loadMoreServers(pageSize = 10, throwError = true) {
+  return getRentalServerList(offset.value, pageSize).then(res => {
+    if (res.code !== 1) {
+      if (throwError) {
+        noticeText.value = res.msg || "获取服务器列表失败"
+        showNotice.value = true
+        noticeLocation.value = "/game-accounts";
+      }
+      return false;
+    }
+    if (!res || !res.data || !res.data.length) {
+      return false;
+    }
+    servers.value = [...servers.value, ...res.data]
+    offset.value += pageSize
+    return true;
+  }).catch(err => {
+    noticeText.value = err.message || "获取服务器列表异常"
+    showNotice.value = true
+    noticeLocation.value = "/game-accounts";
+    return false;
+  })
+}
+
+// 生成随机游戏名称
+function generateRandomGameName() {
+  const { prefixes, suffixes } = randomNameData
+  let result, randomPrefix, randomSuffix, randomNumber
+  
+  do {
+    randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+    randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)]
+    randomNumber = ''
+    
+    // 先组合前缀和后缀
+    let baseName = `${randomPrefix}${randomSuffix}`
+    
+    // 计算需要的随机数长度
+    const currentLength = baseName.length
+    if (currentLength < 7) {
+      // 需要添加随机数，确保总长度在7-9之间
+      const minNumbers = Math.max(0, 7 - currentLength)
+      const maxNumbers = Math.max(0, 9 - currentLength)
+      const numberLength = Math.floor(Math.random() * (maxNumbers - minNumbers + 1)) + minNumbers
+      randomNumber = Math.floor(Math.random() * Math.pow(10, numberLength)).toString().padStart(numberLength, '0')
+    } else if (currentLength > 9) {
+      // 如果前缀+后缀已经超过9，需要重新选择
+      continue
+    }
+    
+    result = `${baseName}${randomNumber}`
+  } while (result.length < 7 || result.length > 9)
+  
+  return result
+}
+
+// 当显示添加游戏输入框时自动生成随机名称
+watchEffect(() => {
+  if (showAddGameInput.value) {
+    newGameName.value = generateRandomGameName()
+  }
+})
+
+function selectAccount1(event) {
+  var account = switchAccount(event.target.value);
+  account.then(data => {
+    if (data.code === 1) {
+      getServerInfo1();
+    } else {
+      noticeText.value = data.msg;
+      showNotice.value = true;
+      // 刷新账号选中
+      refreshSelectedAccount();
+    }
+  });
+}
+
+async function getServerInfo1() {
+  await getServerInfo(selectedServerId.value).then(data => {
+    accounts.value = data.data.accounts
+    games.value = data.data.games
+
+    // 账号默认选中
+    refreshSelectedAccount()
+
+    // 名称默认选中
+    if (games.value && games.value.length > 0) {
+      selectedGame.value = games.value[0].name
+    } else {
+      showAddGameInput.value = true
+    }
+  })
+}
+
+// 刷新当前选择账号
+function refreshSelectedAccount() {
+    getGameAccount().then(data => {
+      if (data.code === 1) {
+        selectedAccount.value = data.data.id;
+      }
+    });
+}
+
+function launchGameBtn() {
+  if (!selectedGame.value) {
+    noticeText.value = '请选择游戏名称';
+    showNotice.value = true;
+    return;
+  }
+  showLaunchModal.value = false
+  noticeText.value = "正在启动游戏中，请稍后.....";
+  launchGame(selectedServerId.value, selectedGame.value).then(data => {
+    noticeText.value = data.msg;
+  }).catch(err => {
+    noticeText.value = err.message;
+  });
+  showNotice.value = true;
+}
+
+function launchProxyBtn() {
+  if (!selectedGame.value) {
+    noticeText.value = '请选择游戏名称';
+    showNotice.value = true;
+    return;
+  }
+  showLaunchModal.value = false
+  noticeText.value = "正在启动代理中，请稍后.....";
+  launchProxy(selectedServerId.value, selectedGame.value).then(data => {
+    noticeText.value = data.msg;
+  }).catch(err => {
+    noticeText.value = err.message;
+  });
+  showNotice.value = true;
+}
+
+function addNewGame() {
+  if (newGameName.value.trim()) {
+    showNotice.value = true;
+    noticeText.value = "正在添加角色中，请稍后.....";
+    addServerRole(selectedServerId.value, newGameName.value).then(data => {
+      if (data.code === 1) {
+        getServerInfo1();
+      }
+      noticeText.value = data.msg;
+    });
+  }
+}
+
+function handleNoticeOk() {
+  showNotice.value = false;
+  if (noticeLocation.value && noticeLocation.value !== '') {
+    location.href = noticeLocation.value;
+  }
+}
+</script>
+
+<style scoped>
+.servers {
+  padding: 20px;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.server-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.server-item {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.server-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.server-image img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.server-info {
+  padding: 15px;
+}
+
+.server-info h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.server-info p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: var(--sidebar-bg);
+  color: var(--text-color);
+  padding: 20px;
+  border-radius: 5px;
+  width: 430px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.form-group {
+  margin-bottom: 15px;
+  margin-top: 10px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--text-color);
+}
+
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: var(--sidebar-active);
+}
+
+.select-with-add {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.add-game-btn {
+  background-color: var(--sidebar-active);
+  color: white;
+  border: none;
+  border-radius: 3px;
+}
+
+.add-game-btn:hover {
+  opacity: 0.9;
+}
+
+.add-game-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.add-game-input input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.add-game-input input:focus {
+  outline: none;
+  border-color: var(--sidebar-active);
+}
+
+.save-game-btn {
+  padding: 8px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.save-game-btn:hover {
+  opacity: 0.9;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.launch-game-btn,
+.launch-proxy-btn,
+.cancel-btn {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.launch-game-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.launch-proxy-btn {
+  background-color: #2196F3;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: #f44336;
+  color: white;
+}
+</style>

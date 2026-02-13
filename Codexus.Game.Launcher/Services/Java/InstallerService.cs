@@ -1,9 +1,5 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Codexus.Game.Launcher.Utils;
 using Codexus.Game.Launcher.Utils.Progress;
 using NirvanaAPI.Utils;
@@ -153,7 +149,7 @@ public static class InstallerService {
         FileUtil.DeleteDirectorySafe(libPath);
     }
 
-    public static async Task<EntityModsList> InstallGameMods(EnumGameVersion gameVersion, string gameId,
+    public static async Task<EntityModsList?> InstallGameMods(EnumGameVersion gameVersion, string gameId,
         bool isRental = false)
     {
         var entity = await WPFLauncher.GetGameCoreModListAsync(gameVersion, isRental);
@@ -233,8 +229,14 @@ public static class InstallerService {
             var flag = !File.Exists(extractDir);
             if (!flag) flag = await File.ReadAllTextAsync(extractDir) != comp.ResMd5;
             if (!flag && File.Exists(archive)) {
-                foreach (var mod in JsonSerializer.Deserialize<EntityModsList>(await File.ReadAllTextAsync(archive))
-                             .Mods) modList.Mods.Add(mod);
+                var entityModsInfos = JsonSerializer.Deserialize<EntityModsList>(await File.ReadAllTextAsync(archive))
+                    ?.Mods;
+                if (entityModsInfos != null) {
+                    foreach (var mod in entityModsInfos) {
+                        modList.Mods.Add(mod);
+                    }
+                }
+
                 uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
                     Percent = 100,
                     Message = "Game assets ready"

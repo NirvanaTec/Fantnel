@@ -1,13 +1,17 @@
 <script setup>
 import { ref, provide, onMounted } from 'vue'
-import { getThemeName, setThemeName } from './utils/Tools'
+import { getThemeName, setThemeName, getNirvanaAccount } from './utils/Tools'
 
 const theme = ref('dark')
+const account = ref('')
 
 // Initialize theme from API
 onMounted(async () => {
   const themeName = await getThemeName().then(res => res.data);
   theme.value = themeName === 'default' ? 'dark' : themeName
+  // 获取涅槃账号信息
+  const accountInfo = await getNirvanaAccount().then(res => res.data);
+  account.value = accountInfo.account
 })
 
 function toggleTheme() {
@@ -29,7 +33,9 @@ provide('theme', theme)
       <!-- 左侧导航栏 -->
       <nav class="sidebar">
         <div class="logo">
-          <h1>Fantnel</h1>
+          <h2 class="divider">Fantnel</h2>
+          <router-link to="/user" v-if="account">{{ account }}</router-link>
+          <router-link to="/login" v-else>点我登录</router-link>
         </div>
         <ul class="nav-list">
           <li>
@@ -57,7 +63,10 @@ provide('theme', theme)
             <router-link to="/proxy-manager" active-class="active">代理管理</router-link>
           </li>
           <li>
-            <router-link to="/game-manager" active-class="active">游戏管理</router-link>
+            <router-link to="/game-manager" active-class="active" class="divider">游戏管理</router-link>
+          </li>
+          <li>
+            <router-link to="/settings" active-class="active">系统设置</router-link>
           </li>
         </ul>
 
@@ -83,6 +92,7 @@ provide('theme', theme)
         <!-- <p>备案号: 123456</p> -->
       </div>
     </div>
+
   </div>
 </template>
 
@@ -155,6 +165,10 @@ body {
 
 .logo h1 {
   font-size: 20px;
+  color: var(--text-color);
+}
+
+.logo a {
   color: var(--text-color);
 }
 

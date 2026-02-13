@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 using System.Text.Json;
 using WPFLauncherApi.Entities.EntitiesPc4399;
 using QueryBuilder = WPFLauncherApi.Utils.QueryBuilder;
@@ -92,8 +93,9 @@ public static class N4399 {
             checkUrl = checkResponse.Headers.Location.ToString();
         }
 
-        if (checkResponse.RequestMessage?.RequestUri == null)
+        if (checkResponse.RequestMessage?.RequestUri == null) {
             throw new Exception("登录状态检查失败");
+        }
 
         var redirectUri = checkResponse.RequestMessage.RequestUri.ToString();
         var queryParams = QueryBuilder.FromParameters(redirectUri);
@@ -138,18 +140,27 @@ public static class N4399 {
 
     private static async Task<QueryBuilder> GetUniAuthAsync(QueryBuilder queryParams, HttpClient client)
     {
-        var sdkUrl = "https://microgame.5054399.net/v2/service/sdk/info?" +
-                     "callback=&queryStr=game_id%3D500352%26nick%3Dnull%26sig%3D" + queryParams.Get("sig") + "%26" +
-                     "uid%3D" + queryParams.Get("uid") + "%26fcm%3D0%26show%3D1%26isCrossDomain%3D1%26rand_time%3D" +
-                     queryParams.Get("rand_time") + "%26" +
-                     "ptusertype%3D4399%26time%3D" + queryParams.Get("time") + "%26validateState%3D" +
-                     queryParams.Get("validateState") + "%26" +
-                     "username%3D" + queryParams.Get("username") + "&_=" + queryParams.Get("time");
+        var sdkUrl = new StringBuilder("https://microgame.5054399.net/v2/service/sdk/info?")
+            .Append("callback=&queryStr=game_id%3D500352%26nick%3Dnull%26sig%3D")
+            .Append(queryParams.Get("sig"))
+            .Append("%26uid%3D")
+            .Append(queryParams.Get("uid"))
+            .Append("%26fcm%3D0%26show%3D1%26isCrossDomain%3D1%26rand_time%3D")
+            .Append(queryParams.Get("rand_time"))
+            .Append("%26ptusertype%3D4399%26time%3D")
+            .Append(queryParams.Get("time"))
+            .Append("%26validateState%3D")
+            .Append(queryParams.Get("validateState"))
+            .Append("%26username%3D")
+            .Append(queryParams.Get("username"))
+            .Append("&_=")
+            .Append(queryParams.Get("time"));
 
-        var response = await client.GetAsync(sdkUrl);
+        var response = await client.GetAsync(sdkUrl.ToString());
 
-        if (!response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode) {
             throw new Exception("获取统一认证信息失败");
+        }
 
         var responseText = await response.Content.ReadAsStringAsync();
         var uniAuthData = JsonSerializer.Deserialize<EntityC4399UniAuth>(responseText) ??

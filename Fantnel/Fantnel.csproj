@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
         <Copyright>涅槃科技 © 版权所有</Copyright>
         <ApplicationIcon>favicon.ico</ApplicationIcon>
     </PropertyGroup>
@@ -13,8 +13,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2"/>
-        <PackageReference Include="Serilog" Version="4.3.1-dev-02406"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3"/>
+        <PackageReference Include="Serilog" Version="4.3.1"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
         <PackageReference Include="Serilog.Sinks.Console.LogThemes" Version="0.4.0"/>
     </ItemGroup>
@@ -25,6 +25,12 @@
 
     <ItemGroup>
         <_ContentIncludedByDefault Remove="resources\heypixel\enum-struct.json"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="Codexus.Interceptors">
+            <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
 </Project>

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using WPFLauncherApi.Utils;
+﻿using WPFLauncherApi.Utils;
 
 namespace Codexus.Game.Launcher.Utils;
 

@@ -16,13 +16,17 @@ public class X19Extensions(string url, bool token = true) {
 
     private async Task<HttpResponseMessage> Api(string url, string? body, string? userId, string? userToken)
     {
-        if (body == null) return await HttpWrapper.GetAsync(url);
+        if (body == null) {
+            return await HttpWrapper.GetAsync(url);
+        }
 
         return await HttpWrapper.PostAsync(url, body, "application/json",
             options => {
-                if (userId != null && userToken != null)
+                if (userId != null && userToken != null) {
                     options.AddHeaders(TokenUtil.Compute(url, body, userId, userToken));
-                else if (token) options.AddHeaders(TokenUtil.Compute(url, body));
+                } else if (token) {
+                    options.AddHeaders(TokenUtil.Compute(url, body));
+                }
             });
     }
 

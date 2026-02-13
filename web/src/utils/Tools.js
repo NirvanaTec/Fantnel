@@ -248,3 +248,63 @@ export async function getRentalInfo(id) {
 export async function getServerPlugins(id = "", version = "") {
     return axios.get(`/api/plugins/dependence?id=${id}&version=${version}`).then(res => res.data);
 }
+
+// 登录涅槃账号
+export async function loginNirvana(account, password) {
+    return axios.get(`/api/nirvana/login?account=${account}&password=${password}`).then(res => res.data);
+}
+
+// 退出涅槃账号
+export async function logoutNirvana() {
+    return axios.get(`/api/nirvana/logout`).then(res => res.data);
+}
+
+// 获取涅槃账号信息
+export async function getNirvanaAccount() {
+    return axios.get(`/api/nirvana/account/get`).then(res => res.data);
+}
+
+// 隐藏账号
+export async function hideNirvanaAccount(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=hideAccount&value=${value}`).then(res => res.data);
+}
+
+// 友好模式
+export async function friendlyNirvana(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=friendly&value=${value}`).then(res => res.data);
+}
+
+// 聊天启用
+export async function chatEnable(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=chatEnable&value=${value}`).then(res => res.data);
+}
+
+// 聊天目标
+export async function chatTarget(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=chatTarget&value=${value}`).then(res => res.data);
+}
+
+// 游戏内存
+export async function gameMemory(value = "4096") {
+    return axios.get(`/api/nirvana/set?mode=gameMemory&value=${value}`).then(res => res.data);
+}
+
+// JVM参数
+export async function jvmArgs(value) {
+    return axios.get(`/api/nirvana/set?mode=jvmArgs&value=${value}`).then(res => res.data);
+}
+
+// 游戏参数
+export async function gameArgs(value) {
+    return axios.get(`/api/nirvana/set?mode=gameArgs&value=${value}`).then(res => res.data);
+}
+
+// 获取设置配置
+export async function getSettings() {
+    return axios.get(`/api/nirvana/get`).then(res => res.data);
+}
+
+// 聊天标记前缀
+export async function chatPrefix(value) {
+    return axios.get(`/api/nirvana/set?mode=chatPrefix&value=${value}`).then(res => res.data);
+}

@@ -1,10 +1,9 @@
 ﻿using NirvanaAPI.Entities;
+using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
-using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
 using NirvanaPublic.Utils.ViewLogger;
-using OpenSDK.Yggdrasil;
 using Serilog;
 using Serilog.Events;
 using WPFLauncherApi.Http;
@@ -13,13 +12,6 @@ using WPFLauncherApi.Protocol;
 namespace NirvanaPublic.Utils;
 
 public static class InitProgram {
-    private static Services? Services { get; set; }
-
-    public static Services GetServices()
-    {
-        return Services ?? throw new ErrorCodeException(ErrorCode.ServicesNotInitialized);
-    }
-
     public static void LogoInit()
     {
         // 清空框架信息
@@ -65,17 +57,21 @@ public static class InitProgram {
         VersionCheck();
 
         // 创建服务
-        Services = CreateServices();
+        CreateServices();
         Log.Information("------  完成 ------");
 
         // 默认登录
-        // 避免 自动登录失败 被拉取
         AccountMessage.GetAccountList();
 
         // 插件管理器初始化
         PluginMessage.Initialize();
 
-        for (var i = 0; i < 4 && !PublicProgram.LatestVersion; i++) Log.Warning("当前版本不是最新版本，建议更新至最新版本，以获得更好的体验！");
+        for (var i = 0; i < 4 && !PublicProgram.LatestVersion; i++) {
+            Log.Warning("当前版本不是最新版本，建议更新至最新版本，以获得更好的体验！");
+        }
+
+        // 账号初始化
+        NirvanaAccountManager.Initialization();
 
         // 在线检测
         Online();
@@ -164,20 +160,18 @@ public static class InitProgram {
     }
 
     // 创建服务
-    private static Services CreateServices()
+    private static void CreateServices()
     {
         if (InfoManager.FantnelInfo == null || InfoManager.FantnelInfo.CrcSalt == null ||
             InfoManager.FantnelInfo.GameVersion == null) {
             Log.Error("CRC Salt 计算失败!");
             Thread.Sleep(6000);
             Environment.Exit(1);
-            return null;
+            return;
         }
 
         Log.Information("CRC Salt 当前版本: {Version}", InfoManager.FantnelInfo.GameVersion);
         Log.Information("CRC Salt 计算完成: {CrcSalt}....", InfoManager.FantnelInfo.CrcSalt[..6]);
         X19.CrcSalt = InfoManager.FantnelInfo.CrcSalt;
-
-        return new Services(new StandardYggdrasil());
     }
 }

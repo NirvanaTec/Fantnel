@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using Codexus.Development.SDK.Manager;
 using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Managers;
@@ -33,15 +26,15 @@ public class GameRpcService(
     private readonly List<byte[]> _sendCache = [];
     private readonly Skip32Cipher _skip32Cipher = new("SaintSteve"u8.ToArray());
 
-    private TcpClient _client;
+    private TcpClient? _client;
 
     private string _dirSkinPath = string.Empty;
     private bool _mIsLaunchIdxReady;
     private bool _mIsNormalExit;
-    private TcpListener _mMcControlListener;
-    private BinaryReader _reader;
-    private NetworkStream _stream;
-    private BinaryWriter _writer;
+    private TcpListener? _mMcControlListener;
+    private BinaryReader? _reader;
+    private NetworkStream? _stream;
+    private BinaryWriter? _writer;
 
     public void Connect(string skinPath)
     {
@@ -223,7 +216,7 @@ public class GameRpcService(
 
     private void OnCheckPlayerMsg(byte[] data)
     {
-        EntityCheckPlayerMessage content = null;
+        EntityCheckPlayerMessage? content = null;
         new SimpleUnpack(data).Unpack(ref content);
         if (content != null) {
             var array = SimplePack.Pack((ushort)18, content.Length, content.Message);
@@ -358,7 +351,7 @@ public class GameRpcService(
     {
         while (!_mIsNormalExit)
             try {
-                BinaryReader currentReader;
+                BinaryReader? currentReader;
                 lock (_lockObj) {
                     currentReader = _reader;
                 }

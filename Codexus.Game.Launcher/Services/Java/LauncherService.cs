@@ -1,10 +1,6 @@
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Codexus.Development.SDK.Utils;
 using Codexus.Game.Launcher.Entities;
 using Codexus.Game.Launcher.Services.Java.RPC;
@@ -18,21 +14,22 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 using WPFLauncherApi.Protocol;
 using WPFLauncherApi.Utils;
+using ArgumentNullException = BarsGroup.CodeGuard.Exceptions.ArgumentNullException;
 using TokenUtil = WPFLauncherApi.Utils.Cipher.TokenUtil;
 
 namespace Codexus.Game.Launcher.Services.Java;
 
 public sealed class LauncherService : IDisposable {
-    private readonly Skip32Cipher _skip32;
+    private readonly Skip32Cipher? _skip32;
 
     private readonly int _socketPort;
-    private AuthLibProtocol _authLibProtocol;
+    private AuthLibProtocol? _authLibProtocol;
 
     private bool _disposed;
 
-    private GameRpcService _gameRpcService;
+    private GameRpcService? _gameRpcService;
 
-    private EntityModsList _modList;
+    private EntityModsList? _modList;
 
     public LauncherService(EntityLaunchGame entityLaunchGame)
     {
@@ -46,7 +43,7 @@ public sealed class LauncherService : IDisposable {
 
     private Guid Identifier { get; }
 
-    private Process GameProcess { get; set; }
+    private Process? GameProcess { get; set; }
 
     public void Dispose()
     {
@@ -54,9 +51,19 @@ public sealed class LauncherService : IDisposable {
         GC.SuppressFinalize(this);
     }
 
-    public Process GetProcess()
+    public Process? GetProcess()
     {
         return GameProcess;
+    }
+
+    public int GetPid()
+    {
+        var process = GetProcess();
+        if (process == null) {
+            return -1;
+        }
+
+        return process.Id;
     }
 
     public Task ShutdownAsync()
@@ -66,7 +73,7 @@ public sealed class LauncherService : IDisposable {
             if (IsRunning()) {
                 _authLibProtocol?.Dispose();
                 _gameRpcService?.CloseControlConnection();
-                GameProcess.Kill();
+                GameProcess?.Kill();
             }
         } catch (Exception ex) {
             Log.Warning(ex, "Error occurred during shutdown");
@@ -109,7 +116,7 @@ public sealed class LauncherService : IDisposable {
         await StartGameProcessAsync(commandService);
     }
 
-    private async Task<EntityModsList> InstallGameModsAsync(EnumGameVersion enumVersion)
+    private async Task<EntityModsList?> InstallGameModsAsync(EnumGameVersion enumVersion)
     {
         return await InstallerService.InstallGameMods(enumVersion, Entity.GameId,
             Entity.GameType == EnumGType.ServerGame);
@@ -149,6 +156,10 @@ public sealed class LauncherService : IDisposable {
     {
         var commandService = new CommandService();
         var availablePort = NetworkUtil.GetAvailablePort(11413);
+
+        if (_skip32 == null) {
+            throw new ArgumentNullException(nameof(_skip32));
+        }
 
         commandService.Init(enumVersion, Entity,
             TokenUtil.GenerateEncryptToken(Entity.AccessToken),
@@ -201,9 +212,9 @@ public sealed class LauncherService : IDisposable {
         Log.Error("Game launch failed. Game Version: {GameVersion}, Role: {Role}", Entity.GameVersion, Entity.RoleName);
     }
 
-    public event Action<Guid> Exited;
+    public event Action<Guid>? Exited;
 
-    private void OnGameProcessExited(object sender, EventArgs e)
+    private void OnGameProcessExited(object? sender, EventArgs e)
     {
         Exited?.Invoke(Identifier);
     }
@@ -215,8 +226,7 @@ public sealed class LauncherService : IDisposable {
             try {
                 _authLibProtocol?.Dispose();
                 _gameRpcService?.CloseControlConnection();
-                var gameProcess = GameProcess;
-                if (gameProcess is { HasExited: false }) {
+                if (GameProcess is { HasExited: false }) {
                     GameProcess.Kill();
                     GameProcess.Dispose();
                 }

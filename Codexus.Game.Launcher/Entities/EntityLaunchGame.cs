@@ -1,21 +1,20 @@
 using System.Text.Json.Serialization;
-using OpenSDK.Entities.Config;
+using NirvanaAPI.Entities.Login;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 
 namespace Codexus.Game.Launcher.Entities;
 
 public class EntityLaunchGame {
-    // ReSharper disable once UnusedAutoPropertyAccessor.Global
-    [JsonPropertyName("game_name")] public string GameName { get; set; }
+    [JsonPropertyName("game_name")] public string GameName { get; set; } = string.Empty;
 
-    [JsonPropertyName("game_id")] public string GameId { get; init; }
+    [JsonPropertyName("game_id")] public string GameId { get; init; } = string.Empty;
 
     [JsonPropertyName("role_name")] public string RoleName { get; init; } = string.Empty;
 
-    [JsonPropertyName("user_id")] public string UserId { get; init; }
+    [JsonPropertyName("user_id")] public string UserId { get; init; } = string.Empty;
 
-    // ReSharper disable once UnusedAutoPropertyAccessor.Global
+
     [JsonPropertyName("client_type")] public EnumGameClientType ClientType { get; set; }
 
     [JsonPropertyName("game_type")] public EnumGType GameType { get; init; }
@@ -26,11 +25,9 @@ public class EntityLaunchGame {
 
     [JsonPropertyName("access_token")] public string AccessToken { get; init; } = string.Empty;
 
-    [JsonPropertyName("server_ip")] public string ServerIp { get; init; }
+    [JsonPropertyName("server_ip")] public string ServerIp { get; init; } = string.Empty;
 
     [JsonPropertyName("server_port")] public int ServerPort { get; init; }
-
-    [JsonPropertyName("max_game_memory")] public int MaxGameMemory { get; init; }
 
     [JsonPropertyName("load_core_mods")] public bool LoadCoreMods { get; init; }
 
@@ -43,7 +40,13 @@ public class EntityLaunchGame {
      */
     public bool Equals(EntityAccount gameAccount, string serverId, string nickname)
     {
-        return Equals(gameAccount?.UserId, serverId, nickname) || Equals(gameAccount);
+        if (gameAccount.UserId != null) {
+            if (Equals(gameAccount.UserId, serverId, nickname)) {
+                return true;
+            }
+        }
+
+        return Equals(gameAccount);
     }
 
     /**
@@ -66,8 +69,8 @@ public class EntityLaunchGame {
      * @param userToken 用户Token
      * @return 是否为同一个用户
      */
-    private bool Equals(EntityAccount gameUser)
+    private bool Equals(EntityAccount? gameUser)
     {
-        return gameUser?.UserId == UserId && gameUser?.Token != AccessToken;
+        return gameUser?.UserId == UserId && gameUser.Token != AccessToken;
     }
 }

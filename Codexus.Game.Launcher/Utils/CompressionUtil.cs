@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using NirvanaAPI.Utils;
 using Serilog;
 using SharpCompress.Archives;
@@ -14,7 +10,7 @@ namespace Codexus.Game.Launcher.Utils;
 
 public static class CompressionUtil {
     private static async Task ExtractZipAsync(string archivePath, string outPath,
-        Action<int> progress = null)
+        Action<int>? progress = null)
     {
         try {
             // 1. 打开压缩包并获取所有条目
@@ -46,7 +42,7 @@ public static class CompressionUtil {
     }
 
     public static async Task ExtractAsync(string archivePath, string outPath,
-        Action<int> progress = null)
+        Action<int>? progress = null)
     {
         if (Is7ZipFormat(archivePath))
             await Extract7ZAsync(archivePath, outPath, progress);
@@ -64,7 +60,7 @@ public static class CompressionUtil {
         return archive.Type == ArchiveType.SevenZip;
     }
 
-    private static async Task Extract7ZAsync(string archivePath, string outPath, Action<int> progress = null)
+    private static async Task Extract7ZAsync(string archivePath, string outPath, Action<int>? progress = null)
     {
         // 取文件信息
         var fileInfo = new FileInfo(archivePath);
@@ -82,7 +78,7 @@ public static class CompressionUtil {
      * 单文件解压
      * @return 是否成功
      */
-    private static bool Extract7Z_7ZIP(string archivePath, string outputDirectory, Action<int> progress = null)
+    private static bool Extract7Z_7ZIP(string archivePath, string outputDirectory, Action<int>? progress = null)
     {
         if (!File.Exists(archivePath)) {
             Log.Error("错误：压缩包文件不存在 - {ArchivePath}", archivePath);
@@ -129,7 +125,7 @@ public static class CompressionUtil {
     private static async Task ProcessEntriesFromQueueAsync(
         ConcurrentQueue<IArchiveEntry> entriesQueue,
         string destinationPath,
-        Action<int> progress,
+        Action<int>? progress,
         ProgressState progressState) // 传入封装了状态的对象
     {
         while (entriesQueue.TryDequeue(out var entry))
@@ -168,10 +164,7 @@ public static class CompressionUtil {
         // 虽然我们不能直接异步写入单个文件（SharpCompress API 本身未提供异步写入单个文件的方法），
         // 但我们通过并发处理多个 *不同* 的文件条目来实现整体上的多线程效果。
         // SemaphoreSlim 在这里起到了控制并发文件写入数量的作用。
-        await entry.WriteToFileAsync(fullPath, new ExtractionOptions {
-            ExtractFullPath = true,
-            Overwrite = true // 根据需要决定是否覆盖现有文件
-        });
+        await entry.WriteToFileAsync(fullPath);
     }
 
     private class ProgressState {

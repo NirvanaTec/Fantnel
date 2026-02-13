@@ -1,11 +1,10 @@
 ﻿using System.Text.Json;
 using Codexus.Development.SDK.Entities;
 using Codexus.Interceptors;
+using NirvanaAPI.Entities.Login;
+using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Manager;
-using NirvanaPublic.Utils;
-using OpenSDK.Entities.Config;
 using OpenSDK.Entities.Yggdrasil;
 using OpenSDK.Yggdrasil;
 using Serilog;
@@ -90,20 +89,27 @@ public class InterceptorMessage {
                 var modsJson = JsonSerializer.Deserialize<ModList>(_mods);
                 if (modsJson == null) throw new ErrorCodeException(ErrorCode.ModsError);
 
-                var success = await InitProgram.GetServices().Yggdrasil.JoinServerAsync(new GameProfile {
+                var success = await StandardYggdrasil.JoinServerAsync(new GameProfile {
                     GameId = _entityId,
                     GameVersion = _versionName,
                     BootstrapMd5 = pair.BootstrapMd5,
                     DatFileMd5 = pair.DatFileMd5,
                     Mods = modsJson,
-                    User = new UserProfile
-                        { UserId = int.Parse(_availableUser.GetUserId()), UserToken = _availableUser.GetToken() }
+                    User = new UserProfile(_availableUser)
                 }, serverId);
 
-                if (success.IsSuccess)
+                if (success.IsSuccess) {
                     Log.Information("认证完成!");
-                else
+                } else {
                     Log.Error("认证失败: {Error}", success.Error);
+                    try {
+                        if (AccountMessage.AutoUpdateAccount(_availableUser)) {
+                            ActiveGameAndProxies.CloseProxy(Interceptor);
+                        }
+                    } catch (Exception e) {
+                        Log.Error("认证失败: {account}: {Message}", _availableUser.Account, e.Message);
+                    }
+                }
             } catch (Exception ex) {
                 Log.Fatal("认证出错: {ex}", ex.Message);
             } finally {

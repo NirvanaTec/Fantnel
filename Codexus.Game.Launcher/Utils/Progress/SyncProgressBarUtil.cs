@@ -1,6 +1,4 @@
-using System;
 using System.Text;
-using System.Threading;
 
 namespace Codexus.Game.Launcher.Utils.Progress;
 
@@ -60,7 +58,7 @@ public static class SyncProgressBarUtil {
         public bool LastLineNewline { get; set; } = true;
     }
 
-    public class ProgressBar(int total = 100, ProgressBarOptions options = null) : IDisposable {
+    public class ProgressBar(int total = 100, ProgressBarOptions? options = null) : IDisposable {
         private readonly ProgressBarOptions _options = options ?? new ProgressBarOptions();
 
         private readonly char[] _spinnerChars = ['|', '/', '─', '\\'];

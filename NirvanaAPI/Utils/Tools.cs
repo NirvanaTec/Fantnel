@@ -26,28 +26,37 @@ public static class Tools {
         return !_isDebugMode;
     }
 
-    public static (T[], string) GetValueOrDefault<T>(string fileName)
+    public static (T[], string) GetValueOrDefaultList<T>(string fileName)
     {
-        var path = Path.Combine(PathUtil.ResourcePath, fileName);
-        List<T>? entity = [];
-        if (!File.Exists(path)) return (entity.ToArray(), path);
-
-        var json = File.ReadAllText(path, Encoding.UTF8);
-        try {
-            // 异常格式处理
-            entity = JsonSerializer.Deserialize<List<T>>(json);
-        } catch (Exception e) {
-            Console.WriteLine(e.Message);
-        }
+        var (list, path) = GetValueOrDefault<List<T?>>(fileName);
 
         // 处理空数组
-        entity ??= [];
-        // 过滤空值
-        foreach (var item in entity.ToArray())
-            if (item == null)
-                entity.Remove(item);
+        list ??= [];
 
-        return (entity.ToArray(), path);
+        // 过滤空值
+        var listNotNull = list.OfType<T>().ToArray();
+
+        return (listNotNull, path);
+    }
+
+
+    public static (T?, string) GetValueOrDefault<T>(string fileName)
+    {
+        var path = Path.Combine(PathUtil.ResourcePath, fileName);
+
+        if (!File.Exists(path)) {
+            return (default, path);
+        }
+
+        try {
+            // 异常格式处理
+            var json = File.ReadAllText(path, Encoding.UTF8);
+            return (JsonSerializer.Deserialize<T>(json), path);
+        } catch (Exception e) {
+            Log.Error("读取文件 {Path} 异常: {Message}", path, e.Message);
+        }
+
+        return (default, path);
     }
 
     // 获取异常信息 【简化版】
