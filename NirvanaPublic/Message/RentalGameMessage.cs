@@ -18,28 +18,28 @@ public static class RentalGameMessage {
      */
     public static async Task<EntityRentalGameDetails[]> GetServerList(int offset = 0, int pageSize = 10)
     {
-        var index = 0;
-        var count = 1; // 循环次数，超过后放弃
-        if (pageSize > 10) {
-            count = pageSize / 10 + 1;
-        }
+        var index = -pageSize; // 循环次数
+        var count = offset + pageSize;
 
         while (true) {
             // ServerList 有 就用缓存
             // 分页
-            var size = offset + pageSize;
-            if (_serverList.Count >= size) {
+            if (_serverList.Count >= count) {
                 var list = _serverList.Skip(offset).Take(pageSize).ToArray();
                 return GetServerList(list);
             }
 
-            if (++index > count) {
+            if (++index > 0) {
                 // 最后一页, 减少数量，避免丢失数据
+                count--;
                 pageSize--;
+                if (pageSize <= 0) {
+                    return [];
+                }
             } else {
                 var items = await WPFLauncher.GetRentalGameListAsync();
                 AddServerList(items);
-                Thread.Sleep(500);
+                Thread.Sleep(400);
             }
         }
     }

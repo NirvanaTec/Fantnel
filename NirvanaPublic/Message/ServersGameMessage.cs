@@ -20,12 +20,13 @@ public static class ServersGameMessage {
     public static async Task<EntityNetGameItem[]> GetServerList(int offset = 0, int pageSize = 10,
         bool safeImage = true)
     {
-        var index = 0;
+        var index = -pageSize;
+        var count = pageSize + offset;
+        
         while (true) {
             // ServerList 有 就用缓存
             // 分页
-            var size = pageSize + offset;
-            if (ServerList.Count >= size) {
+            if (ServerList.Count >= count) {
                 var list = ServerList.Skip(offset).Take(pageSize).ToArray();
                 if (!safeImage) {
                     return list;
@@ -45,11 +46,18 @@ public static class ServersGameMessage {
                 return list;
             }
 
-            if (++index > 1) {
+            if (++index > 0) {
                 // 最后一页, 减少数量，避免丢失数据
+                count--;
                 pageSize--;
+                if (pageSize <= 0) {
+                    return [];
+                }
             } else {
-                var items = await WPFLauncher.GetAvailableNetGamesAsync(ServerList.Count, size);
+                var items = await WPFLauncher.GetAvailableNetGamesAsync(ServerList.Count, 20);
+                if (items.Length == 0) {
+                    index = 2;
+                }
                 AddServerList(items);
             }
         }
