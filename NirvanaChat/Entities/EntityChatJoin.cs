@@ -4,13 +4,17 @@ using Codexus.Development.SDK.Connection;
 namespace NirvanaChat.Entities;
 
 public class EntityChatJoin {
-    [JsonPropertyName("mode")] public string Mode { get; set; } = "join";
+    [JsonPropertyName("mode")]
+    public string Mode { get; set; } = "join";
 
-    [JsonPropertyName("nickName")] public required string NickName { get; set; }
+    [JsonPropertyName("nickName")]
+    public required string NickName { get; set; }
 
-    [JsonPropertyName("gameId")] public required string GameId { get; set; }
+    [JsonPropertyName("gameId")]
+    public required string GameId { get; set; }
 
-    [JsonPropertyName("entityId")] public int EntityId { get; set; } = -1;
+    [JsonPropertyName("entityId")]
+    public int EntityId { get; set; } = -1;
 
 
     public bool Equals(string gameId)

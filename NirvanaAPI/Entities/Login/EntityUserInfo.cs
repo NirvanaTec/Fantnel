@@ -5,8 +5,11 @@ namespace NirvanaAPI.Entities.Login;
 
 // 登录信息
 public class EntityUserInfo {
-    [JsonPropertyName("token")] public string? Token { get; set; }
-    [JsonPropertyName("userId")] public string? UserId { get; set; }
+    [JsonPropertyName("token")]
+    public string? Token { get; set; }
+
+    [JsonPropertyName("userId")]
+    public string? UserId { get; set; }
 
     public string GetUserId()
     {

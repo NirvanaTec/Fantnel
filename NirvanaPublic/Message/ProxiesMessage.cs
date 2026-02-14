@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Codexus.Game.Launcher.Services.Java;
 using Codexus.Game.Launcher.Utils;
+using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
 using Serilog;
@@ -42,8 +43,22 @@ public static class ProxiesMessage {
         arguments.Add("--MainPid");
         arguments.Add(Environment.ProcessId.ToString());
 
+        var gameAccountId = InfoManager.GetGameAccount().Id;
+        if (gameAccountId == null) {
+            throw new ErrorCodeException(ErrorCode.LoadAccountError);
+        }
+        var gameAccountIdString = gameAccountId.ToString();
+        if (gameAccountIdString == null) {
+            throw new ErrorCodeException(ErrorCode.LoadAccountError);
+        }
+        
+        arguments.Add("--account");
+        arguments.Add(gameAccountIdString);
+
         var process = Tools.Restart(false, arguments);
-        if (process == null) throw new ErrorCodeException(ErrorCode.RestartFailed);
+        if (process == null) {
+            throw new ErrorCodeException(ErrorCode.RestartFailed);
+        }
         await ActiveGameAndProxies.Add(process, id, name, port);
     }
 

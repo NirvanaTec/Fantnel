@@ -3,5 +3,6 @@
 namespace NirvanaAPI.Entities.EntitiesNirvana;
 
 public class EntityMessage {
-    [JsonPropertyName("message")] public string Message { get; set; } = string.Empty;
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = string.Empty;
 }

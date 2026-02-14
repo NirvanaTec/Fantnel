@@ -6,21 +6,29 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
 namespace NirvanaPublic.Entities.NEL;
 
 public class EntityServerDetail {
-    [JsonPropertyName("id")] public string? Id { get; set; }
+    [JsonPropertyName("id")]
+    public string? Id { get; set; }
 
-    [JsonPropertyName("name")] public string? Name { get; set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
 
-    [JsonPropertyName("author")] public string? Author { get; set; }
+    [JsonPropertyName("author")]
+    public string? Author { get; set; }
 
-    [JsonPropertyName("createdAt")] public string? CreatedAt { get; set; }
+    [JsonPropertyName("createdAt")]
+    public string? CreatedAt { get; set; }
 
-    [JsonPropertyName("gameVersion")] public string? GameVersion { get; set; }
+    [JsonPropertyName("gameVersion")]
+    public string? GameVersion { get; set; }
 
-    [JsonPropertyName("address")] public string? Address { get; set; }
+    [JsonPropertyName("address")]
+    public string? Address { get; set; }
 
-    [JsonPropertyName("fullDescription")] public string? FullDescription { get; set; }
+    [JsonPropertyName("fullDescription")]
+    public string? FullDescription { get; set; }
 
-    [JsonPropertyName("brief_image_urls")] public string[]? BriefImageUrls { get; set; }
+    [JsonPropertyName("brief_image_urls")]
+    public string[]? BriefImageUrls { get; set; }
 
     public void Set(EntityNetGameItem? server)
     {

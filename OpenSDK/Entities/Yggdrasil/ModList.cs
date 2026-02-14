@@ -3,5 +3,6 @@
 namespace OpenSDK.Entities.Yggdrasil;
 
 public class ModList {
-    [JsonPropertyName("mods")] public List<Mod> Mods { get; init; } = [];
+    [JsonPropertyName("mods")]
+    public List<Mod> Mods { get; init; } = [];
 }

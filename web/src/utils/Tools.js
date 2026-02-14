@@ -6,9 +6,14 @@ export async function getHome_Info() {
     return axios("/api/home").then(res => res.data);
 }
 
-// Account 页
+// 获取所有账号
 export async function getAccounts() {
     return axios("/api/gameaccount/get").then(res => res.data);
+}
+
+// 获取可用账号
+export async function getAvailableAccounts() {
+    return axios("/api/gameaccount/available").then(res => res.data);
 }
 
 // 添加账号
@@ -58,7 +63,7 @@ export async function getServerInfo(id) {
 
 // 添加游戏名称
 export async function addServerRole(id, name) {
-    return axios.post("/api/gameserver/createname", {id, name}).then(res => res.data);
+    return axios.post("/api/gameserver/createname", { id, name }).then(res => res.data);
 }
 
 // 启动游戏代理
@@ -164,7 +169,7 @@ export async function getGameSkinDetail(id) {
 // 获取版本
 export async function getVersion() {
     try {
-        const res = await axios.get(`/api/version`, {timeout: 2000});
+        const res = await axios.get(`/api/version`, { timeout: 2000 });
         // 检查 data.id 是否存在
         if (!res.data.data || !res.data.data.id) {
             return {
@@ -236,7 +241,7 @@ export async function sortRentalServer() {
 
 // 添加租赁服角色
 export async function addRentalRole(id, name) {
-    return axios.post(`/api/gamerental/createname`, {id, name}).then(res => res.data);
+    return axios.post(`/api/gamerental/createname`, { id, name }).then(res => res.data);
 }
 
 // 获取租赁服 账号/角色
@@ -308,3 +313,29 @@ export async function getSettings() {
 export async function chatPrefix(value) {
     return axios.get(`/api/nirvana/set?mode=chatPrefix&value=${value}`).then(res => res.data);
 }
+
+// 自动登录游戏
+export async function autoLoginGame(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=autoLoginGame&value=${value}`).then(res => res.data);
+}
+
+// 自动登录游戏4399
+export async function autoLoginGame4399(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=autoLoginGame4399&value=${value}`).then(res => res.data);
+}
+
+// 自动登录游戏4399Com
+export async function autoLoginGame4399Com(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=autoLoginGame4399Com&value=${value}`).then(res => res.data);
+}
+
+// 自动登录游戏163Email
+export async function autoLoginGame163Email(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=autoLoginGame163Email&value=${value}`).then(res => res.data);
+}
+
+// 自动登录游戏Cookie
+export async function autoLoginGameCookie(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=autoLoginGameCookie&value=${value}`).then(res => res.data);
+}
+

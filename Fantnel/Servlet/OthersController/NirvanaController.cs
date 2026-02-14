@@ -61,8 +61,22 @@ public class NirvanaController : ControllerBase {
             case "chatPrefix":
                 NirvanaConfig.SetChatPrefix(value ?? "§6§l涅槃科技 §8|§r ");
                 break;
+            case "autoLoginGame":
+                NirvanaConfig.SetAutoLoginGame(value ?? "true");
+                break;
+            case "autoLoginGame4399":
+                NirvanaConfig.SetAutoLoginGame4399(value ?? "true");
+                break;
+            case "autoLoginGame4399Com":
+                NirvanaConfig.SetAutoLoginGame4399Com(value ?? "true");
+                break;
+            case "autoLoginGame163Email":
+                NirvanaConfig.SetAutoLoginGame163Email(value ?? "true");
+                break;
+            case "autoLoginGameCookie":
+                NirvanaConfig.SetAutoLoginGameCookie(value ?? "true");
+                break;
         }
-
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 

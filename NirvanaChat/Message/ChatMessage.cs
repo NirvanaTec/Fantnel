@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using Codexus.Development.SDK.Connection;
+using NirvanaAPI;
 using NirvanaAPI.Entities.EntitiesNirvana;
 using NirvanaChat.Entities;
 using NirvanaChat.Manager;
@@ -10,19 +11,16 @@ using Serilog;
 namespace NirvanaChat.Message;
 
 public static class ChatMessage {
+    
     private static readonly List<EntityChatJoin> Players = [];
 
     private static readonly Uri Url = new("ws://110.42.70.32:13423/ws/chat");
-    public static EntityChatConfig Config = new();
-
-    private static bool _friendlyMode; // 友好模式
+    private static EntityChatConfig _config = new();
 
     private static volatile bool _enabled; // 是否启用
 
     private static Timer? _heartbeat; // 心跳定时器
     private static ClientWebSocket _webSocket = new();
-
-    public static EntityNirvanaAccount Account { get; set; } = new();
 
     public static void Start()
     {
@@ -85,7 +83,7 @@ public static class ChatMessage {
         await _webSocket.ConnectAsync(Url, CancellationToken.None);
         Log.Information("[IRC] 连接成功!");
 
-        if (Account.IsNullOrEmpty()) {
+        if (NirvanaConfig.Config.IsNullOrEmpty()) {
             await RefreshChatConfigAsync();
         } else {
             await AuthenticateAsync();
@@ -101,16 +99,16 @@ public static class ChatMessage {
         }
     }
 
-    private static void OnHeartbeat(object? state)
+    public static void OnHeartbeat(object? state)
     {
         try {
-            if (Config.Heartbeats.Count == 0) {
+            if (_config.Heartbeats.Count == 0 || !NirvanaConfig.Config.ChatEnable) {
                 return;
             }
 
             foreach (var gameConnection in ChatManager.List) {
                 // 随机取 IrcInfo.Heartbeats
-                var heartbeat = Config.GetHeartbeat();
+                var heartbeat = _config.GetHeartbeat();
                 if (string.IsNullOrEmpty(heartbeat)) {
                     return;
                 }
@@ -132,14 +130,17 @@ public static class ChatMessage {
         _enabled = false;
         if (_heartbeat != null) {
             try {
-                await _heartbeat.DisposeAsync();
+                await _heartbeat.DisposeAsync(); // 停下
+                _heartbeat = null;
             } catch (Exception e) {
                 Log.Error("[IRC] 关闭心跳失败\n{message}", e.Message);
             }
         }
 
         try {
-            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", CancellationToken.None);
+            if (_webSocket.State == WebSocketState.Open) {
+                await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", CancellationToken.None);
+            }
         } catch (Exception e) {
             Log.Error("[IRC] 关闭连接失败\n{message}", e.Message);
         }
@@ -193,7 +194,7 @@ public static class ChatMessage {
 
     private static void ProcessAuth(string message)
     {
-        Account.Logout();
+        NirvanaConfig.Config.Logout();
         var messageObj = JsonSerializer.Deserialize<EntityMessage>(message);
         if (messageObj == null) {
             Log.Error("[IRC] 登录失败");
@@ -212,42 +213,41 @@ public static class ChatMessage {
             return;
         }
 
-        if (Account.IsNullOrEmpty()) {
+        if (NirvanaConfig.Config.IsNullOrEmpty()) {
             return;
         }
 
         var authMessage = new {
             mode = "auth",
-            account = Account.Account,
-            token = Account.Token
+            account = NirvanaConfig.Config.Account,
+            token = NirvanaConfig.Config.Token
         };
 
         await SendAsync(authMessage);
 
-        Log.Information("已发送认证请求。账户: {Account}", Account.Account);
+        Log.Information("已发送认证请求。账户: {Account}", NirvanaConfig.Config.Account);
 
-        await SetFriendlyAsync(_friendlyMode);
+        await SetFriendlyAsync(NirvanaConfig.Config.Friendly);
     }
 
     public static void SetFriendly(string value)
     {
-        _ = SetFriendlyAsync("true".Equals(value));
+        SetFriendly("true".Equals(value));
     }
 
-    public static void SetFriendly(bool value)
+    private static void SetFriendly(bool value)
     {
         _ = SetFriendlyAsync(value);
     }
 
     private static async Task SetFriendlyAsync(bool value)
     {
-        _friendlyMode = value;
 
         if (_webSocket.State != WebSocketState.Open) {
             return;
         }
 
-        if (Account.IsNullOrEmpty()) {
+        if (NirvanaConfig.Config.IsNullOrEmpty()) {
             return;
         }
 
@@ -294,7 +294,7 @@ public static class ChatMessage {
             return;
         }
 
-        Config = message;
+        _config = message;
     }
 
     private static void SendGameMessage(string message)
@@ -331,7 +331,7 @@ public static class ChatMessage {
     public static Dictionary<EntityChatPlayer, EntityChatJoin> GetPlayers(string gameId)
     {
         var players = new Dictionary<EntityChatPlayer, EntityChatJoin>();
-        foreach (var chatPlayer in Config.Players) {
+        foreach (var chatPlayer in _config.Players) {
             foreach (var player in chatPlayer.Players) {
                 if (player.Equals(gameId)) {
                     players.Add(chatPlayer, player);

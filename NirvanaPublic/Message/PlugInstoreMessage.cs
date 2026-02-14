@@ -78,7 +78,9 @@ public static class PlugInstoreMessage {
         var plugins = PluginMessage.GetPluginList();
         foreach (var plugin in plugins) {
             var downloadInfo = GetDownloadInfoUrl(plugin.Id);
-            if (downloadInfo?.Data == null || downloadInfo.Code != 1) continue;
+            if (downloadInfo?.Data == null || downloadInfo.Code != 1) {
+                continue;
+            }
             lock (plugin.Id) {
                 // 检测 插件 是否需要更新
                 if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize)) {
@@ -88,12 +90,16 @@ public static class PlugInstoreMessage {
             }
 
             // 依赖插件 为空 则 跳过，不检测依赖插件
-            if (downloadInfo.Data?.Dependencies == null) continue;
+            if (downloadInfo.Data?.Dependencies == null) {
+                continue;
+            }
 
             // 检测 依赖插件 是否需要更新
             foreach (var item in downloadInfo.Data.Dependencies)
                 lock (plugin.Id) {
-                    if (!NoEqualsPlugin(item.FileHash, item.FileSize)) continue;
+                    if (!NoEqualsPlugin(item.FileHash, item.FileSize)) {
+                        continue;
+                    }
                     PluginMessage.DeletePlugin(plugin.Id);
                     Download(item.Id);
                 }
