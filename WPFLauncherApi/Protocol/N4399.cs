@@ -29,14 +29,17 @@ public static class N4399 {
         var loginResponse = client.PostAsync("https://ptlogin.4399.com/ptlogin/login.do?v=1",
             new FormUrlEncodedContent(parameters.GetAll()));
 
-        if (!loginResponse.Result.IsSuccessStatusCode)
+        if (!loginResponse.Result.IsSuccessStatusCode) {
             throw new Exception("登录请求失败");
+        }
 
         var loginText = loginResponse.Result.Content.ReadAsStringAsync().Result;
 
         // 找到错误信息
         var errText = ExtractErrorTip(loginText);
-        if (errText.Length > 0) throw new Exception(errText);
+        if (errText.Length > 0) {
+            throw new Exception(errText);
+        }
 
         var cookieString = string.Join("; ", loginResponse.Result.Headers.GetValues("Set-Cookie")
             .Select(cookie => cookie.Split(';')[0].Trim())

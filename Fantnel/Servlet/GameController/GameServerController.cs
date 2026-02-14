@@ -10,6 +10,7 @@ namespace Fantnel.Servlet.GameController;
 [ApiController]
 [Route("[controller]")]
 public class GameServerController : ControllerBase {
+    
     [HttpGet("/api/gameserver/get")]
     public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10)
     {

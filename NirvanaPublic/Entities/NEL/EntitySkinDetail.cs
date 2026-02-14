@@ -5,19 +5,29 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
 namespace NirvanaPublic.Entities.NEL;
 
 public class EntitySkinDetail {
-    [JsonPropertyName("entity_id")] public string? EntityId { get; set; }
+    [JsonPropertyName("entity_id")]
+    public string? EntityId { get; set; }
 
-    [JsonPropertyName("brief_summary")] public string? BriefSummary { get; set; }
+    [JsonPropertyName("brief_summary")]
+    public string? BriefSummary { get; set; }
 
-    [JsonPropertyName("name")] public string? Name { get; set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
 
-    [JsonPropertyName("title_image_url")] public string? TitleImageUrl { get; set; }
+    [JsonPropertyName("title_image_url")]
+    public string? TitleImageUrl { get; set; }
 
-    [JsonPropertyName("like_num")] public int? LikeNum { get; set; }
+    [JsonPropertyName("like_num")]
+    public int? LikeNum { get; set; }
 
-    [JsonPropertyName("developer_name")] public string? DeveloperName { get; set; }
-    [JsonPropertyName("publish_time")] public string? PublishTime { get; set; }
-    [JsonPropertyName("download_num")] public long? DownloadNum { get; set; }
+    [JsonPropertyName("developer_name")]
+    public string? DeveloperName { get; set; }
+
+    [JsonPropertyName("publish_time")]
+    public string? PublishTime { get; set; }
+
+    [JsonPropertyName("download_num")]
+    public long? DownloadNum { get; set; }
 
     public void Set(EntityQueryNetSkinItem? skinItem)
     {

@@ -7,7 +7,8 @@ namespace WPFLauncherApi.Entities.EntitiesWPFLauncher;
 public class EntitiesWPFLauncher<T> : EntityWPFResponse {
     // [JsonPropertyName("details")] public string Details { get; set; } = string.Empty;
 
-    [JsonPropertyName("entities")] public T[] Data { get; init; } = [];
+    [JsonPropertyName("entities")]
+    public T[] Data { get; init; } = [];
 
     // [JsonPropertyName("total")]
     // [JsonConverter(typeof(NetEaseStringConverter))]

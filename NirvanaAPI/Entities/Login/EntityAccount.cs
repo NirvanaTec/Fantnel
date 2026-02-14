@@ -4,13 +4,21 @@ namespace NirvanaAPI.Entities.Login;
 
 public class EntityAccount : EntityUserInfo {
     // 基础信息
-    [JsonPropertyName("name")] public string? Name { get; init; }
-    [JsonPropertyName("account")] public string? Account { get; set; }
-    [JsonPropertyName("type")] public string? Type { get; init; }
-    [JsonPropertyName("password")] public string? Password { get; set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; init; }
+
+    [JsonPropertyName("account")]
+    public string? Account { get; set; }
+
+    [JsonPropertyName("type")]
+    public string? Type { get; init; }
+
+    [JsonPropertyName("password")]
+    public string? Password { get; set; }
 
     // 识别信息
-    [JsonPropertyName("id")] public int? Id { get; set; }
+    [JsonPropertyName("id")]
+    public int? Id { get; set; }
 
     /**
      * 根据 基础信息 判断 是否 是 同一个账号
@@ -37,4 +45,14 @@ public class EntityAccount : EntityUserInfo {
         Token = account.Token;
         UserId = account.UserId;
     }
+
+    public bool IsConfig()
+    {
+        return NirvanaConfig.Config.AutoLoginGame && (
+            ("4399".Equals(Type) && NirvanaConfig.Config.AutoLoginGame4399) || 
+            ("4399com".Equals(Type) && NirvanaConfig.Config.AutoLoginGame4399Com) || 
+            ("163Email".Equals(Type) && NirvanaConfig.Config.AutoLoginGame163Email) || 
+            ("cookie".Equals(Type) && NirvanaConfig.Config.AutoLoginGameCookie));
+    }
+
 }

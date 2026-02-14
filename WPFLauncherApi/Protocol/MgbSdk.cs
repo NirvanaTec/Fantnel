@@ -6,6 +6,7 @@ using WPFLauncherApi.Http;
 namespace WPFLauncherApi.Protocol;
 
 public class MgbSdk(string gameId) : IDisposable {
+    
     private static readonly JsonSerializerOptions DefaultOptions = new() {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };

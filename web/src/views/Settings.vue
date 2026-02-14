@@ -5,6 +5,48 @@
     </div>
 
     <div class="settings-container">
+      <!-- 自动登录配置卡片 -->
+      <div class="settings-card">
+        <h2 class="card-title">自动登录</h2>
+
+        <div class="form-group">
+          <div class="form-options">
+            <div class="remember-me">
+              <input v-model="isAutoLoginGame" class="form-checkbox" id="autoLoginGame" type="checkbox">
+              <label class="form-checkbox-label" for="autoLoginGame">开启主动登录</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-options">
+            <div class="remember-me">
+              <input v-model="isAutoLoginGame4399" class="form-checkbox" id="autoLoginGame4399" type="checkbox">
+              <label class="form-checkbox-label" for="autoLoginGame4399">开启主动登录4399</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-options">
+            <div class="remember-me">
+              <input v-model="isAutoLoginGame4399Com" class="form-checkbox" id="autoLoginGame4399Com" type="checkbox">
+              <label class="form-checkbox-label" for="autoLoginGame4399Com">开启主动登录4399Com</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-options">
+            <div class="remember-me">
+              <input v-model="isAutoLoginGame163Email" class="form-checkbox" id="autoLoginGame163Email" type="checkbox">
+              <label class="form-checkbox-label" for="autoLoginGame163Email">开启主动登录163Email</label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- IRC 配置卡片 -->
       <div class="settings-card">
         <h2 class="card-title">Chat | IRC</h2>
@@ -66,7 +108,7 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { Message } from '../utils/message.js'
-import { chatEnable, chatTarget, chatPrefix, jvmArgs, gameArgs, gameMemory as setGameMemory, getSettings } from '../utils/Tools.js'
+import { chatEnable, chatTarget, chatPrefix, jvmArgs, gameArgs, gameMemory as setGameMemory, getSettings, autoLoginGame, autoLoginGame4399, autoLoginGame4399Com, autoLoginGame163Email } from '../utils/Tools.js'
 
 const vmArgs = ref('')
 const gameArguments = ref('')
@@ -74,6 +116,10 @@ const gameMemory = ref('')
 const ircEnabled = ref(false)
 const playerIdentifier = ref(false)
 const chatPrefixValue = ref('')
+const isAutoLoginGame = ref(false)
+const isAutoLoginGame4399 = ref(false)
+const isAutoLoginGame4399Com = ref(false)
+const isAutoLoginGame163Email = ref(false)
 const isInitialLoading = ref(true)
 
 // 监听 IRC 开启状态变化
@@ -118,6 +164,34 @@ watch(chatPrefixValue, (newValue) => {
   }
 })
 
+// 监听自动登录状态变化
+watch(isAutoLoginGame, (newValue) => {
+  if (!isInitialLoading.value) {
+    handleAutoLoginGame(newValue)
+  }
+})
+
+// 监听自动登录4399状态变化
+watch(isAutoLoginGame4399, (newValue) => {
+  if (!isInitialLoading.value) {
+    handleAutoLoginGame4399(newValue)
+  }
+})
+
+// 监听自动登录4399Com状态变化
+watch(isAutoLoginGame4399Com, (newValue) => {
+  if (!isInitialLoading.value) {
+    handleAutoLoginGame4399Com(newValue)
+  }
+})
+
+// 监听自动登录163Email状态变化
+watch(isAutoLoginGame163Email, (newValue) => {
+  if (!isInitialLoading.value) {
+    handleAutoLoginGame163Email(newValue)
+  }
+})
+
 onMounted(() => {
   // 加载设置的逻辑
   loadSettings()
@@ -134,6 +208,10 @@ const loadSettings = async () => {
       ircEnabled.value = data.data.chatEnable || false
       playerIdentifier.value = data.data.chatTarget || false
       chatPrefixValue.value = data.data.chatPrefix || ''
+      isAutoLoginGame.value = data.data.autoLoginGame || false
+      isAutoLoginGame4399.value = data.data.autoLoginGame4399 || false
+      isAutoLoginGame4399Com.value = data.data.autoLoginGame4399Com || false
+      isAutoLoginGame163Email.value = data.data.autoLoginGame163Email || false
     } else {
       Message.warning(data.msg || '加载设置失败')
     }
@@ -215,6 +293,58 @@ const handleGameMemory = async (value) => {
 const handleChatPrefix = async (value) => {
   try {
     const data = await chatPrefix(value)
+    if (data.code === 1) {
+      Message.success(data.msg || '设置成功')
+    } else {
+      Message.warning(data.msg || '设置失败')
+    }
+  } catch (error) {
+    Message.error('设置失败，请检查网络连接')
+  }
+}
+
+const handleAutoLoginGame = async (value) => {
+  try {
+    const data = await autoLoginGame(value ? "true" : "false")
+    if (data.code === 1) {
+      Message.success(data.msg || '设置成功')
+    } else {
+      Message.warning(data.msg || '设置失败')
+    }
+  } catch (error) {
+    Message.error('设置失败，请检查网络连接')
+  }
+}
+
+const handleAutoLoginGame4399 = async (value) => {
+  try {
+    const data = await autoLoginGame4399(value ? "true" : "false")
+    if (data.code === 1) {
+      Message.success(data.msg || '设置成功')
+    } else {
+      Message.warning(data.msg || '设置失败')
+    }
+  } catch (error) {
+    Message.error('设置失败，请检查网络连接')
+  }
+}
+
+const handleAutoLoginGame4399Com = async (value) => {
+  try {
+    const data = await autoLoginGame4399Com(value ? "true" : "false")
+    if (data.code === 1) {
+      Message.success(data.msg || '设置成功')
+    } else {
+      Message.warning(data.msg || '设置失败')
+    }
+  } catch (error) {
+    Message.error('设置失败，请检查网络连接')
+  }
+}
+
+const handleAutoLoginGame163Email = async (value) => {
+  try {
+    const data = await autoLoginGame163Email(value ? "true" : "false")
     if (data.code === 1) {
       Message.success(data.msg || '设置成功')
     } else {

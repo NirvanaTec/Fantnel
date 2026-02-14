@@ -7,6 +7,7 @@ using NirvanaAPI.Utils.CodeTools;
 namespace NirvanaAPI;
 
 public class NirvanaConfig {
+    
     public const string JvmArgsConst =
         "-XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true"; // 虚拟机参数
 
@@ -98,4 +99,35 @@ public class NirvanaConfig {
         Config.ChatPrefix = value;
         SaveConfig();
     }
+
+    public static void SetAutoLoginGame(string value)
+    {
+        Config.AutoLoginGame = "true".Equals(value);
+        SaveConfig();
+    }
+
+    public static void SetAutoLoginGame4399(string value)
+    {
+        Config.AutoLoginGame4399 = "true".Equals(value);
+        SaveConfig();
+    }
+
+    public static void SetAutoLoginGame4399Com(string value)
+    {
+        Config.AutoLoginGame4399Com = "true".Equals(value);
+        SaveConfig();
+    }
+
+    public static void SetAutoLoginGame163Email(string value)
+    {
+        Config.AutoLoginGame163Email = "true".Equals(value);
+        SaveConfig();
+    }
+
+    public static void SetAutoLoginGameCookie(string value)
+    {
+        Config.AutoLoginGameCookie = "true".Equals(value);
+        SaveConfig();
+    }
+    
 }

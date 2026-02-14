@@ -17,16 +17,19 @@ public static class RestartTools {
         logoInit.Invoke();
 
         var mode = Get("mode", args);
-        if (mode != "proxy") return true;
-        var id = Get("id", args);
-        var name = Get("name", args);
-        var port = Get("port", args);
-        var proxyMode = Get("proxyMode", args);
-        if (string.IsNullOrEmpty(port)) port = "25565";
-        InitProgram.NelInit1();
-        ProxiesMessage.StartProxyAsyncTo(id, name, int.Parse(port), proxyMode).Wait();
-        Maintenance(args);
-        return false;
+        if (mode == "proxy") {
+            var id = Get("id", args, null);
+            var name = Get("name", args, null);
+            var accountId = Get<int>("account", args);
+            var port = Get("port", args, 25565);
+            var proxyMode = Get("proxyMode", args, "net");
+            AccountMessage.DisableDefaultLogin(); // 禁止默认登录
+            AccountMessage.SwitchAccountToForce(accountId); // 强制切换账号
+            InitProgram.NelInit1();
+            ProxiesMessage.StartProxyAsyncTo(id, name, port, proxyMode).Wait();
+            Maintenance(args);
+        }
+        return true;
     }
 
     /**
@@ -62,15 +65,19 @@ public static class RestartTools {
         }
     }
 
-    /**
-     * 获取参数值
-     */
-    private static string Get(string name, string[] args)
+    private static string Get(string name, string[] args, string? defaultValue = "")
     {
-        for (var i = 0; i < args.Length; i++)
-            if (args[i] == "--" + name)
-                return args[i + 1];
-
-        return "";
+        return Get<string>(name, args, defaultValue);
     }
+
+    private static T Get<T>(string name, string[] args, T? defaultValue = default)
+    {
+        for (var i = 0; i < args.Length; i++){
+            if (args[i] == "--" + name) {
+                return (T) Convert.ChangeType(args[i + 1], typeof(T));
+            }
+        }
+        return defaultValue ?? throw new Exception($"参数 {name} 不能为空");
+    }
+    
 }

@@ -3,32 +3,44 @@
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 
 public class EntityAuthenticationOtp {
-    [JsonPropertyName("entity_id")] public string EntityId { get; set; } = string.Empty;
+    [JsonPropertyName("entity_id")]
+    public string EntityId { get; set; } = string.Empty;
 
-    [JsonPropertyName("account")] public string Account { get; set; } = string.Empty;
+    [JsonPropertyName("account")]
+    public string Account { get; set; } = string.Empty;
 
-    [JsonPropertyName("token")] public string Token { get; set; } = string.Empty;
+    [JsonPropertyName("token")]
+    public string Token { get; set; } = string.Empty;
 
-    [JsonPropertyName("sead")] public string Sead { get; set; } = string.Empty;
+    [JsonPropertyName("sead")]
+    public string Sead { get; set; } = string.Empty;
 
-    [JsonPropertyName("hasMessage")] public bool HasMessage { get; set; }
+    [JsonPropertyName("hasMessage")]
+    public bool HasMessage { get; set; }
 
-    [JsonPropertyName("aid")] public string Aid { get; set; } = string.Empty;
+    [JsonPropertyName("aid")]
+    public string Aid { get; set; } = string.Empty;
 
-    [JsonPropertyName("sdkuid")] public string SdkUid { get; set; } = string.Empty;
+    [JsonPropertyName("sdkuid")]
+    public string SdkUid { get; set; } = string.Empty;
 
-    [JsonPropertyName("access_token")] public string AccessToken { get; set; } = string.Empty;
+    [JsonPropertyName("access_token")]
+    public string AccessToken { get; set; } = string.Empty;
 
     [JsonPropertyName("unisdk_login_json")]
     public string UniSdkLoginJson { get; set; } = string.Empty;
 
-    [JsonPropertyName("verify_status")] public int VerifyStatus { get; set; }
+    [JsonPropertyName("verify_status")]
+    public int VerifyStatus { get; set; }
 
-    [JsonPropertyName("hasGmail")] public bool HasGmail { get; set; }
+    [JsonPropertyName("hasGmail")]
+    public bool HasGmail { get; set; }
 
-    [JsonPropertyName("is_register")] public bool IsRegister { get; set; }
+    [JsonPropertyName("is_register")]
+    public bool IsRegister { get; set; }
 
-    [JsonPropertyName("env")] public string Env { get; set; } = string.Empty;
+    [JsonPropertyName("env")]
+    public string Env { get; set; } = string.Empty;
 
     [JsonPropertyName("last_server_up_time")]
     public long LastServerUpTime { get; set; }

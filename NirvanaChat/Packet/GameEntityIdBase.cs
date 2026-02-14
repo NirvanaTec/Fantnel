@@ -30,6 +30,7 @@ public class GameEntityIdBase : IPacket {
     public bool HandlePacket(GameConnection connection)
     {
         ChatMessage.Join(connection, EntityId);
+        ChatMessage.OnHeartbeat(null);
         Log.Information("[IRC] EntityId: {EntityId}", EntityId);
         return false;
     }

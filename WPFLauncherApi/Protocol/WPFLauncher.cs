@@ -24,6 +24,7 @@ namespace WPFLauncherApi.Protocol;
 
 // ReSharper disable once InconsistentNaming
 public static class WPFLauncher {
+    
     private static readonly MgbSdk Sdk = new("x19");
 
     public static readonly JsonSerializerOptions DefaultOptions = new() {

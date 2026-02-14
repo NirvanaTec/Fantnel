@@ -60,6 +60,9 @@ public static class InitProgram {
         CreateServices();
         Log.Information("------  完成 ------");
 
+        // 配置初始化
+        NirvanaAccountManager.Initialization();
+        
         // 默认登录
         AccountMessage.GetAccountList();
 
@@ -69,9 +72,6 @@ public static class InitProgram {
         for (var i = 0; i < 4 && !PublicProgram.LatestVersion; i++) {
             Log.Warning("当前版本不是最新版本，建议更新至最新版本，以获得更好的体验！");
         }
-
-        // 账号初始化
-        NirvanaAccountManager.Initialization();
 
         // 在线检测
         Online();

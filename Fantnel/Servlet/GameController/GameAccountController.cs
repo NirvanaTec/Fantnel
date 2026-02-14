@@ -13,10 +13,18 @@ namespace Fantnel.Servlet.GameController;
 [ApiController]
 [Route("[controller]")]
 public class GameAccountController : ControllerBase {
+    
     [HttpGet("/api/gameaccount/get")]
     public IActionResult GetAccountHttp()
     {
         var entity = AccountMessage.GetAccountList();
+        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
+    }
+    
+    [HttpGet("/api/gameaccount/available")]
+    public IActionResult GetAccountAvailableHttp()
+    {
+        var entity = AccountMessage.GetLoginAccountList();
         return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
     }
 

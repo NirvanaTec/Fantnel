@@ -51,7 +51,7 @@ public class CommandBase : IPacket {
             return true;
         }
 
-        if (ChatMessage.Account.IsNullOrEmpty()) {
+        if (NirvanaConfig.Config.IsNullOrEmpty()) {
             PacketTools.SendGameMessage("§e[IRC]: 请先登录账号", connection);
             return true;
         }

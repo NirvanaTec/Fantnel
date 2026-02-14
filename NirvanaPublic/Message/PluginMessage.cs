@@ -305,14 +305,18 @@ public static class PluginMessage {
     {
         lock (LockManager.PluginStatesLock) {
             var plugin = GetPluginToId(id);
-            if (plugin?.Path == null) throw new ErrorCodeException(ErrorCode.PluginNotFound);
+            if (plugin?.Path == null) {
+                throw new ErrorCodeException(ErrorCode.PluginNotFound);
+            }
 
             // 插件路径
             DeletePlugin(plugin);
         }
 
         // 删除依赖插件
-        foreach (var pluginId in DependenciesPlugin(id)) DeletePlugin(pluginId);
+        foreach (var pluginId in DependenciesPlugin(id)) {
+            DeletePlugin(pluginId);
+        }
     }
 
     // 删除插件
@@ -326,7 +330,9 @@ public static class PluginMessage {
         // 标记为待删除状态
         // 如果删除失败，重启时候会自动删除
         File.Move(path, path1);
-        if (File.Exists(path1)) path = path1;
+        if (File.Exists(path1)) {
+            path = path1;
+        }
 
         try {
             // 删除插件文件
@@ -334,6 +340,7 @@ public static class PluginMessage {
         } catch (Exception) {
             Log.Warning("插件 {name} 已标记为待删除状态", Path.GetFileName(plugin.Path));
         }
+        
     }
 
     /**

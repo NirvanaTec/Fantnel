@@ -35,6 +35,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Reference Include="Codexus.Cipher">
+          <HintPath>..\SDK\Codexus.Cipher.dll</HintPath>
+        </Reference>
         <Reference Include="Codexus.Interceptors">
             <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
         </Reference>

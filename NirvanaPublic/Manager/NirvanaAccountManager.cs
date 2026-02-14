@@ -36,10 +36,7 @@ public class NirvanaAccountManager {
         if (entity == null) {
             return;
         }
-
         NirvanaConfig.Config = entity;
-        ChatMessage.Account = entity;
-        ChatMessage.SetFriendly(entity.Friendly);
     }
 
     // 获取信息

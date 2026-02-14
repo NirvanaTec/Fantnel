@@ -3,5 +3,6 @@
 namespace NirvanaAPI.Entities.EntitiesNirvana;
 
 public class EntityMode {
-    [JsonPropertyName("mode")] public required string Mode { get; init; }
+    [JsonPropertyName("mode")]
+    public required string Mode { get; init; }
 }

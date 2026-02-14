@@ -6,30 +6,42 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 namespace Codexus.Game.Launcher.Entities;
 
 public class EntityLaunchGame {
-    [JsonPropertyName("game_name")] public string GameName { get; set; } = string.Empty;
+    [JsonPropertyName("game_name")]
+    public string GameName { get; set; } = string.Empty;
 
-    [JsonPropertyName("game_id")] public string GameId { get; init; } = string.Empty;
+    [JsonPropertyName("game_id")]
+    public string GameId { get; init; } = string.Empty;
 
-    [JsonPropertyName("role_name")] public string RoleName { get; init; } = string.Empty;
+    [JsonPropertyName("role_name")]
+    public string RoleName { get; init; } = string.Empty;
 
-    [JsonPropertyName("user_id")] public string UserId { get; init; } = string.Empty;
+    [JsonPropertyName("user_id")]
+    public string UserId { get; init; } = string.Empty;
 
 
-    [JsonPropertyName("client_type")] public EnumGameClientType ClientType { get; set; }
+    [JsonPropertyName("client_type")]
+    public EnumGameClientType ClientType { get; set; }
 
-    [JsonPropertyName("game_type")] public EnumGType GameType { get; init; }
+    [JsonPropertyName("game_type")]
+    public EnumGType GameType { get; init; }
 
-    [JsonPropertyName("game_version_id")] public int GameVersionId { get; init; }
+    [JsonPropertyName("game_version_id")]
+    public int GameVersionId { get; init; }
 
-    [JsonPropertyName("game_version")] public string GameVersion { get; init; } = string.Empty;
+    [JsonPropertyName("game_version")]
+    public string GameVersion { get; init; } = string.Empty;
 
-    [JsonPropertyName("access_token")] public string AccessToken { get; init; } = string.Empty;
+    [JsonPropertyName("access_token")]
+    public string AccessToken { get; init; } = string.Empty;
 
-    [JsonPropertyName("server_ip")] public string ServerIp { get; init; } = string.Empty;
+    [JsonPropertyName("server_ip")]
+    public string ServerIp { get; init; } = string.Empty;
 
-    [JsonPropertyName("server_port")] public int ServerPort { get; init; }
+    [JsonPropertyName("server_port")]
+    public int ServerPort { get; init; }
 
-    [JsonPropertyName("load_core_mods")] public bool LoadCoreMods { get; init; }
+    [JsonPropertyName("load_core_mods")]
+    public bool LoadCoreMods { get; init; }
 
     /**
      * 清理 相同/过期 的代理

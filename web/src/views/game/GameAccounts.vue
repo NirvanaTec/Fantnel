@@ -61,7 +61,8 @@
             <label>账号类型:</label>
             <select v-model="editingAccount.type">
               <option value="4399">4399</option>
-              <option value="163">163</option>
+              <option value="4399com">4399Com</option>
+              <option value="163Email">163Email</option>
               <option value="cookie">cookie/auth</option>
             </select>
           </div>
@@ -106,7 +107,8 @@
             <label>账号类型:</label>
             <select v-model="newAccount.type">
               <option value="4399">4399</option>
-              <!-- <option value="163">163</option> -->
+              <option value="4399com">4399Com</option>
+              <option value="163Email">163Email</option>
               <option value="cookie">cookie/auth</option>
             </select>
           </div>
@@ -199,7 +201,7 @@ const showEditModal = ref(false)
 const showAddModal = ref(false)
 const showCaptchaModal = ref(false)
 const editingAccount = ref({ id: null, name: null, account: null, password: null, type: null, userId: null })
-const newAccount = ref({ name: null, account: null, password: null, type: "4399" })
+const newAccount = ref({ name: null, account: null, password: null, type: "4399com" })
 
 // 验证码相关状态
 const captchaImage = ref(null);
@@ -212,7 +214,7 @@ const loggingIn = ref(false)
 
 function selectAccount1(id) {
   const account = accounts.value.find(acc => acc.id === id);
-  if (account && account.type === '4399') {
+  if (account && (account.type === '4399' || account.type === '4399com')) {
     // 4399账号需要验证码
     accountToLogin.value = id;
     if (!captchaImage.value) {

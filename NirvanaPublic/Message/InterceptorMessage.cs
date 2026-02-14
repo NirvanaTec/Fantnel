@@ -103,7 +103,7 @@ public class InterceptorMessage {
                 } else {
                     Log.Error("认证失败: {Error}", success.Error);
                     try {
-                        if (AccountMessage.AutoUpdateAccount(_availableUser)) {
+                        if (!AccountMessage.AutoUpdateAccount(_availableUser)) {
                             ActiveGameAndProxies.CloseProxy(Interceptor);
                         }
                     } catch (Exception e) {

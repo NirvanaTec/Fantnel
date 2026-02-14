@@ -20,7 +20,9 @@ public static class Program {
         InitProgram.NelInit(args, LogoInit);
 
         // 检查是否开启web服务
-        if (!RestartTools.Main(args, LogoInit)) return;
+        if (!RestartTools.Main(args, LogoInit)) {
+            return;
+        }
 
         var builder = WebApplication.CreateBuilder(args);
 

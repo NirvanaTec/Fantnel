@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
+using Codexus.Cipher.Entities.MPay;
+using Codexus.Cipher.Protocol;
 using NirvanaAPI.Entities;
 using NirvanaAPI.Entities.Login;
 using NirvanaAPI.Manager;
@@ -9,6 +11,7 @@ using NirvanaPublic.Manager;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Login;
 using WPFLauncherApi.Protocol;
+using WPFLauncher = WPFLauncherApi.Protocol.WPFLauncher;
 
 namespace NirvanaPublic.Message;
 
@@ -51,15 +54,29 @@ public static class AccountMessage {
     }
 
     /**
-     * 切换账号
+     * 切换账号 [安全]
      * @param id 账号Id
      */
     public static void SwitchAccount(int id)
     {
         var account = GetAccount(id);
         foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
-            InfoManager.GameAccount = gameAccount;
+            InfoManager.SetGameAccount(gameAccount);
             break;
+        }
+    }
+        
+    // 强制切换账号
+    public static void SwitchAccountToForce(int id)
+    {
+        InfoManager.SetGameAccount(GetAccount(id));
+    }
+    
+    // 禁止默认登录
+    public static void DisableDefaultLogin()
+    {
+        foreach (var gameAccount in GetAccountList1(false).Item1) {
+            IsDefaultLogin.Add(gameAccount.ToString());
         }
     }
 
@@ -70,8 +87,7 @@ public static class AccountMessage {
     public static EntityAccount[] GetLoginAccountList()
     {
         var accountList = GetAccountList();
-        return accountList.Where(account => InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(account)))
-            .ToArray();
+        return accountList.Where(account => InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(account))).ToArray();
     }
 
     /**
@@ -127,35 +143,35 @@ public static class AccountMessage {
             EntityAuthenticationOtp? result = null; // 登录结果
 
             switch (account.Type) {
-                // cookie
                 case "cookie":
                     result = WPFLauncher.LoginWithCookieAsync(account.Password).Result;
                     break;
+                case "4399" or "4399com" or "163Email" when account.Account == null || account.Password == null:
+                    throw new ErrorCodeException(ErrorCode.AccountError);
+                case "4399" or "4399com" when _session4399Id == null || Captcha4399 == null:
+                    throw new ErrorCodeException(ErrorCode.CaptchaNot);
                 case "4399": {
-                    if (_session4399Id == null || Captcha4399 == null) {
-                        throw new ErrorCodeException(ErrorCode.CaptchaNot);
-                    }
-
-                    if (account.Account == null) {
-                        throw new ErrorCodeException(ErrorCode.AccountError);
-                    }
-
                     var cookie = N4399.LoginWithPasswordAsync(account.Account, account.Password, _session4399Id,
                         Captcha4399);
                     result = WPFLauncher.LoginWithCookieAsync(cookie).Result;
                     UpdateCaptcha();
                     break;
                 }
+                case "4399com": {
+                    var cookie = NCom4399.LoginWithPasswordAsync(account.Account, account.Password, Captcha4399,
+                        _session4399Id);
+                    result = WPFLauncher.LoginWithCookieAsync(cookie).Result;
+                    UpdateCaptcha();
+                    break;
+                }
+                case "163Email": {
+                    var mpay = new MPay("aecfrxodyqaaaajp-g-x19", X19.GameVersion);
+                    var mPayUser = mpay.LoginWithEmailAsync(account.Account, account.Password).Result;
+                    var cookie = GenerateCookie(mPayUser, mpay.GetDevice());
+                    result = WPFLauncher.LoginWithCookieAsync(cookie).Result;
+                    break;
+                }
             }
-
-            //         case "163Email":
-            //             var mpay = new UniSdkMPay(Projects.DesktopMinecraft, "2.1.0");
-            //             await mpay.InitializeDeviceAsync();
-            //             var user = await mpay.LoginWithEmailAsync(account.Account, account.Password);
-            //             if (user == null) throw new ErrorCodeException(ErrorCode.EmailOrPasswordError);
-            //             result = await NirvanaPublic.Services.X19.ContinueAsync(user, mpay.Device);
-            //             break;
-
 
             // 登录完成
             if (result == null) {
@@ -172,6 +188,19 @@ public static class AccountMessage {
             // 登录成功后 保存账号
             SaveAccount();
         }
+    }
+
+    private static string GenerateCookie(
+        EntityMPayUserResponse user,
+        EntityDevice device)
+    {
+        return JsonSerializer.Serialize(new EntityX19Cookie() {
+            SdkUid = user.User.Id,
+            SessionId = user.User.Token,
+            Udid = Guid.NewGuid().ToString("N").ToUpper(),
+            DeviceId = device.Id,
+            AimInfo = "{\"aim\":\"127.0.0.1\",\"country\":\"CN\",\"tz\":\"+0800\",\"tzid\":\"\"}"
+        }, WPFLauncher.DefaultOptions);
     }
 
     // 保存账号到文件
@@ -229,7 +258,7 @@ public static class AccountMessage {
     }
 
     // 自动登录账号
-    private static void AutoLogin(EntityAccount account)
+    private static void AutoLogin(EntityAccount account, bool useConfig = false)
     {
         try {
             // 检查是否已登录过
@@ -237,15 +266,37 @@ public static class AccountMessage {
             if (disabled) {
                 return;
             }
-
             IsDefaultLogin.Add(account.ToString());
-            if (account.Type == "cookie") {
-                Login(account);
-            } else if (account is { Type: "4399", UserId: not null, Token: not null }) {
-                if (AutoUpdateAccount(account)) {
-                    InfoManager.AddAccount(account);
+            
+            Exception? exception = null;
+            var success = false;
+            if (account is { UserId: not null, Token: not null }) {
+                try
+                {
+                    if (AutoUpdateAccount(account)) {
+                        success = true;
+                    }
+                } catch (Exception e) {
+                    exception = e;
                 }
             }
+            
+            if (!success && account.Type is "cookie" or "163Email") {
+                var isAutoLogin = true;
+                if (useConfig) {
+                    isAutoLogin = account.IsConfig();
+                }
+                if (isAutoLogin) {
+                    Login(account);
+                    success = true;
+                    exception = null;
+                }
+            }
+
+            if (!success && exception != null) {
+                throw exception;
+            }
+            
         } catch (Exception e) {
             Log.Error("自动登录失败: {account}: {Message}", account.Id, e.Message);
         }
@@ -253,7 +304,7 @@ public static class AccountMessage {
 
     public static bool AutoUpdateAccount(EntityAccount account)
     {
-        InfoManager.GameAccount = account;
+        InfoManager.SetGameAccount(account);
         Exception? exception = null;
 
         try {
@@ -261,18 +312,18 @@ public static class AccountMessage {
             if (freeSkinCount > 0) {
                 // 登录成功
                 InfoManager.AddAccount(account);
-                return false;
+                return true;
             }
         } catch (Exception e) {
             exception = e;
         }
 
-        InfoManager.GameAccount = null;
+        InfoManager.SetGameAccount(null);
         account.UserId = null;
         account.Token = null;
         UpdateAccount(account, false);
 
-        return exception == null ? true : throw exception;
+        return exception == null ? false : throw exception;
     }
 
     // 删除账号到文件
@@ -295,7 +346,7 @@ public static class AccountMessage {
     {
         // 默认登录
         foreach (var item in entity) {
-            AutoLogin(item);
+            AutoLogin(item, true);
         }
     }
 
