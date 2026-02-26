@@ -11,7 +11,7 @@ public class EntityChatJoin {
     public required string NickName { get; set; }
 
     [JsonPropertyName("gameId")]
-    public required string GameId { get; set; }
+    public string GameId { get; set; } = "-1";
 
     [JsonPropertyName("entityId")]
     public int EntityId { get; set; } = -1;

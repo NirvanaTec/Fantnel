@@ -40,9 +40,10 @@ public static class Program {
         var app = builder.Build();
 
         // 没有配置时，默认监听 13521 端口
-        if (app.Urls.Count == 0)
+        if (app.Urls.Count == 0) {
             // 监听未被占用的端口
-            app.Urls.Add("http://localhost:" + Tools.GetUnusedPort(13521));
+            app.Urls.Add("http://0.0.0.0:" + Tools.GetUnusedPort(13521));
+        }
 
         // 配置 HTTP 请求管道。
         // if (app.Environment.IsDevelopment()) 
@@ -80,7 +81,17 @@ public static class Program {
 
             // 分割显示多个URL
             Log.Information("访问地址:");
-            foreach (var url in app.Urls) Log.Information("  {Url}", url);
+            foreach (var url in app.Urls) {
+                if (url.Contains("0.0.0.0")) {
+                    Log.Information("  {Url}", url.Replace("0.0.0.0", "localhost"));
+                    var local = Tools.GetLocalIpAddress();
+                    if (!"localhost".Equals(local)) {
+                        Log.Information("  {Url}", url.Replace("0.0.0.0", local));
+                    }
+                } else {
+                    Log.Information("  {Url}", url);
+                }
+            }
 
             Log.Information("本项目遵循 GNU GPL 3.0 协议开源");
             Log.Information("------");

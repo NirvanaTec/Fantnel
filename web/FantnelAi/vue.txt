@@ -1,0 +1,27 @@
+使用
+
+@fortawesome/fontawesome-free
+@fortawesome/fontawesome-svg-core
+@fortawesome/free-solid-svg-icons
+@fortawesome/vue-fontawesome
+
+@tailwindcss/vite
+tailwindcss
+
+vue-clipboard3
+vue-router
+
+axios
+
+vueuse/head
+
+创建一个 vite.vue3 的 Fantnel 前端项目
+
+server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:13521',
+        changeOrigin: true
+      }
+    }
+}

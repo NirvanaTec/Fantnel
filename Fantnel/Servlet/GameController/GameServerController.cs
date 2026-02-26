@@ -22,7 +22,6 @@ public class GameServerController : ControllerBase {
     public IActionResult GetIdServerHttp([FromQuery] string id)
     {
         var serverDetail = new EntityServerDetail();
-        serverDetail.Set(ServersGameMessage.GetServerById(id));
         serverDetail.Set(WPFLauncher.GetNetGameDetailByIdAsync(id).Result);
         serverDetail.Set(WPFLauncher.GetNetGameServerAddressAsync(id).Result);
         return Content(Code.ToJson(ErrorCode.Success, serverDetail), "application/json");

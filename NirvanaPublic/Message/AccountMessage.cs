@@ -17,7 +17,7 @@ namespace NirvanaPublic.Message;
 
 public static class AccountMessage {
     // 默认 自动登录 已执行完成
-    private static readonly List<string> IsDefaultLogin = [];
+    private static readonly List<EntityAccount> IsDefaultLogin = [];
 
     private static string? _session4399Id; // 验证ID
     public static string? Captcha4399; // 验证内容
@@ -76,7 +76,7 @@ public static class AccountMessage {
     public static void DisableDefaultLogin()
     {
         foreach (var gameAccount in GetAccountList1(false).Item1) {
-            IsDefaultLogin.Add(gameAccount.ToString());
+            IsDefaultLogin.Add(gameAccount);
         }
     }
 
@@ -116,11 +116,21 @@ public static class AccountMessage {
             foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(item))) {
                 item.UserId = gameAccount.UserId;
                 item.Token = gameAccount.Token;
+                break;
             }
         }
 
         if (defaultLogin) {
             DefaultLogin(entity);
+        }
+        
+        // 避免因配置加载的账号导致显示 UserId
+        foreach (var item in entity) {
+            var flag = InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(item));
+            if (!flag) {
+                item.UserId = null;
+                item.Token = null;
+            }
         }
 
         return (entity, path);
@@ -218,7 +228,6 @@ public static class AccountMessage {
             // 写入文件
             File.WriteAllText(accountPath, JsonSerializer.Serialize(accountList), Encoding.UTF8);
         }
-
         // 自动登录账号
         AutoLogin(account);
     }
@@ -231,9 +240,10 @@ public static class AccountMessage {
             var (accountList, accountPath) = GetAccountList1();
 
             // cookie 默认 假账号
-            if (account.Account == null && account.Type == "cookie")
+            if (account.Account == null && account.Type == "cookie") {
                 // 10 位时间戳
                 account.Account = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+            }
 
             // 增加账号
             accountList = accountList.Append(account).ToArray();
@@ -241,7 +251,6 @@ public static class AccountMessage {
             // 写入文件
             File.WriteAllText(accountPath, JsonSerializer.Serialize(accountList), Encoding.UTF8);
         }
-
         // 自动登录账号
         AutoLogin(account);
     }
@@ -262,14 +271,15 @@ public static class AccountMessage {
     {
         try {
             // 检查是否已登录过
-            var disabled = IsDefaultLogin.Any(defaultLogin => defaultLogin == account.ToString());
+            var disabled = IsDefaultLogin.Any(defaultLogin => defaultLogin.Equals(account));
             if (disabled) {
                 return;
             }
-            IsDefaultLogin.Add(account.ToString());
+            IsDefaultLogin.Add(account);
             
             Exception? exception = null;
             var success = false;
+            
             if (account is { UserId: not null, Token: not null }) {
                 try
                 {

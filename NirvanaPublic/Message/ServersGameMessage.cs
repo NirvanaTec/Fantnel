@@ -86,8 +86,9 @@ public static class ServersGameMessage {
     // 服务器列表[普通信息] - 添加
     private static void AddServerList(EntityNetGameItem[] gameItems)
     {
-        foreach (var item in gameItems)
+        foreach (var item in gameItems) {
             AddServerList(item);
+        }
     }
 
     /**

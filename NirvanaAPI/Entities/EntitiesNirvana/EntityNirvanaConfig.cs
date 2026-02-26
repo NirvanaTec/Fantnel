@@ -34,19 +34,16 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
    [JsonPropertyName("autoLoginGame")]
    public bool AutoLoginGame { get; set; } = true; // 自动登录游戏
    
-   [JsonPropertyName("autoLoginGame4399")]
-   public bool AutoLoginGame4399 { get; set; } = true; // 自动登录游戏4399
-   
-   [JsonPropertyName("autoLoginGame4399Com")]
-   public bool AutoLoginGame4399Com { get; set; } = true; // 自动登录游戏4399Com
-   
    [JsonPropertyName("autoLoginGame163Email")]
    public bool AutoLoginGame163Email { get; set; } = true; // 自动登录游戏163Email
    
    [JsonPropertyName("autoLoginGameCookie")]
    public bool AutoLoginGameCookie { get; set; } = true; // 自动登录游戏Cookie
-   
-    public void SetHideAccount(string value)
+
+   [JsonPropertyName("useJavaW")]
+   public bool UseJavaW { get; set; } = true; // 使用 javaW.exe
+
+   public void SetHideAccount(string value)
     {
         HideAccount = value == "true";
     }
@@ -65,4 +62,10 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
     {
         ChatTarget = value == "true";
     }
+
+    public void SetUseJavaW(string value)
+    {
+        UseJavaW = value == "true";
+    }
+
 }

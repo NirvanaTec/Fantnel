@@ -145,9 +145,11 @@ public static class Tools {
     public static string GetLocalIpAddress(bool localhost = true)
     {
         var host = Dns.GetHostEntry(Dns.GetHostName());
-        foreach (var ip in host.AddressList)
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
+        foreach (var ip in host.AddressList) {
+            if (ip.AddressFamily == AddressFamily.InterNetwork) {
                 return ip.ToString();
+            }
+        }
         return localhost ? "localhost" : "127.0.0.1";
     }
 

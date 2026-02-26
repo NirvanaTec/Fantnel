@@ -227,7 +227,9 @@ public static class InstallerService {
             var extractDir = Path.Combine(compDir, gameId + ".MD5");
             var archive = Path.Combine(compDir, gameId + ".json");
             var flag = !File.Exists(extractDir);
-            if (!flag) flag = await File.ReadAllTextAsync(extractDir) != comp.ResMd5;
+            if (!flag) {
+                flag = await File.ReadAllTextAsync(extractDir) != comp.ResMd5;
+            }
             if (!flag && File.Exists(archive)) {
                 var entityModsInfos = JsonSerializer.Deserialize<EntityModsList>(await File.ReadAllTextAsync(archive))
                     ?.Mods;

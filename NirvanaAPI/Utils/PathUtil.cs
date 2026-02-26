@@ -70,7 +70,10 @@ public static class PathUtil {
     private static string GetJavaExePath()
     {
         // Mac / Linux 没有 javaw.exe
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javaw.exe" : "java";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            return NirvanaConfig.Config.UseJavaW ? "javaw.exe" : "java.exe";
+        }
+        return "java";
     }
 
     // javaw 是否存在

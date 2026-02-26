@@ -11,6 +11,7 @@ namespace Fantnel.Servlet.OthersController;
 [ApiController]
 [Route("[controller]")]
 public class HomeController : ControllerBase {
+    
     // 设置主题
     [HttpGet("/api/theme/set")]
     public IActionResult SetTheme(string name)

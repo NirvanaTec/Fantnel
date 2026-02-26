@@ -1,0 +1,1 @@
+生成一个 .NET 10 的 C# WinUi3 的 Fantnel 前端项目

@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Manager;
 using NirvanaAPI.Utils.CodeTools;
 
 namespace Fantnel.Servlet;
@@ -7,16 +8,15 @@ namespace Fantnel.Servlet;
 [ApiController]
 [Route("[controller]")]
 public class TestController : ControllerBase {
+    
     [HttpGet("/api/test")]
     public IActionResult Test()
     {
-        var entryAssembly = Assembly.GetEntryAssembly();
-        if (entryAssembly != null) {
-            var fileName = entryAssembly.Location;
-            if (!string.IsNullOrEmpty(fileName))
-                return Content(Code.ToJson(ErrorCode.Success, fileName), "application/json");
+        foreach (var entity in InfoManager.GameAccountList) {
+            entity.UserId = "1213";
+            entity.Token = "1213";
         }
-
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
+    
 }
