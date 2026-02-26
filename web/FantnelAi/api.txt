@@ -72,7 +72,14 @@ Get Http:
   "msg": "成功"
 }
 
-/api/gameaccount/select?id=${游戏账号id} : 将账号设置为优先账号
+/api/gameaccount/select?id=${游戏账号id} : 登录账号
+return:
+{
+  "code": 1,
+  "msg": "成功"
+}
+
+/api/gameaccount/switch?id=${游戏账号id} : 将账号设置为优先账号
 return:
 {
   "code": 1,
@@ -324,7 +331,7 @@ status == 0 时 status 变成 1
   "msg": "成功"
 }
 
-/api/gamelaunch/close?id=${游戏id} : 关闭指定游戏
+/api/gamelaunch/close?id=${游戏data.index} : 关闭指定游戏
 {
   "code": 1,
   "msg": "成功"
@@ -357,7 +364,7 @@ status == 0 时 status 变成 1
   "msg": "成功"
 }
 
-/api/server/close?id=${代理id} : 关闭指定代理
+/api/server/close?id=${游戏data.index} : 关闭指定代理
 {
   "code": 1,
   "msg": "成功"
@@ -517,7 +524,7 @@ games: 优先账号 的 角色信息 [切换优先账号，会导致games改变]
   "msg": "成功"
 }
 
-/api/plugins/dependence?id=${网络服务器id}&version=${网络服务器游戏版本}
+/api/plugins/dependence?id=${网络服务器id}&version=${网络服务器游戏版本} : 获取可安装插件
 /api/plugins/dependence?id=4661334467366178884&version=1.20
 {
   "code": 1,
