@@ -1,6 +1,13 @@
 # Fantnel
 ## 本项目基于 [Codexus.OpenSDK](https://github.com/denetease/OpenSDK.NEL) 进行 重写/修改，后二次开发的 Web Api (C#) 完全脱离盒子 项目
 
+
+### 我们的核心优势
+1. 借助 CodexusApi 实现 CodexusPluginsX [涅槃云] ，加速插件商城。
+2. 借助 BmclApi 实现 Linux/MacOS 库资源修复。
+3. 参考 FaithXL [未发布] 启动器实现启动参数 解析/生成。
+4. 完善的 AI 文档，帮助 AI 生成 Fantnel UI。 [web/FantnelAi]
+
 ### 如何参与
 ```text
 如果您想为 Fantnel 做出贡献，或者有任何问题想要咨询，欢迎加入我们的官方QQ频道，或者在 GitHub 上提交 issue 或 pull request。

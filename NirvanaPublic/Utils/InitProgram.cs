@@ -145,18 +145,24 @@ public static class InitProgram {
     }
 
     // 将FantnelInit定义为类的静态方法
-    private static async Task FantnelInit(bool exitOnError = true)
+    private static async Task FantnelInit()
     {
-        var entity = await X19Extensions.Nirvana.Api<EntityInfo>("/fantnel.json");
-        if (entity == null) {
-            if (!exitOnError) return;
-            Log.Error("连接服务器失败!");
-            Thread.Sleep(6000);
-            Environment.Exit(1);
-            return;
+        for (var i = 0; i < 3; i++) {
+            try {
+                var entity = await X19Extensions.Nirvana.Api<EntityInfo>("/fantnel.json");
+                if (entity != null) {
+                    InfoManager.FantnelInfo = entity;
+                    return;
+                }
+            } catch (Exception e) {
+                Log.Error("连接服务器失败! 错误信息: {Exception}", e.Message);
+            }
+            if (i == 2) {
+                Log.Error("连接服务器失败!");
+                Thread.Sleep(6000);
+                Environment.Exit(1);
+            }
         }
-
-        InfoManager.FantnelInfo = entity;
     }
 
     // 创建服务

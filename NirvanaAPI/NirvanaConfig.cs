@@ -8,8 +8,7 @@ namespace NirvanaAPI;
 
 public class NirvanaConfig {
     
-    public const string JvmArgsConst =
-        "-XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true"; // 虚拟机参数
+    public const string JvmArgsConst = "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true"; // 虚拟机参数
 
     public static EntityNirvanaConfig Config = new();
 
@@ -70,6 +69,12 @@ public class NirvanaConfig {
         Config.SetChatTarget(value);
         SaveConfig();
     }
+    
+    public static void SetUseJavaW(string value)
+    {
+        Config.SetUseJavaW(value);
+        SaveConfig();
+    }
 
     public static void SetGameMemory(string value)
     {
@@ -103,18 +108,6 @@ public class NirvanaConfig {
     public static void SetAutoLoginGame(string value)
     {
         Config.AutoLoginGame = "true".Equals(value);
-        SaveConfig();
-    }
-
-    public static void SetAutoLoginGame4399(string value)
-    {
-        Config.AutoLoginGame4399 = "true".Equals(value);
-        SaveConfig();
-    }
-
-    public static void SetAutoLoginGame4399Com(string value)
-    {
-        Config.AutoLoginGame4399Com = "true".Equals(value);
         SaveConfig();
     }
 

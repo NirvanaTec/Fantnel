@@ -6,6 +6,7 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
 namespace NirvanaPublic.Entities.NEL;
 
 public class EntityServerDetail {
+    
     [JsonPropertyName("id")]
     public string? Id { get; set; }
 
@@ -30,22 +31,21 @@ public class EntityServerDetail {
     [JsonPropertyName("brief_image_urls")]
     public string[]? BriefImageUrls { get; set; }
 
-    public void Set(EntityNetGameItem? server)
-    {
-        if (server == null) throw new ErrorCodeException(ErrorCode.IdError);
-        Id = server.EntityId;
-        Name = server.Name;
-    }
-
-    public void Set(EntityQueryNetGameDetailItem data)
+    public void Set(EntityQueryNetGameDetailItem? data)
     {
         // 成功检测
-        if (data == null) throw new ErrorCodeException(ErrorCode.LogInNot);
+        if (data == null) {
+            throw new ErrorCodeException(ErrorCode.LogInNot);
+        }
+        Id = data.EntityId;
+        Name = data.Name;
         Author = data.DeveloperName;
         // unix 时间戳 转换为 文本
         CreatedAt = DateTimeOffset.FromUnixTimeSeconds(data.PublishTime).ToString("yyyy-MM-dd");
         GameVersion = "";
-        foreach (var version in data.McVersionList) GameVersion += version.Name + ", ";
+        foreach (var version in data.McVersionList) {
+            GameVersion += version.Name + ", ";
+        }
         // 删除最后一个逗号
         GameVersion = GameVersion.TrimEnd(',', ' ');
         FullDescription = data.DetailDescription;

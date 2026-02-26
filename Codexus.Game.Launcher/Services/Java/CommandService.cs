@@ -345,10 +345,12 @@ public class CommandService {
         // path, url
         var jarList = BuildJarListBase(cfg);
 
-        foreach (var jar in from jar in BuildJarListsByName(cfg)
-                 let isAdd = jarList.All(item => !item.Equals(jar))
-                 where isAdd
-                 select jar) {
+        foreach (var jar in BuildJarListsByName(cfg)
+                     .Select(jar => new {
+                         jar, isAdd = jarList.All(item => !item.Equals(jar))
+                     })
+                     .Where(t => t.isAdd)
+                     .Select(t => t.jar)) {
             jarList.Add(new EntityJavaFile(jar));
         }
 

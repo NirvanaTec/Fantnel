@@ -319,16 +319,6 @@ export async function autoLoginGame(value = "true") {
     return axios.get(`/api/nirvana/set?mode=autoLoginGame&value=${value}`).then(res => res.data);
 }
 
-// 自动登录游戏4399
-export async function autoLoginGame4399(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=autoLoginGame4399&value=${value}`).then(res => res.data);
-}
-
-// 自动登录游戏4399Com
-export async function autoLoginGame4399Com(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=autoLoginGame4399Com&value=${value}`).then(res => res.data);
-}
-
 // 自动登录游戏163Email
 export async function autoLoginGame163Email(value = "true") {
     return axios.get(`/api/nirvana/set?mode=autoLoginGame163Email&value=${value}`).then(res => res.data);
@@ -339,3 +329,7 @@ export async function autoLoginGameCookie(value = "true") {
     return axios.get(`/api/nirvana/set?mode=autoLoginGameCookie&value=${value}`).then(res => res.data);
 }
 
+// 使用JavaW
+export async function setUseJavaW(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=useJavaW&value=${value}`).then(res => res.data);
+}

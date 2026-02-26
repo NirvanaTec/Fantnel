@@ -66,4 +66,19 @@ public static class InfoManager {
     {
         return GetGameAccount().GetToken();
     }
+
+    public static void DeleteAccount(EntityWPFResponse message)
+    {
+        DeleteAccount(GetGameAccount(), message);
+    }
+
+    private static void DeleteAccount(EntityAccount account, EntityWPFResponse message)
+    {
+        foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
+            GameAccountList.Remove(gameAccount);
+            Log.Warning("账号 {account} 被删除! 原因{code}: {message}", gameAccount.Account, message.Code, message.Message);
+            break;
+        }
+    }
+    
 }

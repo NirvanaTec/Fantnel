@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using NirvanaAPI.Entities;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils.CodeTools;
 using Serilog;
@@ -93,7 +94,7 @@ public static class WPFLauncher {
                 GameId = gameId,
                 UserId = InfoManager.GetUserId()
             });
-        return response == null ? throw new ErrorCodeException() : response.Data;
+        return response == null ? throw new ErrorCodeException() : response.SafeEntity();
     }
 
     /**
@@ -123,7 +124,7 @@ public static class WPFLauncher {
                 Offset = 0,
                 Length = 10
             });
-        return entity == null ? throw new ErrorCodeException() : entity.Data;
+        return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
     }
 
     /**
@@ -159,10 +160,10 @@ public static class WPFLauncher {
                 ItemType = 1,
                 Length = length,
                 Offset = offset,
-                MasterTypeId = "2",
+                MasterTypeId = "2", // 2:网络服务器 3:模组 4:资源[光影/材质包] 5:小游戏/生存地图 6:恐怖/解密地图
                 SecondaryTypeId = ""
             });
-        return entity == null ? throw new ErrorCodeException() : entity.Data;
+        return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
     }
 
     /**
@@ -216,10 +217,12 @@ public static class WPFLauncher {
     private static async Task<EntityLoginOtp?> LoginOtpAsync(EntityX19CookieRequest cookieRequest)
     {
         var entity = await X19Extensions.Core.Api<EntityWPFLauncher<JsonElement?>>("/login-otp", cookieRequest);
-        if (entity == null)
+        if (entity == null) {
             throw new Exception("Failed to deserialize: login-otp");
-        if (entity.Code != 0 || !entity.Data.HasValue)
+        }
+        if (entity.Code != 0 || !entity.Data.HasValue) {
             throw new Exception("Failed to deserialize: " + entity.Message);
+        }
         return JsonSerializer.Deserialize<EntityLoginOtp>(entity.Data.Value.GetRawText());
     }
 
@@ -258,7 +261,6 @@ public static class WPFLauncher {
         if (entity == null) {
             throw new ErrorCodeException(ErrorCode.LoginError);
         }
-
         return entity.Code == 0 ? entity.Data : throw new EntityX19Exception(entity.Message, entity);
     }
 
@@ -282,7 +284,7 @@ public static class WPFLauncher {
                 WithPrice = true,
                 WithTitleImage = true
             });
-        return entity == null ? throw new ErrorCodeException(ErrorCode.NotFound) : entity.Data;
+        return entity == null ? throw new ErrorCodeException(ErrorCode.NotFound) : entity.SafeEntity();
     }
 
     /**
@@ -379,7 +381,7 @@ public static class WPFLauncher {
                 SecondaryTypeId = 31
             });
         if (entity == null) throw new ErrorCodeException();
-        return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity.Data;
+        return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity.SafeEntity();
     }
 
     /**
@@ -408,7 +410,7 @@ public static class WPFLauncher {
                 Year = 0
             });
         if (entity == null) throw new ErrorCodeException();
-        return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity.Data;
+        return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity.SafeEntity();
     }
 
     /**
@@ -423,7 +425,7 @@ public static class WPFLauncher {
                 McVersionId = (int)gameVersion,
                 GameType = isRental ? 8 : 2
             });
-        return entity == null ? throw new ErrorCodeException(ErrorCode.DetailError) : entity.Data;
+        return entity == null ? throw new ErrorCodeException(ErrorCode.DetailError) : entity.SafeEntity();
     }
 
     /**
@@ -437,7 +439,7 @@ public static class WPFLauncher {
                 ItemIdList = gameModList
             });
         if (entity == null) throw new ErrorCodeException();
-        return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity.Data;
+        return entity.Code != 0 ? throw new EntityX19Exception(entity.Message, entity) : entity.SafeEntity();
     }
 
     /**
@@ -491,10 +493,9 @@ public static class WPFLauncher {
         string userToken,
         EntityUserGameTextureRequest userGame)
     {
-        var entity = await X19Extensions.Gateway.Api<EntityWPFLauncher<EntityUserGameTexture[]>>(
+        var entity = await X19Extensions.Gateway.Api<EntityWPFLauncher<List<EntityUserGameTexture>>>(
             "/user-game-skin/query/search-by-type", userGame, userId, userToken);
-        if (entity == null) throw new ErrorCodeException();
-        return entity.Data == null ? throw new ErrorCodeException() : entity.Data.ToList();
+        return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
     }
 
     /**
@@ -508,7 +509,7 @@ public static class WPFLauncher {
                 Offset = offset,
                 SortType = 0
             });
-        return entity == null ? throw new ErrorCodeException() : entity.Data;
+        return entity == null ? throw new ErrorCodeException() : entity.SafeEntity();
     }
 
     /**

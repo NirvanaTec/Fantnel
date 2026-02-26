@@ -3,6 +3,7 @@
 namespace NirvanaAPI.Entities.EntitiesNirvana;
 
 public class EntityNirvanaAccount {
+    
     [JsonPropertyName("account")]
     public string Account { get; set; } = string.Empty;
 

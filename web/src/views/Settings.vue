@@ -21,17 +21,8 @@
         <div class="form-group">
           <div class="form-options">
             <div class="remember-me">
-              <input v-model="isAutoLoginGame4399" class="form-checkbox" id="autoLoginGame4399" type="checkbox">
-              <label class="form-checkbox-label" for="autoLoginGame4399">开启主动登录4399</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="form-options">
-            <div class="remember-me">
-              <input v-model="isAutoLoginGame4399Com" class="form-checkbox" id="autoLoginGame4399Com" type="checkbox">
-              <label class="form-checkbox-label" for="autoLoginGame4399Com">开启主动登录4399Com</label>
+              <input v-model="autoLoginGameCookie" class="form-checkbox" id="autoLoginGameCookie" type="checkbox">
+              <label class="form-checkbox-label" for="autoLoginGameCookie">开启主动登录Cookie</label>
             </div>
           </div>
         </div>
@@ -81,8 +72,17 @@
         <h2 class="card-title">启动配置</h2>
 
         <div class="form-group">
+          <div class="form-options">
+            <div class="remember-me">
+              <input v-model="useJavaW" class="form-checkbox" id="useJavaW" type="checkbox">
+              <label class="form-checkbox-label" for="useJavaW">使用JavaW</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label class="form-label">游戏内存: {{ gameMemory }}MB ({{ (gameMemory / 1024).toFixed(1) }}G)</label>
-          <input v-model="gameMemory" type="range" class="form-slider" min="1024" max="18432" step="1024">
+          <input v-model="gameMemory" type="range" class="form-slider" min="1024" max="18432" step="512">
           <div class="slider-labels">
             <span>1G</span>
             <span>18G</span>
@@ -108,18 +108,18 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { Message } from '../utils/message.js'
-import { chatEnable, chatTarget, chatPrefix, jvmArgs, gameArgs, gameMemory as setGameMemory, getSettings, autoLoginGame, autoLoginGame4399, autoLoginGame4399Com, autoLoginGame163Email } from '../utils/Tools.js'
+import { chatEnable, chatTarget, chatPrefix, jvmArgs, gameArgs, gameMemory as setGameMemory, getSettings, autoLoginGame, autoLoginGame163Email, setUseJavaW, autoLoginGameCookie as setAutoLoginGameCookie } from '../utils/Tools.js'
 
 const vmArgs = ref('')
 const gameArguments = ref('')
 const gameMemory = ref('')
+const useJavaW = ref(false)
 const ircEnabled = ref(false)
 const playerIdentifier = ref(false)
 const chatPrefixValue = ref('')
 const isAutoLoginGame = ref(false)
-const isAutoLoginGame4399 = ref(false)
-const isAutoLoginGame4399Com = ref(false)
 const isAutoLoginGame163Email = ref(false)
+const autoLoginGameCookie = ref(false)
 const isInitialLoading = ref(true)
 
 // 监听 IRC 开启状态变化
@@ -171,24 +171,24 @@ watch(isAutoLoginGame, (newValue) => {
   }
 })
 
-// 监听自动登录4399状态变化
-watch(isAutoLoginGame4399, (newValue) => {
-  if (!isInitialLoading.value) {
-    handleAutoLoginGame4399(newValue)
-  }
-})
-
-// 监听自动登录4399Com状态变化
-watch(isAutoLoginGame4399Com, (newValue) => {
-  if (!isInitialLoading.value) {
-    handleAutoLoginGame4399Com(newValue)
-  }
-})
-
 // 监听自动登录163Email状态变化
 watch(isAutoLoginGame163Email, (newValue) => {
   if (!isInitialLoading.value) {
     handleAutoLoginGame163Email(newValue)
+  }
+})
+
+// 监听自动登录Cookie状态变化
+watch(autoLoginGameCookie, (newValue) => {
+  if (!isInitialLoading.value) {
+    handleAutoLoginGameCookie(newValue)
+  }
+})
+
+// 监听使用JavaW状态变化
+watch(useJavaW, (newValue) => {
+  if (!isInitialLoading.value) {
+    handleUseJavaW(newValue)
   }
 })
 
@@ -205,12 +205,12 @@ const loadSettings = async () => {
       vmArgs.value = data.data.jvmArgs || ''
       gameArguments.value = data.data.gameArgs || ''
       gameMemory.value = data.data.gameMemory || '4096'
+      useJavaW.value = data.data.useJavaW || false
       ircEnabled.value = data.data.chatEnable || false
       playerIdentifier.value = data.data.chatTarget || false
       chatPrefixValue.value = data.data.chatPrefix || ''
       isAutoLoginGame.value = data.data.autoLoginGame || false
-      isAutoLoginGame4399.value = data.data.autoLoginGame4399 || false
-      isAutoLoginGame4399Com.value = data.data.autoLoginGame4399Com || false
+      autoLoginGameCookie.value = data.data.autoLoginGameCookie || false
       isAutoLoginGame163Email.value = data.data.autoLoginGame163Email || false
     } else {
       Message.warning(data.msg || '加载设置失败')
@@ -316,32 +316,6 @@ const handleAutoLoginGame = async (value) => {
   }
 }
 
-const handleAutoLoginGame4399 = async (value) => {
-  try {
-    const data = await autoLoginGame4399(value ? "true" : "false")
-    if (data.code === 1) {
-      Message.success(data.msg || '设置成功')
-    } else {
-      Message.warning(data.msg || '设置失败')
-    }
-  } catch (error) {
-    Message.error('设置失败，请检查网络连接')
-  }
-}
-
-const handleAutoLoginGame4399Com = async (value) => {
-  try {
-    const data = await autoLoginGame4399Com(value ? "true" : "false")
-    if (data.code === 1) {
-      Message.success(data.msg || '设置成功')
-    } else {
-      Message.warning(data.msg || '设置失败')
-    }
-  } catch (error) {
-    Message.error('设置失败，请检查网络连接')
-  }
-}
-
 const handleAutoLoginGame163Email = async (value) => {
   try {
     const data = await autoLoginGame163Email(value ? "true" : "false")
@@ -354,6 +328,35 @@ const handleAutoLoginGame163Email = async (value) => {
     Message.error('设置失败，请检查网络连接')
   }
 }
+
+// 处理使用JavaW状态变化
+const handleUseJavaW = async (value) => {
+  try {
+    const data = await setUseJavaW(value ? "true" : "false")
+    if (data.code === 1) {
+      Message.success(data.msg || '设置成功')
+    } else {
+      Message.warning(data.msg || '设置失败')
+    }
+  } catch (error) {
+    Message.error('设置失败，请检查网络连接')
+  }
+}
+
+// 处理自动登录Cookie状态变化
+const handleAutoLoginGameCookie = async (value) => {
+  try {
+    const data = await setAutoLoginGameCookie(value ? "true" : "false")
+    if (data.code === 1) {
+      Message.success(data.msg || '设置成功')
+    } else {
+      Message.warning(data.msg || '设置失败')
+    }
+  } catch (error) {
+    Message.error('设置失败，请检查网络连接')
+  }
+}
+
 </script>
 
 <style scoped>

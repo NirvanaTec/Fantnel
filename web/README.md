@@ -1,6 +1,9 @@
 # Fantnel WebUI
 介绍：Fantnel WebUI 是 Fantnel 项目的 Web 界面，用于管理/监控/操作 Fantnel 项目的运行状态。
 
+## FantnelAi
+介绍：FantnelAi 是 Fantnel WebUI 的 细节/功能 描述，用于让 ai 理解，并帮助 ai 生成相关的代码。
+
 ### 如何参与
 ```text
 如果您想为 Fantnel 做出贡献，或者有任何问题想要咨询，欢迎加入我们的官方QQ频道，或者在 GitHub 上提交 issue 或 pull request。

@@ -1,4 +1,6 @@
 ﻿using System.Text.Json.Serialization;
+using NirvanaAPI.Entities;
+using NirvanaAPI.Manager;
 
 namespace WPFLauncherApi.Entities.EntitiesWPFLauncher;
 
@@ -8,9 +10,16 @@ public class EntitiesWPFLauncher<T> : EntityWPFResponse {
     // [JsonPropertyName("details")] public string Details { get; set; } = string.Empty;
 
     [JsonPropertyName("entities")]
-    public T[] Data { get; init; } = [];
+    public T[]? Data { get; init; }
 
     // [JsonPropertyName("total")]
     // [JsonConverter(typeof(NetEaseStringConverter))]
     // public int Total { get; set; }
+    
+    public new T[] SafeEntity()
+    {
+        base.SafeEntity();
+        return Data ?? throw new EntityX19Exception(Message, this);
+    }
+    
 }

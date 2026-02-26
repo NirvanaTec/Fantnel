@@ -64,17 +64,14 @@ public class NirvanaController : ControllerBase {
             case "autoLoginGame":
                 NirvanaConfig.SetAutoLoginGame(value ?? "true");
                 break;
-            case "autoLoginGame4399":
-                NirvanaConfig.SetAutoLoginGame4399(value ?? "true");
-                break;
-            case "autoLoginGame4399Com":
-                NirvanaConfig.SetAutoLoginGame4399Com(value ?? "true");
-                break;
             case "autoLoginGame163Email":
                 NirvanaConfig.SetAutoLoginGame163Email(value ?? "true");
                 break;
             case "autoLoginGameCookie":
                 NirvanaConfig.SetAutoLoginGameCookie(value ?? "true");
+                break;
+            case "useJavaW":
+                NirvanaConfig.SetUseJavaW(value ?? "true");
                 break;
         }
         return Content(Code.ToJson(ErrorCode.Success), "application/json");

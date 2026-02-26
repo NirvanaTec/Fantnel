@@ -34,7 +34,9 @@ public class EntityRentalDetail {
 
     public void Set(EntityRentalGameDetails entity)
     {
-        if (entity == null) throw new ErrorCodeException(ErrorCode.IdError);
+        if (entity == null) {
+            throw new ErrorCodeException(ErrorCode.IdError);
+        }
         Id = entity.EntityId;
         Name = entity.ServerName;
         ImageUrl = entity.ImageUrl;
