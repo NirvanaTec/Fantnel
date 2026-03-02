@@ -4,6 +4,7 @@ using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.Nirvana;
 using NirvanaPublic.Entities.Plugin;
 using NirvanaPublic.Manager;
+using Serilog;
 using WPFLauncherApi.Http;
 
 namespace NirvanaPublic.Message;
@@ -21,15 +22,18 @@ public static class PlugInstoreMessage {
             if (PluginList.Count < size) GetPluginList(0, size).Wait();
             // 分页
             size = (offset == 0 ? 1 : offset) * limit;
-            if (PluginList.Count >= size)
+            if (PluginList.Count >= size) {
                 return PluginList.Skip(size - limit).Take(limit).ToArray();
+            }
         }
 
         // 没有 就从 插件商店 获取
-        var plugins =
-            await X19Extensions.Nirvana.Api<EntityResponse<EntityComponents[]>>(
-                $"/api/fantnel/plugin/get?offset={offset}&limit={limit}");
-        if (plugins?.Data == null) throw new ErrorCodeException(ErrorCode.FormatError);
+        var plugins = await X19Extensions.Nirvana.Api<EntityResponse<EntityComponents[]>>(
+            $"/api/fantnel/plugin/get?offset={offset}&limit={limit}");
+        if (plugins?.Data == null) {
+            throw new ErrorCodeException(ErrorCode.FormatError);
+        }
+
         AddServerList(plugins.Data);
         return plugins.Data;
     }
@@ -37,8 +41,9 @@ public static class PlugInstoreMessage {
     // 插件列表 - 添加
     private static void AddServerList(EntityComponents[] entities)
     {
-        foreach (var entity in entities)
+        foreach (var entity in entities) {
             AddServerList(entity);
+        }
     }
 
     // 插件列表 - 添加
@@ -46,8 +51,9 @@ public static class PlugInstoreMessage {
     {
         lock (LockManager.PluginListLock) {
             // 插件列表 没有 就添加
-            if (PluginList.All(plugin => plugin.Id != entity.Id))
+            if (PluginList.All(plugin => plugin.Id != entity.Id)) {
                 PluginList.Add(entity);
+            }
         }
     }
 
@@ -77,14 +83,15 @@ public static class PlugInstoreMessage {
 
         var plugins = PluginMessage.GetPluginList();
         foreach (var plugin in plugins) {
+            
             var downloadInfo = GetDownloadInfoUrl(plugin.Id);
             if (downloadInfo?.Data == null || downloadInfo.Code != 1) {
                 continue;
             }
+
             lock (plugin.Id) {
                 // 检测 插件 是否需要更新
                 if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize)) {
-                    PluginMessage.DeletePlugin(plugin.Id);
                     Download(plugin.Id);
                 }
             }
@@ -95,33 +102,43 @@ public static class PlugInstoreMessage {
             }
 
             // 检测 依赖插件 是否需要更新
-            foreach (var item in downloadInfo.Data.Dependencies)
+            foreach (var item in downloadInfo.Data.Dependencies) {
                 lock (plugin.Id) {
-                    if (!NoEqualsPlugin(item.FileHash, item.FileSize)) {
-                        continue;
+                    if (NoEqualsPlugin(item.FileHash, item.FileSize)) {
+                        Download(item.Id);
                     }
-                    PluginMessage.DeletePlugin(plugin.Id);
-                    Download(item.Id);
                 }
+            }
+            
         }
-
-        // 清理相同ID的插件
-        PluginMessage.CleanSameIdPlugin();
     }
 
     // 插件列表 - 下载
     private static void Download(string id)
     {
         var detail = GetPluginDetail(id);
-        if (detail?.Data?.Name == null) throw new ErrorCodeException(ErrorCode.NotFound);
+        if (detail?.Data?.Name == null) {
+            throw new ErrorCodeException(ErrorCode.NotFound);
+        }
+
+        PluginMessage.DeletePlugin(id);
         // 下载插件 保存路径
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
         // 自动插件 插件 文件夹
         Directory.CreateDirectory(path);
         // 自动插件 插件 文件名
-        path = Path.Combine(path, detail.Data.Name + " [" + detail.Data.Version + "].dll");
-        DownloadUtil.DownloadAsync(GetDownloadUrl(id), path, detail.Data.Name + " [" + detail.Data.Version + "]")
-            .Wait();
+        path = Path.Combine(path, detail.Data.Name + " [" + detail.Data.Version + "]");
+        if (File.Exists(path + ".dll")) {
+            try {
+                File.Delete(path + ".dll");
+            } catch (Exception e) {
+                Log.Error("删除插件文件失败: {0}", e.Message);
+                path += "." + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            }
+        }
+
+        path += ".dll";
+        DownloadUtil.DownloadAsync(GetDownloadUrl(id), path, detail.Data.Name + " [" + detail.Data.Version + "]").Wait();
     }
 
     /**
@@ -136,10 +153,17 @@ public static class PlugInstoreMessage {
         var filesPath = PluginMessage.GetPluginDirectoryAndMd5List();
         for (var i = 0; i < filesPath.Item2.Length; i++) {
             // MD5 不匹配 则跳过
-            if (fileMd5 is { Length: > 31 } && !filesPath.Item2[i].Equals(fileMd5)) continue;
+            if (fileMd5 is { Length: > 31 }) {
+                if (!filesPath.Item2[i].Equals(fileMd5)) {
+                    continue;
+                }
+            }
+
             // 文件大小 匹配 则返回
             var file = new FileInfo(filesPath.Item1[i]);
-            if (fileSize != null && fileSize == file.Length) return false;
+            if (fileSize == file.Length) {
+                return false;
+            }
         }
 
         return true;
@@ -149,19 +173,26 @@ public static class PlugInstoreMessage {
     {
         lock (id) {
             var downloadInfo = GetDownloadInfoUrl(id);
-            if (downloadInfo?.Data == null || downloadInfo.Code != 1)
+            if (downloadInfo?.Data == null || downloadInfo.Code != 1) {
                 throw new ErrorCodeException(ErrorCode.Failure, downloadInfo);
+            }
 
             // 检测 插件
-            if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize)) Download(id);
+            if (NoEqualsPlugin(downloadInfo.Data.FileHash, downloadInfo.Data.FileSize)) {
+                Download(id);
+            }
 
             // 依赖插件 为空 则 直接返回成功
-            if (downloadInfo.Data?.Dependencies == null) return;
+            if (downloadInfo.Data?.Dependencies == null) {
+                return;
+            }
 
             // 检测 依赖插件
-            foreach (var item in downloadInfo.Data.Dependencies)
-                if (NoEqualsPlugin(item.FileHash, item.FileSize))
+            foreach (var item in downloadInfo.Data.Dependencies) {
+                if (NoEqualsPlugin(item.FileHash, item.FileSize)) {
                     Download(item.Id);
+                }
+            }
         }
     }
 }

@@ -46,9 +46,7 @@ public static class InstallerService {
         if (File.Exists(md5Path) && await File.ReadAllTextAsync(md5Path) == md5) return;
 
         var progress = new SyncProgressBarUtil.ProgressBar();
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => {
-            progress.Update(update.Percent, update.Message);
-        });
+        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => { progress.Update(update.Percent, update.Message); });
         await DownloadUtil.DownloadAsync(url, zipPath, p => {
             uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
                 Percent = p,
@@ -172,9 +170,7 @@ public static class InstallerService {
             });
 
         var progress = new SyncProgressBarUtil.ProgressBar();
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => {
-            progress.Update(update.Percent, update.Message);
-        });
+        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => { progress.Update(update.Percent, update.Message); });
         var corePath = Path.Combine(PathUtil.GameModsPath, gameId);
         if (Directory.Exists(corePath)) Directory.Delete(corePath, true);
         var idx = 0;
@@ -230,6 +226,7 @@ public static class InstallerService {
             if (!flag) {
                 flag = await File.ReadAllTextAsync(extractDir) != comp.ResMd5;
             }
+
             if (!flag && File.Exists(archive)) {
                 var entityModsInfos = JsonSerializer.Deserialize<EntityModsList>(await File.ReadAllTextAsync(archive))
                     ?.Mods;
@@ -294,9 +291,7 @@ public static class InstallerService {
 
     private static void InstallCustomMods(string mods)
     {
-        FileUtil.EnumerateFiles(PathUtil.CustomModsPath, "jar").ToList().ForEach(f => {
-            FileUtil.CopyFileSafe(f, Path.Combine(mods, Path.GetFileName(f)));
-        });
+        FileUtil.EnumerateFiles(PathUtil.CustomModsPath, "jar").ToList().ForEach(f => { FileUtil.CopyFileSafe(f, Path.Combine(mods, Path.GetFileName(f))); });
     }
 
     public static string PrepareGameRuntime(string gameId, string roleName, EnumGType gameType)

@@ -40,16 +40,6 @@ public class HttpWrapper : IDisposable {
         return await obj.Content.ReadAsStringAsync(cancellationToken);
     }
 
-    public async Task<string> GetStringAsync1(
-        string url,
-        Action<HttpWrapperBuilder>? block = null,
-        CancellationToken cancellationToken = default)
-    {
-        var obj = await GetAsync1(url, block, cancellationToken);
-        obj.EnsureSuccessStatusCode();
-        return await obj.Content.ReadAsStringAsync(cancellationToken);
-    }
-
     public async Task<T?> GetAsync<T>(string url, Action<HttpRequestOptions>? configure = null,
         CancellationToken cancellationToken = default)
     {
@@ -60,13 +50,6 @@ public class HttpWrapper : IDisposable {
         CancellationToken cancellationToken = default)
     {
         var request = CreateRequest(HttpMethod.Get, url, configure);
-        return await Client.SendAsync(request, cancellationToken);
-    }
-
-    public async Task<HttpResponseMessage> GetAsync1(string url, Action<HttpWrapperBuilder>? block = null,
-        CancellationToken cancellationToken = default)
-    {
-        var request = CreateRequest(HttpMethod.Get, url, string.Empty, block);
         return await Client.SendAsync(request, cancellationToken);
     }
 

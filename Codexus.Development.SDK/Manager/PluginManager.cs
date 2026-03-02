@@ -1,46 +1,17 @@
-using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text.Json;
 using Codexus.Development.SDK.Plugin;
 using Serilog;
 
 namespace Codexus.Development.SDK.Manager;
 
 public class PluginManager {
-    private const string UninstallPluginFile = ".ug_cache";
-
     private static PluginManager? _instance;
 
     private readonly HashSet<string> _loadedFiles = [];
 
-    private readonly Lock _writeFileLock = new();
-
     public readonly Dictionary<string, PluginState> Plugins = new();
 
     public static PluginManager Instance => _instance ??= new PluginManager();
-
-    public void EnsureUninstall()
-    {
-        using (_writeFileLock.EnterScope()) {
-            if (!File.Exists(".ug_cache")) {
-                File.WriteAllText(".ug_cache", JsonSerializer.Serialize(new HashSet<string>()));
-                return;
-            }
-
-            var hashSet = JsonSerializer.Deserialize<HashSet<string>>(File.ReadAllText(".ug_cache"));
-            if (hashSet == null) {
-                return;
-            }
-
-            foreach (var item in hashSet) {
-                File.Delete(item);
-            }
-
-            File.Delete(".ug_cache");
-            File.WriteAllText(".ug_cache", JsonSerializer.Serialize(new HashSet<string>()));
-        }
-    }
 
     public void LoadPlugins(string directory)
     {
@@ -200,7 +171,7 @@ public class PluginManager {
         var dictionary2 = new Dictionary<string, List<string>>();
         var inDegree = new Dictionary<string, int>();
         foreach (var value in Plugins.Values) {
-            dictionary2[value.Id] = new List<string>();
+            dictionary2[value.Id] = [];
             inDegree[value.Id] = 0;
         }
 
@@ -247,67 +218,6 @@ public class PluginManager {
                 item5.Plugin.OnInitialize();
                 item5.IsInitialized = true;
             }
-        }
-    }
-
-    public void UninstallPlugin(string pluginId)
-    {
-        if (Plugins.TryGetValue(pluginId, out var value)) {
-            value.Status = "Waiting Restart";
-            const int num = 1;
-            var list = new List<string>(num);
-            CollectionsMarshal.SetCount(list, num);
-            var span = CollectionsMarshal.AsSpan(list);
-            const int index = 0;
-            span[index] = value.Path;
-            UninstallPluginWithPaths(list);
-        }
-    }
-
-    public void UninstallPluginWithPaths(List<string> paths)
-    {
-        using (_writeFileLock.EnterScope()) {
-            var hashSet = JsonSerializer.Deserialize<HashSet<string>>(File.ReadAllText(".ug_cache"));
-            if (hashSet == null) {
-                Log.Error("Failed to read uninstall file");
-                return;
-            }
-
-            foreach (var path in paths) {
-                hashSet.Add(path);
-            }
-
-            File.WriteAllText(".ug_cache", JsonSerializer.Serialize(hashSet));
-        }
-    }
-
-    public static void RestartGateway()
-    {
-        try {
-            var text = Environment.ProcessPath;
-            if (string.IsNullOrEmpty(text)) {
-                using var process = Process.GetCurrentProcess();
-                text = process.MainModule?.FileName;
-            }
-
-            if (string.IsNullOrEmpty(text)) {
-                Log.Error("Failed to determine executable path.");
-                return;
-            }
-
-            var text2 = string.Join(" ", Environment.GetCommandLineArgs().Skip(1));
-            var startInfo = new ProcessStartInfo {
-                FileName = text,
-                Arguments = text2,
-                UseShellExecute = true
-            };
-            Log.Information("Preparing to restart gateway, Path: {ExecutablePath}, Arguments: {Arguments}", text,
-                text2);
-            Process.Start(startInfo);
-            Log.Information("New process started.");
-            Environment.Exit(0);
-        } catch (Exception exception) {
-            Log.Error(exception, "Failed to restart gateway.");
         }
     }
 

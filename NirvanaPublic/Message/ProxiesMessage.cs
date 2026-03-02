@@ -47,11 +47,12 @@ public static class ProxiesMessage {
         if (gameAccountId == null) {
             throw new ErrorCodeException(ErrorCode.LoadAccountError);
         }
+
         var gameAccountIdString = gameAccountId.ToString();
         if (gameAccountIdString == null) {
             throw new ErrorCodeException(ErrorCode.LoadAccountError);
         }
-        
+
         arguments.Add("--account");
         arguments.Add(gameAccountIdString);
 
@@ -59,6 +60,7 @@ public static class ProxiesMessage {
         if (process == null) {
             throw new ErrorCodeException(ErrorCode.RestartFailed);
         }
+
         await ActiveGameAndProxies.Add(process, id, name, port);
     }
 

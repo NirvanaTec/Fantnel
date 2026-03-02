@@ -29,6 +29,7 @@ public static class RestartTools {
             ProxiesMessage.StartProxyAsyncTo(id, name, port, proxyMode).Wait();
             Maintenance(args);
         }
+
         return true;
     }
 
@@ -70,14 +71,14 @@ public static class RestartTools {
         return Get<string>(name, args, defaultValue);
     }
 
-    private static T Get<T>(string name, string[] args, T? defaultValue = default)
+    public static T Get<T>(string name, string[] args, T? defaultValue = default)
     {
-        for (var i = 0; i < args.Length; i++){
+        for (var i = 0; i < args.Length; i++) {
             if (args[i] == "--" + name) {
-                return (T) Convert.ChangeType(args[i + 1], typeof(T));
+                return (T)Convert.ChangeType(args[i + 1], typeof(T));
             }
         }
+
         return defaultValue ?? throw new Exception($"参数 {name} 不能为空");
     }
-    
 }

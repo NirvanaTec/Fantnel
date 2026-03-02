@@ -10,7 +10,7 @@ using NirvanaChat.Message;
 namespace NirvanaChat.Packet;
 
 public class TabBase : IPacket {
-    private readonly List<EntityTabBase> _list = [];
+    public static readonly List<EntityTabBase> List = [];
     private int _action;
 
     private byte[]? _rawBytes;
@@ -36,10 +36,10 @@ public class TabBase : IPacket {
         for (var i = 0; i < size; i++) {
             switch (_action) {
                 case 0:
-                    _list.Add(new EntityTabAdd(buffer));
+                    List.Add(new EntityTabAdd(buffer));
                     break;
                 case 3:
-                    _list.Add(new EntityTabUpdate(buffer));
+                    List.Add(new EntityTabUpdate(buffer));
                     break;
             }
         }
@@ -48,7 +48,7 @@ public class TabBase : IPacket {
     public void WriteToBuffer(IByteBuffer buffer)
     {
         var useList = false;
-        foreach (var entityTab in _list) {
+        foreach (var entityTab in List) {
             if (entityTab.NewName != null) {
                 useList = true;
                 break;
@@ -61,8 +61,8 @@ public class TabBase : IPacket {
         }
 
         buffer.WriteVarInt(_action);
-        buffer.WriteVarInt(_list.Count);
-        foreach (var entityTab in _list) {
+        buffer.WriteVarInt(List.Count);
+        foreach (var entityTab in List) {
             switch (entityTab) {
                 case EntityTabAdd entityTabAdd:
                     entityTabAdd.WriteToBuffer(buffer);
@@ -81,7 +81,7 @@ public class TabBase : IPacket {
         }
 
         foreach (var entity in ChatMessage.GetPlayers(gameConnection.GameId)) {
-            foreach (var entityTab in _list) {
+            foreach (var entityTab in List) {
                 if (entityTab.Text.Contains(entity.Value.NickName)) {
                     entityTab.NewName = NirvanaConfig.Config.ChatPrefix + entity.Value.NickName;
                     entityTab.OldName = entity.Value.NickName;

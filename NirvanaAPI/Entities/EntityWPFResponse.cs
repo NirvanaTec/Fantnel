@@ -5,7 +5,6 @@ namespace NirvanaAPI.Entities;
 
 // ReSharper disable once InconsistentNaming
 public class EntityWPFResponse {
-    
     [JsonPropertyName("code")]
     public int Code { get; set; }
 
@@ -19,5 +18,4 @@ public class EntityWPFResponse {
             InfoManager.DeleteAccount(this);
         }
     }
-    
 }

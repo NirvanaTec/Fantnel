@@ -1,22 +1,24 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
+using NirvanaAPI.Entities.EntitiesNirvana;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic;
+using NirvanaPublic.Utils;
+using NirvanaPublic.Utils.Update;
 
 namespace Fantnel.Servlet.OthersController;
 
 [ApiController]
 [Route("[controller]")]
 public class HomeController : ControllerBase {
-    
     // 设置主题
     [HttpGet("/api/theme/set")]
     public IActionResult SetTheme(string name)
     {
-        SaveConfig("theme", name);
+        ConfigUtil.SaveConfig("theme", name);
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
@@ -25,7 +27,7 @@ public class HomeController : ControllerBase {
     public IActionResult GetTheme()
     {
         // 从配置中获取主题
-        var theme = GetConfig()["theme"] ?? "default";
+        var theme = ConfigUtil.GetConfig()["theme"] ?? "default";
         return Content(Code.ToJson(ErrorCode.Success, theme), "application/json");
     }
 
@@ -58,33 +60,26 @@ public class HomeController : ControllerBase {
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 
+    // 设置主题
+    [HttpPost("/api/theme/switch")]
+    public IActionResult ThemeSwitch([FromBody] EntityValue entity)
+    {
+        if (string.IsNullOrEmpty(entity.Value)) {
+            return Content(Code.ToJson(ErrorCode.ParamError), "application/json");
+        }
+
+        if (InitProgram.SafeTheme(entity.Value).Result) {
+            ConfigUtil.SaveConfig("themeValue", entity.Value);
+        }
+
+        UpdateTools.CheckUpdate("ui." + entity.Value).Wait();
+        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+    }
+
     public static string GetIndexHtml()
     {
         // 获取运行目录路径
         var resourcesPath = Path.Combine(PathUtil.ResourcePath, "static", "index.html");
         return System.IO.File.Exists(resourcesPath) ? System.IO.File.ReadAllText(resourcesPath) : "";
-    }
-
-    // 获取配置
-    private static JsonObject GetConfig()
-    {
-        var resourcesPath = Path.Combine(PathUtil.ResourcePath, "config.json");
-        if (!System.IO.File.Exists(resourcesPath)) return new JsonObject();
-        return JsonSerializer.Deserialize<JsonObject>(System.IO.File.ReadAllText(resourcesPath)) ?? new JsonObject();
-    }
-
-    // 保存配置
-    private static void SaveConfig(JsonObject config)
-    {
-        var resourcesPath = Path.Combine(PathUtil.ResourcePath, "config.json");
-        System.IO.File.WriteAllText(resourcesPath, JsonSerializer.Serialize(config));
-    }
-
-    // 保存配置
-    private static void SaveConfig(string name, string value)
-    {
-        var config = GetConfig();
-        config[name] = value;
-        SaveConfig(config);
     }
 }

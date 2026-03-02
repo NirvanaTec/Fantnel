@@ -177,7 +177,9 @@ public class GameRpcService(
             try {
                 var entityAvailableUser = IUserManager.Instance?.GetAvailableUser(launchGame.UserId);
                 if (entityAvailableUser == null) continue;
-                var entity = await WPFLauncher.GetNetGameComponentDownloadListAsync(launchGame.UserId, launchGame.AccessToken, item.SkinId);
+                var entity =
+                    await WPFLauncher.GetNetGameComponentDownloadListAsync(launchGame.UserId, launchGame.AccessToken,
+                        item.SkinId);
                 var text = entity.SubEntities.Select(sub => sub.ResUrl).FirstOrDefault();
                 if (text == null) continue;
                 Directory.CreateDirectory(_dirSkinPath);

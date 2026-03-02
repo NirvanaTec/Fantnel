@@ -37,6 +37,7 @@ public class EntityRentalDetail {
         if (entity == null) {
             throw new ErrorCodeException(ErrorCode.IdError);
         }
+
         Id = entity.EntityId;
         Name = entity.ServerName;
         ImageUrl = entity.ImageUrl;

@@ -11,7 +11,8 @@ public static class PathUtil {
     public static readonly string UpdaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "updater");
 
     // 脚本后缀
-    public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" : ".sh";
+    public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" :
+        RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ".command" : ".sh";
 
     public static readonly string ScriptPath = Path.Combine(UpdaterPath, "update" + ScriptSuffix);
 
@@ -73,6 +74,7 @@ public static class PathUtil {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             return NirvanaConfig.Config.UseJavaW ? "javaw.exe" : "java.exe";
         }
+
         return "java";
     }
 

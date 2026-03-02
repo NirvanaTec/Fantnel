@@ -36,6 +36,7 @@ public class NirvanaAccountManager {
         if (entity == null) {
             return;
         }
+
         NirvanaConfig.Config = entity;
     }
 

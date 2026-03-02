@@ -3,7 +3,6 @@
 namespace NirvanaAPI.Entities.Login;
 
 public class EntityAccount : EntityUserInfo {
-    
     // 基础信息
     [JsonPropertyName("name")]
     public string? Name { get; init; }
@@ -50,8 +49,7 @@ public class EntityAccount : EntityUserInfo {
     public bool IsConfig()
     {
         return NirvanaConfig.Config.AutoLoginGame && (
-            ("163Email".Equals(Type) && NirvanaConfig.Config.AutoLoginGame163Email) || 
+            ("163Email".Equals(Type) && NirvanaConfig.Config.AutoLoginGame163Email) ||
             ("cookie".Equals(Type) && NirvanaConfig.Config.AutoLoginGameCookie));
     }
-
 }

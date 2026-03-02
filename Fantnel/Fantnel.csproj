@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Copyright>涅槃科技 © 版权所有</Copyright>
-        <ApplicationIcon>favicon.ico</ApplicationIcon>
+        <ApplicationIcon>../favicon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">

@@ -25,7 +25,6 @@ namespace WPFLauncherApi.Protocol;
 
 // ReSharper disable once InconsistentNaming
 public static class WPFLauncher {
-    
     private static readonly MgbSdk Sdk = new("x19");
 
     public static readonly JsonSerializerOptions DefaultOptions = new() {
@@ -220,9 +219,11 @@ public static class WPFLauncher {
         if (entity == null) {
             throw new Exception("Failed to deserialize: login-otp");
         }
+
         if (entity.Code != 0 || !entity.Data.HasValue) {
             throw new Exception("Failed to deserialize: " + entity.Message);
         }
+
         return JsonSerializer.Deserialize<EntityLoginOtp>(entity.Data.Value.GetRawText());
     }
 
@@ -261,6 +262,7 @@ public static class WPFLauncher {
         if (entity == null) {
             throw new ErrorCodeException(ErrorCode.LoginError);
         }
+
         return entity.Code == 0 ? entity.Data : throw new EntityX19Exception(entity.Message, entity);
     }
 

@@ -4,7 +4,7 @@ using Codexus.Game.Launcher.Utils;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Utils;
+using NirvanaPublic.Utils.Update;
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.Minecraft;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;

@@ -50,9 +50,7 @@ public static class InstallerService {
     private static Progress<SyncProgressBarUtil.ProgressReport> CreateProgressReporter(
         SyncProgressBarUtil.ProgressBar progressBar)
     {
-        return new Progress<SyncProgressBarUtil.ProgressReport>(update => {
-            progressBar.Update(update.Percent, update.Message);
-        });
+        return new Progress<SyncProgressBarUtil.ProgressReport>(update => { progressBar.Update(update.Percent, update.Message); });
     }
 
     private static async Task<bool> DownloadMinecraftPackage(string archivePath,

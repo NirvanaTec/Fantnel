@@ -5,7 +5,6 @@ using Serilog;
 namespace Codexus.Game.Launcher.Entities;
 
 public class EntityJavaFile {
-    
     private string _filePath = string.Empty; // 完整路径
     private string _filePath1 = string.Empty; // 相对路径，不保证是相对路径
     public bool IsNative = false; // 是 Native 文件, 不保证是 Native 文件

@@ -1,23 +1,20 @@
-﻿using System.Runtime.InteropServices;
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Nodes;
+using NirvanaAPI.Utils;
 using Serilog;
 using WPFLauncherApi.Http;
 
-namespace NirvanaPublic.Utils;
+namespace NirvanaPublic.Utils.Update;
 
 public static class UpdateTools {
     // 检查更新
     public static async Task CheckUpdate(string[] args)
     {
         var update = 0; // 0:正常检查 1:不检查 2:已被检查
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            // // win 系统不检查更新
-            // // 因为 win 运行后文件被占用时不能覆盖
-            // update = 1;
-            if (args.Any(arg => arg == "--update_false"))
-                update = 2;
+        if (args.Any(arg => arg == "--update_false")) {
+            update = 2;
+        }
 
-        switch (update) {
+        if (update == 0) {
             // 不检查 - 提醒
             // case 1:
             // {
@@ -31,14 +28,14 @@ public static class UpdateTools {
             //     break;
             // }
             // 正常检查
-            case 0:
-                if (PublicProgram.Release)
-                    await CheckUpdate(PublicProgram.Mode + "." + PublicProgram.Arch, "Fantnel", true);
-                break;
+            if (PublicProgram.Release) {
+                await CheckUpdate(PublicProgram.Mode + "." + PublicProgram.Arch, "Fantnel", true);
+            }
         }
 
-        await CheckUpdate("static", "Resource");
-        await CheckUpdate("static." + PublicProgram.Mode, "Resource");
+        await CheckUpdate("ui." + (ConfigUtil.GetConfig()["themeValue"] ?? "nirvana"));
+        await CheckUpdate("static");
+        await CheckUpdate("static." + PublicProgram.Mode);
         await CheckUpdate("static." + PublicProgram.Mode + "." + PublicProgram.Arch, "Resource", false, false);
     }
 
@@ -47,7 +44,8 @@ public static class UpdateTools {
      * @param name 名称
      * @param safe 是否安全模式
      */
-    public static async Task<int> CheckUpdate(string mode, string name = "", bool safe = false, bool failureLog = true)
+    public static async Task<int> CheckUpdate(string mode, string name = "Resource", bool safe = false,
+        bool failureLog = true)
     {
         var jsonObj =
             await X19Extensions.Nirvana.Api<JsonObject>(
