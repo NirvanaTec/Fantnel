@@ -29,5 +29,6 @@ public enum ErrorCode {
     CrcSaltNotSet = 25,
     RestartFailed = 26,
     GamePlugin = 27,
-    MemoryError = 28
+    MemoryError = 28,
+    ParamError = 29
 }

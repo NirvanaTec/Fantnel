@@ -8,7 +8,7 @@ using NirvanaPublic.Entities;
 using Serilog;
 using Tools = NirvanaAPI.Utils.Tools;
 
-namespace NirvanaPublic.Utils;
+namespace NirvanaPublic.Utils.Update;
 
 public static class ThreadUpdateTools {
     /**
@@ -28,11 +28,15 @@ public static class ThreadUpdateTools {
             var newProgress = new IntPtrReference();
             progress.Add(newProgress);
 
-            if (item == null) continue;
+            if (item == null) {
+                continue;
+            }
 
             var url = item["url"]?.GetValue<string>();
             var pathValue = item["path"]?.GetValue<string>();
-            if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(pathValue)) continue;
+            if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(pathValue)) {
+                continue;
+            }
 
             // 修复路径
             pathValue = pathValue.Replace('\\', Path.DirectorySeparatorChar);
@@ -45,13 +49,18 @@ public static class ThreadUpdateTools {
             Thread.Sleep(15);
 
             // 检查是否需要更新
-            if (!NeedsUpdate(item, resourcesPath)) continue;
+            if (!NeedsUpdate(item, resourcesPath)) {
+                continue;
+            }
 
             // 请求速限制 1 秒 / 12次 ≈ 0.083
             // 83 - 15 = 68ms
             Thread.Sleep(68);
             newProgress.Value = 0;
-            if (pathValue.EndsWith(".dll")) downloadSize++;
+            if (pathValue.EndsWith(".dll")) {
+                downloadSize++;
+            }
+
             DownloadWithRetryAsync(url, resourcesPath1, newProgress, name, progress, jsonArray.Count);
         }
 

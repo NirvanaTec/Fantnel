@@ -32,13 +32,19 @@ public class AttackBase : IPacket {
     public bool HandlePacket(GameConnection connection)
     {
         Log.Information("[IRC] Attack: {EntityId}", EntityId);
+
         var players = ChatMessage.GetPlayer(connection.GameId, EntityId);
         if (players == null) {
             return false;
         }
 
-        if (players.Value.Item1.FriendlyMode) {
+        var player1 = players.Value;
+        var flag = TabBase.List.Any(tabBase =>
+            !string.IsNullOrEmpty(tabBase.OldName) && tabBase.OldName.Equals(player1.Item2.NickName));
+
+        if (flag && player1.Item1.FriendlyMode) {
             PacketTools.SendGameMessage("他开启了友好模式，不能攻击", connection);
+            Log.Information("他开启了友好模式，不能攻击 {EntityId}", EntityId);
             return true;
         }
 

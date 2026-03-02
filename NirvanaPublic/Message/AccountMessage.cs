@@ -65,13 +65,13 @@ public static class AccountMessage {
             break;
         }
     }
-        
+
     // 强制切换账号
     public static void SwitchAccountToForce(int id)
     {
         InfoManager.SetGameAccount(GetAccount(id));
     }
-    
+
     // 禁止默认登录
     public static void DisableDefaultLogin()
     {
@@ -87,7 +87,8 @@ public static class AccountMessage {
     public static EntityAccount[] GetLoginAccountList()
     {
         var accountList = GetAccountList();
-        return accountList.Where(account => InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(account))).ToArray();
+        return accountList.Where(account => InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(account)))
+            .ToArray();
     }
 
     /**
@@ -123,7 +124,7 @@ public static class AccountMessage {
         if (defaultLogin) {
             DefaultLogin(entity);
         }
-        
+
         // 避免因配置加载的账号导致显示 UserId
         foreach (var item in entity) {
             var flag = InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(item));
@@ -204,7 +205,7 @@ public static class AccountMessage {
         EntityMPayUserResponse user,
         EntityDevice device)
     {
-        return JsonSerializer.Serialize(new EntityX19Cookie() {
+        return JsonSerializer.Serialize(new EntityX19Cookie {
             SdkUid = user.User.Id,
             SessionId = user.User.Token,
             Udid = Guid.NewGuid().ToString("N").ToUpper(),
@@ -228,6 +229,7 @@ public static class AccountMessage {
             // 写入文件
             File.WriteAllText(accountPath, JsonSerializer.Serialize(accountList), Encoding.UTF8);
         }
+
         // 自动登录账号
         AutoLogin(account);
     }
@@ -251,6 +253,7 @@ public static class AccountMessage {
             // 写入文件
             File.WriteAllText(accountPath, JsonSerializer.Serialize(accountList), Encoding.UTF8);
         }
+
         // 自动登录账号
         AutoLogin(account);
     }
@@ -275,14 +278,14 @@ public static class AccountMessage {
             if (disabled) {
                 return;
             }
+
             IsDefaultLogin.Add(account);
-            
+
             Exception? exception = null;
             var success = false;
-            
+
             if (account is { UserId: not null, Token: not null }) {
-                try
-                {
+                try {
                     if (AutoUpdateAccount(account)) {
                         success = true;
                     }
@@ -290,12 +293,13 @@ public static class AccountMessage {
                     exception = e;
                 }
             }
-            
+
             if (!success && account.Type is "cookie" or "163Email") {
                 var isAutoLogin = true;
                 if (useConfig) {
                     isAutoLogin = account.IsConfig();
                 }
+
                 if (isAutoLogin) {
                     Login(account);
                     success = true;
@@ -306,7 +310,6 @@ public static class AccountMessage {
             if (!success && exception != null) {
                 throw exception;
             }
-            
         } catch (Exception e) {
             Log.Error("自动登录失败: {account}: {Message}", account.Id, e.Message);
         }

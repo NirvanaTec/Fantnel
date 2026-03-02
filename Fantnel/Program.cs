@@ -42,7 +42,7 @@ public static class Program {
         // 没有配置时，默认监听 13521 端口
         if (app.Urls.Count == 0) {
             // 监听未被占用的端口
-            app.Urls.Add("http://0.0.0.0:" + Tools.GetUnusedPort(13521));
+            app.Urls.Add("http://0.0.0.0:" + Tools.GetUnusedPort(RestartTools.Get("fantnel_port", args, 13521)));
         }
 
         // 配置 HTTP 请求管道。

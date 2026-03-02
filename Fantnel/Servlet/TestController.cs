@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils.CodeTools;
 
@@ -8,7 +7,6 @@ namespace Fantnel.Servlet;
 [ApiController]
 [Route("[controller]")]
 public class TestController : ControllerBase {
-    
     [HttpGet("/api/test")]
     public IActionResult Test()
     {
@@ -16,7 +14,7 @@ public class TestController : ControllerBase {
             entity.UserId = "1213";
             entity.Token = "1213";
         }
+
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
-    
 }

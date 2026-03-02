@@ -22,7 +22,7 @@ public static class ServersGameMessage {
     {
         var index = -pageSize;
         var count = pageSize + offset;
-        
+
         while (true) {
             // ServerList 有 就用缓存
             // 分页
@@ -58,6 +58,7 @@ public static class ServersGameMessage {
                 if (items.Length == 0) {
                     index = 2;
                 }
+
                 AddServerList(items);
             }
         }

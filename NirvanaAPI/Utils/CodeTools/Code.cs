@@ -68,6 +68,7 @@ public static class Code {
             ErrorCode.RestartFailed => "重启失败",
             ErrorCode.GamePlugin => "该游戏可能不支持插件",
             ErrorCode.MemoryError => "内存不应该这样设置",
+            ErrorCode.ParamError => "参数错误",
             _ => "未知错误"
         };
     }

@@ -135,9 +135,12 @@ public static class Tools {
      */
     public static int GetUnusedPort(int startPort)
     {
-        for (var port = startPort; port <= startPort + 1024; port++)
-            if (!IsPortInUse(port))
+        for (var port = startPort; port <= startPort + 1024; port++) {
+            if (!IsPortInUse(port)) {
                 return port;
+            }
+        }
+
         return -1;
     }
 
@@ -150,6 +153,7 @@ public static class Tools {
                 return ip.ToString();
             }
         }
+
         return localhost ? "localhost" : "127.0.0.1";
     }
 

@@ -6,7 +6,6 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
 namespace NirvanaPublic.Entities.NEL;
 
 public class EntityServerDetail {
-    
     [JsonPropertyName("id")]
     public string? Id { get; set; }
 
@@ -37,6 +36,7 @@ public class EntityServerDetail {
         if (data == null) {
             throw new ErrorCodeException(ErrorCode.LogInNot);
         }
+
         Id = data.EntityId;
         Name = data.Name;
         Author = data.DeveloperName;
@@ -46,6 +46,7 @@ public class EntityServerDetail {
         foreach (var version in data.McVersionList) {
             GameVersion += version.Name + ", ";
         }
+
         // 删除最后一个逗号
         GameVersion = GameVersion.TrimEnd(',', ' ');
         FullDescription = data.DetailDescription;

@@ -3,6 +3,7 @@ using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaPublic.Manager;
 using NirvanaPublic.Message;
+using NirvanaPublic.Utils.Update;
 using NirvanaPublic.Utils.ViewLogger;
 using Serilog;
 using Serilog.Events;
@@ -62,7 +63,7 @@ public static class InitProgram {
 
         // 配置初始化
         NirvanaAccountManager.Initialization();
-        
+
         // 默认登录
         AccountMessage.GetAccountList();
 
@@ -157,6 +158,7 @@ public static class InitProgram {
             } catch (Exception e) {
                 Log.Error("连接服务器失败! 错误信息: {Exception}", e.Message);
             }
+
             if (i == 2) {
                 Log.Error("连接服务器失败!");
                 Thread.Sleep(6000);
@@ -179,5 +181,11 @@ public static class InitProgram {
         Log.Information("CRC Salt 当前版本: {Version}", InfoManager.FantnelInfo.GameVersion);
         Log.Information("CRC Salt 计算完成: {CrcSalt}....", InfoManager.FantnelInfo.CrcSalt[..6]);
         X19.CrcSalt = InfoManager.FantnelInfo.CrcSalt;
+    }
+
+    public static async Task<bool> SafeTheme(string themeValue)
+    {
+        return await X19Extensions.Nirvana.Api<EntityResponseBase>("/api/theme/name?value=" + themeValue) is
+            { Code: 1 };
     }
 }

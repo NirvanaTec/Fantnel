@@ -11,7 +11,6 @@ using Serilog;
 namespace NirvanaChat.Message;
 
 public static class ChatMessage {
-    
     private static readonly List<EntityChatJoin> Players = [];
 
     private static readonly Uri Url = new("ws://110.42.70.32:13423/ws/chat");
@@ -139,7 +138,8 @@ public static class ChatMessage {
 
         try {
             if (_webSocket.State == WebSocketState.Open) {
-                await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", CancellationToken.None);
+                await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing",
+                    CancellationToken.None);
             }
         } catch (Exception e) {
             Log.Error("[IRC] 关闭连接失败\n{message}", e.Message);
@@ -242,7 +242,6 @@ public static class ChatMessage {
 
     private static async Task SetFriendlyAsync(bool value)
     {
-
         if (_webSocket.State != WebSocketState.Open) {
             return;
         }

@@ -6,7 +6,6 @@ using Serilog;
 namespace NirvanaAPI.Manager;
 
 public static class InfoManager {
-    
     // 登录成功后的游戏账号列表
     public static readonly List<EntityAccount> GameAccountList = [];
 
@@ -33,16 +32,18 @@ public static class InfoManager {
             _gameAccount = account;
             return;
         }
+
         // 排序变成第0个
         foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
             GameAccountList.Remove(gameAccount);
             GameAccountList.Insert(0, gameAccount);
             _gameAccount = null;
-           return;
+            return;
         }
+
         _gameAccount = account;
     }
-    
+
     // 游戏账号
     public static EntityAccount GetGameAccount()
     {
@@ -80,5 +81,4 @@ public static class InfoManager {
             break;
         }
     }
-    
 }

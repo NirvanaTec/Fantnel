@@ -74,6 +74,7 @@ public class NirvanaController : ControllerBase {
                 NirvanaConfig.SetUseJavaW(value ?? "true");
                 break;
         }
+
         return Content(Code.ToJson(ErrorCode.Success), "application/json");
     }
 

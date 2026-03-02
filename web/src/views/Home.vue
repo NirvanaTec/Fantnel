@@ -1,54 +1,56 @@
 <template>
   <div class="home">
     <h1>欢迎使用 Fantnel 管理系统</h1>
-    
+
     <div class="intro">
       <p>Fantnel 是一个功能强大的游戏服务器管理系统，提供账号管理、服务器管理、插件管理等多种功能。</p>
     </div>
-    
+
     <div class="features">
-    
-    <!-- 广告位 -->
-    <div class="ads" v-if="adData && (adData.ad1 || adData.ad2 || adData.ad3)">
-      <div class="ad-card" v-if="adData && adData.ad1">
-        <h3>{{ adData.ad1.name || '广告位 1' }}</h3>
-        <p>{{ adData.ad1.text || '这里可以放置广告内容，展示您的产品或服务。' }}</p>
-      </div>
-      <div class="ad-card" v-if="adData && adData.ad2">
-        <h3>{{ adData.ad2.name || '广告位 2' }}</h3>
-        <p>{{ adData.ad2.text || '这里可以放置广告内容，展示您的产品或服务。' }}</p>
-      </div>
-      <div class="ad-card" v-if="adData && adData.ad3">
-        <h3>{{ adData.ad3.name || '广告位 3' }}</h3>
-        <p>{{ adData.ad3.text || '这里可以放置广告内容，展示您的产品或服务。' }}</p>
-      </div>
-    </div>
-      <h2>主要功能</h2>
-      <div class="feature-grid">
-        <div class="feature-item">
-          <h3>游戏账号管理</h3>
-          <p>轻松管理您的游戏账号，支持添加、编辑、删除账号信息。</p>
+
+      <!-- 广告位 -->
+      <div class="ads" v-if="adData && (adData.ad1 || adData.ad2 || adData.ad3)">
+        <div class="ad-card" v-if="adData && adData.ad1">
+          <h3>{{ adData.ad1.name || '广告位 1' }}</h3>
+          <p>{{ adData.ad1.text || '这里可以放置广告内容，展示您的产品或服务。' }}</p>
         </div>
-        <div class="feature-item">
-          <h3>服务器管理</h3>
-          <p>管理您的游戏服务器，查看服务器信息，一键启动服务器。</p>
+        <div class="ad-card" v-if="adData && adData.ad2">
+          <h3>{{ adData.ad2.name || '广告位 2' }}</h3>
+          <p>{{ adData.ad2.text || '这里可以放置广告内容，展示您的产品或服务。' }}</p>
         </div>
-        <div class="feature-item">
-          <h3>插件管理</h3>
-          <p>管理服务器插件，查看插件状态，支持启动和停止插件。</p>
-        </div>
-        <div class="feature-item">
-          <h3>插件商城</h3>
-          <p>浏览和下载各种插件，丰富您的服务器功能。</p>
+        <div class="ad-card" v-if="adData && adData.ad3">
+          <h3>{{ adData.ad3.name || '广告位 3' }}</h3>
+          <p>{{ adData.ad3.text || '这里可以放置广告内容，展示您的产品或服务。' }}</p>
         </div>
       </div>
+
+      <!-- 拖拽区域 -->
+      <div class="drag-drop-area" @dragover.prevent @drop.prevent="handleFileDrop">
+        <div class="drag-drop-content">
+          <p class="drag-drop-text">拖拽 主题 文件到此处</p>
+          <p class="drag-drop-subtext">或点击选择文件</p>
+          <a href="http://npyyds.top/fantnel/theme" target="_blank">
+            <p class="drag-drop-subtext">下载主题，请前往 <b>涅槃科技</b> 下载</p>
+          </a>
+          <input type="file" accept=".fant.json" class="hidden" ref="fileInput" @change="handleFileSelect">
+          <button class="drag-drop-button" @click="$refs.fileInput.click()">
+            选择 主题 文件
+          </button>
+        </div>
+      </div>
+
+      <Alert :show="showModal" :message="modalMessage" title="提示" @ok="reload()" />
+
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getHome_Info } from '../utils/Tools.js'
+import { getHome_Info, setThemeSwitch } from '../utils/Tools.js'
+
+const showModal = ref(false)
+const modalMessage = ref('')
 
 // 广告数据
 const adData = ref({
@@ -56,6 +58,52 @@ const adData = ref({
   ad2: { name: '', text: '' },
   ad3: { name: '', text: '' }
 })
+
+// 处理文件拖拽
+const handleFileDrop = (event) => {
+  const files = event.dataTransfer.files
+  if (files.length > 0) {
+    handleFile(files[0])
+  }
+}
+
+// 处理文件选择
+const handleFileSelect = (event) => {
+  const files = event.target.files
+  if (files.length > 0) {
+    handleFile(files[0])
+  }
+}
+
+// 处理文件
+const handleFile = (file) => {
+  if (file.name.endsWith('.fant.json')) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        showModal.value = true
+        modalMessage.value = '正在应用主题，请稍后...'
+        var json = JSON.parse(e.target.result)
+        setThemeSwitch(json).then(data => {
+          modalMessage.value = data.msg
+        })
+      } catch (error) {
+        console.error('Fantnel 主题 解析错误:', error)
+        alert('Fantnel 主题 文件解析失败，请检查文件格式。')
+      }
+    }
+    reader.onerror = () => {
+      alert('文件读取失败，请重试。')
+    }
+    reader.readAsText(file)
+  } else {
+    alert('请选择 Fantnel 主题 格式的文件。')
+  }
+}
+
+const reload = () => {
+  location.reload(true);
+}
 
 // 获取首页数据
 onMounted(async () => {
@@ -158,5 +206,57 @@ h1 {
 .ad-card p {
   color: var(--text-color);
   line-height: 1.4;
+}
+
+/* 拖拽区域样式 */
+.drag-drop-area {
+  background-color: var(--sidebar-bg);
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 32px;
+  margin-bottom: 30px;
+  transition: border-color 0.3s ease;
+}
+
+.drag-drop-area:hover {
+  border-color: var(--primary-color);
+}
+
+.drag-drop-content {
+  text-align: center;
+}
+
+.drag-drop-text {
+  color: var(--text-color);
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.drag-drop-subtext {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.drag-drop-subtext a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.drag-drop-subtext a:hover {
+  text-decoration: underline;
+}
+
+.hidden {
+  display: none;
+}
+
+.drag-drop-button {
+  margin-top: 16px;
+  padding: 8px 16px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>

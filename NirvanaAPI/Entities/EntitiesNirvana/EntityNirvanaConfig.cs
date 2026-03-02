@@ -3,7 +3,6 @@
 namespace NirvanaAPI.Entities.EntitiesNirvana;
 
 public class EntityNirvanaConfig : EntityNirvanaAccount {
-    
     [JsonPropertyName("days")]
     public double Days { get; set; } // 剩余天数
 
@@ -30,20 +29,20 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
 
     [JsonPropertyName("gameArgs")]
     public string GameArgs { get; set; } = string.Empty; // 游戏参数
-    
-   [JsonPropertyName("autoLoginGame")]
-   public bool AutoLoginGame { get; set; } = true; // 自动登录游戏
-   
-   [JsonPropertyName("autoLoginGame163Email")]
-   public bool AutoLoginGame163Email { get; set; } = true; // 自动登录游戏163Email
-   
-   [JsonPropertyName("autoLoginGameCookie")]
-   public bool AutoLoginGameCookie { get; set; } = true; // 自动登录游戏Cookie
 
-   [JsonPropertyName("useJavaW")]
-   public bool UseJavaW { get; set; } = true; // 使用 javaW.exe
+    [JsonPropertyName("autoLoginGame")]
+    public bool AutoLoginGame { get; set; } = true; // 自动登录游戏
 
-   public void SetHideAccount(string value)
+    [JsonPropertyName("autoLoginGame163Email")]
+    public bool AutoLoginGame163Email { get; set; } = true; // 自动登录游戏163Email
+
+    [JsonPropertyName("autoLoginGameCookie")]
+    public bool AutoLoginGameCookie { get; set; } = true; // 自动登录游戏Cookie
+
+    [JsonPropertyName("useJavaW")]
+    public bool UseJavaW { get; set; } = true; // 使用 javaW.exe
+
+    public void SetHideAccount(string value)
     {
         HideAccount = value == "true";
     }
@@ -67,5 +66,4 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
     {
         UseJavaW = value == "true";
     }
-
 }

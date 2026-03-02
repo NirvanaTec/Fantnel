@@ -333,3 +333,8 @@ export async function autoLoginGameCookie(value = "true") {
 export async function setUseJavaW(value = "true") {
     return axios.get(`/api/nirvana/set?mode=useJavaW&value=${value}`).then(res => res.data);
 }
+
+// 切换主题
+export async function setThemeSwitch(theme) {
+    return axios.post(`/api/theme/switch`, theme).then(res => res.data);
+}

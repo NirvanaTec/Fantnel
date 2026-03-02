@@ -8,12 +8,14 @@
 3. 参考 FaithXL [未发布] 启动器实现启动参数 解析/生成。
 4. 完善的 AI 文档，帮助 AI 生成 Fantnel UI。 [web/FantnelAi]
 
+### 说明
+项目版本：Release
+自动更新：会更新至Beta版本，这可能不会同步至仓库。
+
 ### 如何参与
-```text
 如果您想为 Fantnel 做出贡献，或者有任何问题想要咨询，欢迎加入我们的官方QQ频道，或者在 GitHub 上提交 issue 或 pull request。
 
 让我们一起携手，共同推动公益技术的发展！
-```
 
 ### 商用声明
 ```text
@@ -30,6 +32,7 @@
   - 开发者: 风横
   - QQ: 3547694806
   - 邮箱: fengheng1111@126.com
+
 
 ### 联系方式
 - 官网: https://npyyds.top/

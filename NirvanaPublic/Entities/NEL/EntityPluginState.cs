@@ -9,17 +9,17 @@ public class EntityPluginState {
     public required string Id { get; set; }
 
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public required string Name { get; set; }
 
     [JsonPropertyName("version")]
-    public string? Version { get; set; }
+    public required string Version { get; set; }
 
     [JsonPropertyName("author")]
-    public string? Author { get; set; }
+    public required string Author { get; set; }
 
     [JsonPropertyName("status")]
-    public string? Status { get; set; }
+    public required string Status { get; set; }
 
     [JsonPropertyName("path")]
-    public string? Path { get; set; }
+    public required string Path { get; set; }
 }
