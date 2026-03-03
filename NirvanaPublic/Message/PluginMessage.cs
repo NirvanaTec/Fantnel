@@ -9,6 +9,7 @@ using NirvanaAPI.Utils.CodeTools;
 using NirvanaChat.Manager;
 using NirvanaPublic.Entities.NEL;
 using NirvanaPublic.Entities.Nirvana;
+using NirvanaPublic.Entities.Plugin;
 using NirvanaPublic.Manager;
 using Serilog;
 using WPFLauncherApi.Http;
@@ -16,6 +17,8 @@ using WPFLauncherApi.Http;
 namespace NirvanaPublic.Message;
 
 public static class PluginMessage {
+    
+    private static readonly List<EntityPluginAssembly> PluginAssemblies = [];
     private static readonly string[] PluginExtensions = [".ug", ".dll"];
 
     /**
@@ -89,26 +92,23 @@ public static class PluginMessage {
      * @param path 插件文件路径
      * @return 插件信息数组
      */
-    private static (List<Plugin>, List<Assembly>, List<IPlugin>) GetPluginToPath1(string pluginPath)
+    private static (List<Plugin>, List<Assembly>) GetPluginToPath1(string pluginPath)
     {
         List<Plugin> plugins = [];
         List<Assembly> assemblies = [];
-        List<IPlugin> instances = [];
         try {
             // 检查是否已经加载了相同名称的程序集
-            var assemblyName = AssemblyName.GetAssemblyName(pluginPath);
-            var assembly = AppDomain.CurrentDomain.GetAssemblies()
-                .FirstOrDefault(a => a.GetName().Name == assemblyName.Name &&
-                                     a.GetName().Version == assemblyName.Version);
-
+            var pluginAssembly = PluginAssemblies.FirstOrDefault(a => a.Equals(pluginPath));
+            
+            var assembly = pluginAssembly?.Assembly;
             if (assembly == null) {
                 // 如果未加载，从路径加载
-                assembly = Assembly.LoadFrom(pluginPath);
+                assembly = Assembly.LoadFile(pluginPath);
+                PluginAssemblies.Add(new EntityPluginAssembly(pluginPath, assembly));
             }
 
-            foreach (var type in assembly.GetTypes().Where((Func<Type, bool>)(type =>
-                         typeof(IPlugin).IsAssignableFrom(type) &&
-                         type is { IsAbstract: false, IsInterface: false }))) {
+            foreach (var type in assembly.GetTypes().Where((Func<Type, bool>)(type => typeof(IPlugin).IsAssignableFrom(type) && type is { IsAbstract: false, IsInterface: false }))) {
+                
                 Plugin? customAttribute;
                 try {
                     customAttribute = type.GetCustomAttribute<Plugin>(false);
@@ -122,20 +122,14 @@ public static class PluginMessage {
                     continue;
                 }
 
-                if (Activator.CreateInstance(type) is not IPlugin instance) {
-                    Log.Warning("插件 {TypeFullName} 没有继承 IPlugin", type.FullName);
-                    continue;
-                }
-
                 assemblies.Add(assembly);
-                instances.Add(instance);
                 plugins.Add(customAttribute);
             }
         } catch (Exception ex) {
             Log.Error("无法加载插件: {Message}", ex.Message);
         }
 
-        return (plugins, assemblies, instances);
+        return (plugins, assemblies);
     }
 
     private static Plugin[] GetPluginToPath(string path)
@@ -394,6 +388,7 @@ public static class PluginMessage {
         // 标记为待删除状态
         // 重启时会自动删除
         File.Move(path, path1);
+        Log.Warning("插件 {name} 已标记为待删除状态", Path.GetFileName(path));
     }
 
     /**
