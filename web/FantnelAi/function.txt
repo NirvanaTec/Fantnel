@@ -246,6 +246,13 @@ api.切换主题()
 日志信息
 api.获取日志信息()
 
+每行的颜色参考
+logger.SetColor(LogEventLevel.Information, ConsoleColor.Yellow);
+logger.SetColor(LogEventLevel.Warning, ConsoleColor.DarkYellow);
+logger.SetColor(LogEventLevel.Error, ConsoleColor.Red);
+logger.SetColor(LogEventLevel.Fatal, ConsoleColor.DarkRed);
+logger.SetColor(LogEventLevel.Debug, ConsoleColor.Cyan);
+
 ---
 
 窗口模式初始化
