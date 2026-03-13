@@ -2,9 +2,6 @@
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">游戏账号管理</h1>
-      <button @click="showAddModal = true" class="bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors">
-        添加账号
-      </button>
     </div>
 
     <!-- 游戏账号列表 -->
@@ -42,6 +39,10 @@
         </tbody>
       </table>
     </div>
+
+    <button @click="showAddModal = true" class="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors shadow-lg z-40">
+      添加账号
+    </button>
 
     <!-- 添加账号模态框 -->
     <div v-if="showAddModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">

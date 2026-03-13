@@ -1,91 +1,121 @@
 <template>
   <div class="flex h-screen overflow-hidden bg-gray-900 text-white">
+    <!-- 窗口控制按钮 -->
+    <div v-if="showWindowControls" class="fixed top-4 right-4 z-50 flex gap-2">
+      <button @click="minimizeWindow"
+        class="w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center">
+        <span class="opacity-0 hover:opacity-100 text-white font-bold text-xs">-</span>
+      </button>
+      <button @click="closeWindow"
+        class="w-4 h-4 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center">
+        <span class="opacity-0 hover:opacity-100 text-white font-bold text-xs">×</span>
+      </button>
+    </div>
+
     <!-- 侧边导航栏 -->
     <aside class="w-64 border-r border-gray-800 bg-gray-900 flex flex-col">
       <!-- Logo -->
       <div class="p-4 border-b border-gray-800">
         <h1 class="text-xl font-bold text-blue-400">Fantnel</h1>
       </div>
-      
+
       <!-- 涅槃账号显示 -->
-      <div class="p-4 border-b border-gray-800 cursor-pointer hover:bg-gray-800 transition-colors" @click="handleNirvanaAccountClick">
+      <div class="p-4 border-b border-gray-800 cursor-pointer hover:bg-gray-800 transition-colors"
+        @click="handleNirvanaAccountClick">
         <div v-if="nirvanaAccount" class="flex items-center gap-2">
           <span class="text-sm text-gray-400">涅槃账号:</span>
           <span class="font-medium">{{ nirvanaAccount.account }}</span>
         </div>
         <div v-else class="text-blue-400 hover:underline">点我登录涅槃账号</div>
       </div>
-      
+
       <!-- 导航菜单 -->
       <nav class="flex-1 overflow-y-auto p-4">
         <ul class="space-y-6">
           <!-- 主页 -->
           <li>
-            <router-link to="/" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               主页
             </router-link>
           </li>
-          
+
           <!-- 游戏账号 -->
           <li>
             <div class="font-medium text-gray-400 mb-2">游戏账号</div>
-            <router-link to="/game-account" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/game-account" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               游戏账号
             </router-link>
           </li>
-          
+
           <!-- 服务器 -->
           <li>
             <div class="font-medium text-gray-400 mb-2">服务器</div>
-            <router-link to="/network-server" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/network-server" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               网络服
             </router-link>
-            <router-link to="/rental-server" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/rental-server" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               租赁服
             </router-link>
           </li>
-          
+
           <!-- 皮肤 -->
           <li>
-            <router-link to="/my-skin" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/my-skin" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               我的皮肤
             </router-link>
           </li>
-          
+
           <!-- 插件 -->
           <li>
             <div class="font-medium text-gray-400 mb-2">插件</div>
-            <router-link to="/plugin-management" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/plugin-management" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               插件管理
             </router-link>
-            <router-link to="/plugin-store" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/plugin-store" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               插件商城
             </router-link>
           </li>
-          
+
           <!-- 管理 -->
           <li>
             <div class="font-medium text-gray-400 mb-2">管理</div>
-            <router-link to="/proxy-management" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/proxy-management" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               代理管理
             </router-link>
-            <router-link to="/game-management" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <router-link to="/game-management" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               游戏管理
             </router-link>
           </li>
-          
+
           <!-- 系统设置 -->
           <li>
-            <router-link to="/system-settings" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors" active-class="bg-gray-800 text-blue-400">
+            <div class="font-medium text-gray-400 mb-2">系统</div>
+            <router-link to="/system-settings" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
               系统设置
             </router-link>
+            <router-link to="/logs" class="block py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+              active-class="bg-gray-800 text-blue-400">
+              日志信息
+            </router-link>
           </li>
-          
+
           <!-- 主题切换 -->
           <li>
             <div class="font-medium text-gray-400 mb-2">主题切换</div>
             <div class="space-y-2">
-              <button @click="setTheme('default')" class="w-full text-left py-2 px-3 rounded hover:bg-gray-800 transition-colors" :class="{ 'bg-gray-800 text-blue-400': currentTheme === 'default' }">
+              <button @click="setTheme('default')"
+                class="w-full text-left py-2 px-3 rounded hover:bg-gray-800 transition-colors"
+                :class="{ 'bg-gray-800 text-blue-400': currentTheme === 'default' }">
                 默认主题
               </button>
               <!-- <button @click="setTheme('dark')" class="w-full text-left py-2 px-3 rounded hover:bg-gray-800 transition-colors" :class="{ 'bg-gray-800 text-blue-400': currentTheme === 'dark' }">
@@ -96,7 +126,7 @@
         </ul>
       </nav>
     </aside>
-    
+
     <!-- 主内容区 -->
     <main class="flex-1 overflow-y-auto bg-gray-900">
       <router-view v-slot="{ Component }">
@@ -105,7 +135,7 @@
         </transition>
       </router-view>
     </main>
-    
+
     <!-- 登录模态框 -->
     <div v-if="showLoginModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
       <div class="bg-gray-800 rounded-lg p-6 w-96">
@@ -113,17 +143,21 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm text-gray-400 mb-1">账号</label>
-            <input type="text" v-model="loginForm.account" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
+            <input type="text" v-model="loginForm.account"
+              class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
           </div>
           <div>
             <label class="block text-sm text-gray-400 mb-1">密码</label>
-            <input type="password" v-model="loginForm.password" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
+            <input type="password" v-model="loginForm.password"
+              class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
           </div>
           <div class="flex gap-2">
-            <button @click="handleLogin" class="flex-1 bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors">
+            <button @click="handleLogin"
+              class="flex-1 bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors">
               登录
             </button>
-            <button @click="showLoginModal = false" class="flex-1 bg-gray-700 hover:bg-gray-600 rounded px-4 py-2 transition-colors">
+            <button @click="showLoginModal = false"
+              class="flex-1 bg-gray-700 hover:bg-gray-600 rounded px-4 py-2 transition-colors">
               取消
             </button>
           </div>
@@ -143,12 +177,83 @@ const nirvanaAccount = ref(null)
 const showLoginModal = ref(false)
 const loginForm = ref({ account: '', password: '' })
 const currentTheme = ref('default')
+const showWindowControls = ref(false)
 
 // 初始化
 onMounted(() => {
   loadNirvanaAccount()
   loadCurrentTheme()
+  initWindowMode()
+  initMessageReceiver()
 })
+
+// 初始化窗口模式
+const initWindowMode = () => {
+  try {
+    if (window.external && window.external.sendMessage) {
+      window.external.sendMessage(JSON.stringify({ "action": "fantnel:init" }))
+    }
+  } catch (error) {
+    console.error('Failed to initialize window mode:', error)
+  }
+}
+
+// 初始化消息接收
+const initMessageReceiver = () => {
+  try {
+    // 优先使用 window.chrome.webview.addEventListener
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.addEventListener('message', (event) => {
+        handleMessage(event.data)
+      })
+    }
+    // 备用使用 window.external.receiveMessage
+    else if (window.external && window.external.receiveMessage) {
+      window.external.receiveMessage = (message) => {
+        handleMessage(message)
+      }
+    }
+  } catch (error) {
+    console.error('Failed to initialize message receiver:', error)
+  }
+}
+
+// 处理接收到的消息
+const handleMessage = (message) => {
+  try {
+    var msg = JSON.parse(message)
+    console.log('Received message:', msg)
+    if (msg && msg.code == 5) {
+      showWindowControls.value = true
+    }
+    // 在这里处理接收到的消息
+    // 例如：根据消息类型执行不同的操作
+  } catch (error) {
+    console.error('Failed to handle message:', error)
+  }
+}
+
+// 最小化窗口
+const minimizeWindow = () => {
+  try {
+    if (window.external && window.external.sendMessage) {
+      window.external.sendMessage(JSON.stringify({ "action": "window:minimize" }))
+    }
+  } catch (error) {
+    console.error('Failed to minimize window:', error)
+  }
+}
+
+// 关闭窗口
+const closeWindow = () => {
+  try {
+    if (window.external && window.external.sendMessage) {
+      window.external.sendMessage(JSON.stringify({ "action": "window:close" }))
+    }
+  } catch (error) {
+    console.error('Failed to close window:', error)
+  }
+}
 
 // 加载涅槃账号信息
 const loadNirvanaAccount = async () => {

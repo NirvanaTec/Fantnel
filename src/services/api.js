@@ -83,3 +83,6 @@ export const setSystemConfig = (mode, value) => apiClient.get(`/api/nirvana/set?
 
 // 版本信息
 export const getVersionInfo = () => apiClient.get('/api/version')
+
+// 日志相关
+export const getLogs = () => apiClient.get('/api/logs')

@@ -77,6 +77,11 @@ const router = createRouter({
       path: '/nirvana-user',
       name: 'nirvanaUser',
       component: () => import('../views/NirvanaUserView.vue')
+    },
+    {
+      path: '/logs',
+      name: 'logs',
+      component: () => import('../views/LogView.vue')
     }
   ]
 })
