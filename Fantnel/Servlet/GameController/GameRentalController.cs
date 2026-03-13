@@ -14,14 +14,14 @@ public class GameRentalController : ControllerBase {
     public IActionResult GetRentalGameListHttp([FromQuery] int offset, [FromQuery] int pageSize)
     {
         var entity = RentalGameMessage.GetServerList(offset, pageSize).Result;
-        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 
     [HttpGet("/api/gamerental/sort")]
     public IActionResult GetRentalGameSortHttp()
     {
         RentalGameMessage.SortServerList();
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     [HttpGet("/api/gamerental/getlaunch")]
@@ -36,7 +36,7 @@ public class GameRentalController : ControllerBase {
             accounts,
             games
         };
-        return Content(Code.ToJson(ErrorCode.Success, text), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, text));
     }
 
     [HttpGet("/api/gamerental/id")]
@@ -45,7 +45,7 @@ public class GameRentalController : ControllerBase {
         var serverDetail = new EntityRentalDetail();
         serverDetail.Set(WPFLauncher.GetRentalGameDetailsAsync(id).Result);
         serverDetail.Set(WPFLauncher.GetGameRentalAddressAsync(id).Result);
-        return Content(Code.ToJson(ErrorCode.Success, serverDetail), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, serverDetail));
     }
 
     [HttpPost("/api/gamerental/createname")]
@@ -55,6 +55,6 @@ public class GameRentalController : ControllerBase {
         if (name.Name == null) throw new ErrorCodeException(ErrorCode.NameInNot);
         WPFLauncher.CreateCharacterRentalAsync(name.Id, name.Name).Wait(); // 创建游戏角色
         RentalGameMessage.GetUserName(name.Id, name.Name).Wait(); // 防止缓存
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 }

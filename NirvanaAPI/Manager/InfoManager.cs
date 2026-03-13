@@ -22,7 +22,6 @@ public static class InfoManager {
             gameAccount.Update(account);
             return;
         }
-
         GameAccountList.Add(account);
     }
 
@@ -77,7 +76,7 @@ public static class InfoManager {
     {
         foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
             GameAccountList.Remove(gameAccount);
-            Log.Warning("账号 {account} 被删除! 原因{code}: {message}", gameAccount.Account, message.Code, message.Message);
+            Log.Warning("账号 {account} 已过期! 原因{code}: {message}", gameAccount.Account, message.Code, message.Message);
             break;
         }
     }

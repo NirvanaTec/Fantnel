@@ -17,9 +17,9 @@ public static class RestartTools {
         logoInit.Invoke();
 
         var mode = Get("mode", args);
-        if (mode == "proxy") {
-            var id = Get("id", args, null);
-            var name = Get("name", args, null);
+        if ("proxy".Equals(mode)) {
+            var id = Get("id", args);
+            var name = Get("name", args);
             var accountId = Get<int>("account", args);
             var port = Get("port", args, 25565);
             var proxyMode = Get("proxyMode", args, "net");

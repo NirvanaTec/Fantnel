@@ -57,7 +57,7 @@ public class UdpBroadcaster : IDisposable {
         } catch (OperationCanceledException ex) {
             Log.Error("Broadcasting operation cancelled, {exception}", ex.Message);
         } catch (Exception value) {
-            Log.Error($"UDP Broadcast error: {value}");
+            Log.Error("UDP Broadcast error: {exception}", value);
         }
     }
 

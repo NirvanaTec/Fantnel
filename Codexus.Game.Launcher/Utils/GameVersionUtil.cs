@@ -54,8 +54,7 @@ public static class GameVersionUtil {
 
     public static string GetGameVersionFromEnum(EnumGameVersion gameVersion)
     {
-        return (Enum.GetName(gameVersion) ?? string.Empty).Replace("V_", "").Replace("_libs", "").Replace("_", ".")
-            .Trim();
+        return (Enum.GetName(gameVersion) ?? string.Empty).Replace("V_", "").Replace("_libs", "").Replace("_", ".").Trim();
     }
 
     public static EnumGameVersion GetEnumFromGameVersion(string gameVersion)

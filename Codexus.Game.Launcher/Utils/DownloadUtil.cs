@@ -29,8 +29,9 @@ public static class DownloadUtil {
         int lastReportedProgress;
         try {
             var directoryName = Path.GetDirectoryName(destinationPath);
-            if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName))
+            if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName)) {
                 Directory.CreateDirectory(directoryName);
+            }
             using var headReq = new HttpRequestMessage(HttpMethod.Head, url);
             using var headResp =
                 await HttpClient.SendAsync(headReq, HttpCompletionOption.ResponseHeadersRead, cancellationToken);

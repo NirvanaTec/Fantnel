@@ -28,10 +28,10 @@ public static class TokenUtil {
     {
         requestPath = requestPath.StartsWith('/') ? requestPath : "/" + requestPath;
         using var memoryStream = new MemoryStream();
-        memoryStream.Write((ReadOnlySpan<byte>)Encoding.UTF8.GetBytes(userToken.EncodeMd5().ToLowerInvariant()));
-        memoryStream.Write((ReadOnlySpan<byte>)sendBody);
+        memoryStream.Write(Encoding.UTF8.GetBytes(userToken.EncodeMd5().ToLowerInvariant()));
+        memoryStream.Write(sendBody);
         memoryStream.Write("0eGsBkhl"u8);
-        memoryStream.Write((ReadOnlySpan<byte>)Encoding.UTF8.GetBytes(requestPath));
+        memoryStream.Write(Encoding.UTF8.GetBytes(requestPath));
         var lowerInvariant = memoryStream.ToArray().EncodeMd5().ToLowerInvariant();
         var binary = HexToBinary(lowerInvariant);
         var secretBin = binary[6..] + binary[..6];
@@ -59,8 +59,9 @@ public static class TokenUtil {
     private static string HexToBinary(string hexString)
     {
         var stringBuilder = new StringBuilder();
-        foreach (var str in hexString.Select((Func<char, string>)(hex => Convert.ToString(hex, 2).PadLeft(8, '0'))))
+        foreach (var str in hexString.Select(hex => Convert.ToString(hex, 2).PadLeft(8, '0'))) {
             stringBuilder.Append(str);
+        }
         return stringBuilder.ToString();
     }
 }

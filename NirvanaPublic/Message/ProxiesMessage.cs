@@ -4,6 +4,7 @@ using Codexus.Game.Launcher.Utils;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
+using NirvanaPublic.Entities.NEL;
 using Serilog;
 using WPFLauncherApi.Protocol;
 
@@ -15,17 +16,18 @@ public static class ProxiesMessage {
      * @param id 游戏服务器ID
      * @param name 玩家名称
      */
-    public static async Task StartProxyAsync(string id, string name, string mode = "net")
+    public static async Task<EntityProxyBase> StartProxyAsync(string id, string name, string mode = "net")
     {
         Log.Information("正在启动本地代理...");
         Log.Information("名称：{name}", name);
         ActiveGameAndProxies.Close(id, name); // 清理旧代理
+        
         // 子窗口的方式启动代理
         var port = Tools.GetUnusedPort(25565); // 获取没被占用的端口
+        
         // 插件未初始化
         if (!PluginMessage.IsPluginChanged()) {
-            await StartProxyAsyncTo(id, name, port, mode);
-            return;
+            return await StartProxyAsyncTo(id, name, port, mode);
         }
 
         List<string> arguments = ["--mode", "proxy", "--id", id, "--name", name];
@@ -61,7 +63,7 @@ public static class ProxiesMessage {
             throw new ErrorCodeException(ErrorCode.RestartFailed);
         }
 
-        await ActiveGameAndProxies.Add(process, id, name, port);
+        return await ActiveGameAndProxies.Add(process, id, name, port);
     }
 
     /**
@@ -69,7 +71,7 @@ public static class ProxiesMessage {
      * @param id 游戏服务器ID
      * @param name 玩家名称
      */
-    public static async Task<int> StartProxyAsyncTo(string id, string name, int port = 25565, string mode = "net")
+    public static async Task<RunningProxy> StartProxyAsyncTo(string id, string name, int port = 25565, string mode = "net")
     {
         if ("rental".Equals(mode)) {
             return await StartProxyAsyncRental(id, name, port);
@@ -78,7 +80,7 @@ public static class ProxiesMessage {
         return await StartProxyAsyncNet(id, name, port);
     }
 
-    private static async Task<int> StartProxyAsyncNet(string id, string name, int port = 25565)
+    private static async Task<RunningProxy> StartProxyAsyncNet(string id, string name, int port = 25565)
     {
         try {
             // 服务器详细信息
@@ -99,33 +101,29 @@ public static class ProxiesMessage {
 
             // 服务器角色信息
             var character = await ServersGameMessage.GetUserName(server.EntityId, name);
-            if (character == null) throw new ErrorCodeException(ErrorCode.NotFoundName);
+            if (character == null) {
+                throw new ErrorCodeException(ErrorCode.NotFoundName);
+            }
 
-            // 前往游戏
-            InterConn.LoginStart().Wait();
-
-            // 启动游戏
-            InterConn.GameStart(server.EntityId).Wait();
+            // 前往游戏页 并 前往启动游戏页
+            _ = InterConn.LoginStartAndGameStart(server.EntityId);
             // await X19.InterconnectionApi.GameStartAsync(server.EntityId);
 
             // 插件初始化
             PluginMessage.InitializeAuto();
 
             // 创建代理 并 下载资源
-            var interceptor =
-                new InterceptorMessage(server, character, version, address, mods, port).Interceptor;
+            var interceptor = new InterceptorMessage(server, character, version, address, mods, port).Interceptor;
 
             // 增加代理
-            ActiveGameAndProxies.Add(interceptor, server.EntityId);
-
-            return interceptor.LocalPort;
+            return ActiveGameAndProxies.Add(interceptor, server.EntityId);
         } catch (Exception ex) {
             Log.Error("启动代理失败：{ex}", ex.Message);
             throw;
         }
     }
 
-    private static async Task<int> StartProxyAsyncRental(string id, string name, int port = 25565)
+    private static async Task<RunningProxy> StartProxyAsyncRental(string id, string name, int port = 25565)
     {
         try {
             // 服务器详细信息
@@ -148,24 +146,19 @@ public static class ProxiesMessage {
             var character = await RentalGameMessage.GetUserName(server.EntityId, name);
             if (character == null) throw new ErrorCodeException(ErrorCode.NotFoundName);
 
-            // 前往游戏
-            InterConn.LoginStart().Wait();
-
-            // 启动游戏
-            InterConn.GameStart(server.EntityId).Wait();
+            // 前往游戏页 并 前往启动游戏页
+            _ = InterConn.LoginStartAndGameStart(server.EntityId);
             // await X19.InterconnectionApi.GameStartAsync(server.EntityId);
 
             // 插件初始化
             PluginMessage.InitializeAuto();
 
             // 创建代理 并 下载资源
-            var interceptor =
-                new InterceptorMessage(server, character, versionName, address, mods, port).Interceptor;
+            var interceptor = new InterceptorMessage(server, character, versionName, address, mods, port).Interceptor;
 
             // 增加代理
-            ActiveGameAndProxies.Add(interceptor, server.EntityId);
+            return ActiveGameAndProxies.Add(interceptor, server.EntityId);
 
-            return interceptor.LocalPort;
         } catch (Exception ex) {
             Log.Error("启动代理失败：{ex}", ex.Message);
             throw;

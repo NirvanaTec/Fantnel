@@ -247,7 +247,7 @@ public static class WPFLauncher {
             Disk = upper
         };
         var entity = JsonSerializer.Deserialize<EntityWPFLauncher<EntityAuthenticationOtp>>(
-            (ReadOnlySpan<byte>)HttpUtil.HttpDecrypt(await (await X19Extensions.Core.HttpWrapper.PostAsync(
+            HttpUtil.HttpDecrypt(await (await X19Extensions.Core.HttpWrapper.PostAsync(
                 "/authentication-otp",
                 HttpUtil.HttpEncrypt(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new EntityAuthenticationData {
                     SaData = JsonSerializer.Serialize(authenticationDetail, DefaultOptions),

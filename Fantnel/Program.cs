@@ -5,6 +5,7 @@ using Microsoft.Extensions.FileProviders;
 using NirvanaAPI.Utils;
 using NirvanaPublic;
 using NirvanaPublic.Utils;
+using NirvanaPublic.Utils.ViewLogger;
 using Serilog;
 
 namespace Fantnel;
@@ -56,11 +57,12 @@ public static class Program {
         var resourcesPath = Path.Combine(PathUtil.ResourcePath, "static");
 
         // 启用静态文件服务，从运行目录的 resources/static 目录提供文件
-        if (Directory.Exists(resourcesPath))
+        if (Directory.Exists(resourcesPath)) {
             app.UseStaticFiles(new StaticFileOptions {
                 FileProvider = new PhysicalFileProvider(resourcesPath),
                 RequestPath = ""
             });
+        }
 
         app.MapControllers();
 
@@ -116,7 +118,7 @@ public static class Program {
 
     private static void LogoInit1()
     {
-        Console.Clear(); // 清空框架信息
+        InMemorySink.Clear(); // 清空框架信息
         Log.Information("----- Fantnel -----");
         Log.Information("应用启动成功！");
         Log.Information("版本: {ver}", PublicProgram.Version);

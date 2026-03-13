@@ -16,7 +16,7 @@ public class GameSkinController : ControllerBase {
         var entity = name == null
             ? SkinMessage.GetSkinList(offset, pageSize)
             : SkinMessage.GetSkinListByName(name, offset, pageSize).Result;
-        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 
     [HttpGet("/api/gameskin/detail")]
@@ -25,13 +25,13 @@ public class GameSkinController : ControllerBase {
         var skinDetail = new EntitySkinDetail();
         skinDetail.Set(SkinMessage.GetSkinId(id));
         skinDetail.Set(WPFLauncher.GetSkinDetailsAsync(id).Result);
-        return Content(Code.ToJson(ErrorCode.Success, skinDetail), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, skinDetail));
     }
 
     [HttpGet("/api/gameskin/set")]
     public IActionResult SetSkinHttp([FromQuery] string id)
     {
         WPFLauncher.SetSkinAsync(id).Wait();
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 }

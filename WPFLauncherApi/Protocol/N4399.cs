@@ -87,16 +87,18 @@ public static class N4399 {
                        "microterminal-h5-frame%25253Fgame_id%25253D500352%252526rand_time%25253D" + unixTimeSeconds;
 
 
-        HttpResponseMessage checkResponse;
-        while (true) {
+        HttpResponseMessage? checkResponse = null;
+        for (var i = 0; i < 4; i++) {
             var request = new HttpRequestMessage(HttpMethod.Get, checkUrl);
             request.Headers.Add("Cookie", cookieString);
             checkResponse = await client.SendAsync(request);
-            if (checkResponse.Headers.Location == null) break;
+            if (checkResponse.Headers.Location == null) {
+                break;
+            }
             checkUrl = checkResponse.Headers.Location.ToString();
         }
 
-        if (checkResponse.RequestMessage?.RequestUri == null) {
+        if (checkResponse?.RequestMessage?.RequestUri == null) {
             throw new Exception("登录状态检查失败");
         }
 
@@ -111,8 +113,7 @@ public static class N4399 {
             uniAuth.Get("username"),
             uniAuth.Get("uid"),
             uniAuth.Get("token"),
-            uniAuth.Get("time"),
-            "4399pc"
+            uniAuth.Get("time")
         );
     }
 
@@ -121,7 +122,7 @@ public static class N4399 {
         string sdkUid,
         string sessionId,
         string timestamp,
-        string channel,
+        string channel = "4399pc",
         string platform = "pc")
     {
         var str = Guid.NewGuid().ToString("N");

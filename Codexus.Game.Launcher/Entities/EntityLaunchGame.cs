@@ -6,6 +6,7 @@ using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 namespace Codexus.Game.Launcher.Entities;
 
 public class EntityLaunchGame {
+    
     [JsonPropertyName("game_name")]
     public string GameName { get; set; } = string.Empty;
 

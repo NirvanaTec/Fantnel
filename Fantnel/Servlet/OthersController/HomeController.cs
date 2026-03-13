@@ -19,7 +19,7 @@ public class HomeController : ControllerBase {
     public IActionResult SetTheme(string name)
     {
         ConfigUtil.SaveConfig("theme", name);
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     // 获取主题
@@ -28,36 +28,14 @@ public class HomeController : ControllerBase {
     {
         // 从配置中获取主题
         var theme = ConfigUtil.GetConfig()["theme"] ?? "default";
-        return Content(Code.ToJson(ErrorCode.Success, theme), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, theme));
     }
 
     // 获取首页信息
     [HttpGet("/api/home")]
     public IActionResult HomeInfo()
     {
-        return Content(JsonSerializer.Serialize(InfoManager.FantnelInfo), "application/json");
-    }
-
-    // 获取版本
-    [HttpGet("/api/version")]
-    public IActionResult GetVersion()
-    {
-        var version = new JsonObject {
-            ["version"] = PublicProgram.Version,
-            ["id"] = PublicProgram.VersionId,
-            ["mode"] = PublicProgram.Mode,
-            ["arch"] = PublicProgram.Arch
-        };
-        return Content(Code.ToJson(ErrorCode.Success, version), "application/json");
-    }
-
-    // 设置主题
-    [HttpGet("/api/reboot")]
-    public IActionResult Reboot()
-    {
-        // 重启程序
-        Tools.Restart();
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(JsonSerializer.Serialize(InfoManager.FantnelInfo));
     }
 
     // 设置主题
@@ -65,7 +43,7 @@ public class HomeController : ControllerBase {
     public IActionResult ThemeSwitch([FromBody] EntityValue entity)
     {
         if (string.IsNullOrEmpty(entity.Value)) {
-            return Content(Code.ToJson(ErrorCode.ParamError), "application/json");
+            return Ok(Code.ToJson(ErrorCode.ParamError));
         }
 
         if (InitProgram.SafeTheme(entity.Value).Result) {
@@ -73,7 +51,7 @@ public class HomeController : ControllerBase {
         }
 
         UpdateTools.CheckUpdate("ui." + entity.Value).Wait();
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     public static string GetIndexHtml()

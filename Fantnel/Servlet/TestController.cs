@@ -7,6 +7,7 @@ namespace Fantnel.Servlet;
 [ApiController]
 [Route("[controller]")]
 public class TestController : ControllerBase {
+    
     [HttpGet("/api/test")]
     public IActionResult Test()
     {
@@ -15,6 +16,7 @@ public class TestController : ControllerBase {
             entity.Token = "1213";
         }
 
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
+    
 }

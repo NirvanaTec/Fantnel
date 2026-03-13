@@ -13,11 +13,9 @@ using WPFLauncherApi.Protocol;
 namespace NirvanaPublic.Utils;
 
 public static class InitProgram {
+    
     public static void LogoInit()
     {
-        // 清空框架信息
-        Console.Clear();
-
         // 配置 Serilog 日志记录
         var logger = new Logger();
         logger.MinimumLevel.Information();
@@ -25,7 +23,12 @@ public static class InitProgram {
         logger.SetColor(LogEventLevel.Warning, ConsoleColor.DarkYellow);
         logger.SetColor(LogEventLevel.Error, ConsoleColor.Red);
         logger.SetColor(LogEventLevel.Fatal, ConsoleColor.DarkRed);
+        logger.SetColor(LogEventLevel.Debug, ConsoleColor.Cyan);
+        logger.WriteTo.Sink(InMemorySink.Instance);
         Log.Logger = logger.CreateLogger();
+        
+        // 清空框架信息
+        InMemorySink.Clear();
     }
 
     public static void NelInit(string[] args, Action logInit)
@@ -43,7 +46,6 @@ public static class InitProgram {
 
     /**
      * 核心 初始化
-     * @param isThread 为真不卡死线程
      */
     public static void NelInit1()
     {
@@ -96,20 +98,24 @@ public static class InitProgram {
         }
 
         var isVersion = false; // 版本 是否存在
-        foreach (var version in InfoManager.FantnelInfo.Versions)
-            if (version == PublicProgram.Version)
+        foreach (var version in InfoManager.FantnelInfo.Versions) {
+            if (version == PublicProgram.Version) {
                 isVersion = true;
+            }
+        }
 
-        foreach (var version in InfoManager.FantnelInfo.DisabledVersions)
+        foreach (var version in InfoManager.FantnelInfo.DisabledVersions) {
             // x64_1.3.0
-            if (version == PublicProgram.Arch + "_" + PublicProgram.Version)
+            if (version == PublicProgram.Arch + "_" + PublicProgram.Version) {
                 isVersion = false;
-            else if (version == PublicProgram.Mode + "_" + PublicProgram.Arch + "_" + PublicProgram.Version)
+            } else if (version == PublicProgram.Mode + "_" + PublicProgram.Arch + "_" + PublicProgram.Version) {
                 // win_x64_1.3.0
                 isVersion = false;
-            else if (version == PublicProgram.Mode + "_" + PublicProgram.Version)
+            } else if (version == PublicProgram.Mode + "_" + PublicProgram.Version) {
                 // win_1.3.0
                 isVersion = false;
+            }
+        }
 
         if (!isVersion) {
             Log.Error("该版本已被禁用，请前往 https://npyyds.top/ 查看最新版本！");
@@ -118,7 +124,9 @@ public static class InitProgram {
         }
 
         // 检查是否为最新版本
-        if (InfoManager.FantnelInfo.Versions.Last().Equals(PublicProgram.Version)) return;
+        if (InfoManager.FantnelInfo.Versions.Last().Equals(PublicProgram.Version)) {
+            return;
+        }
         PublicProgram.LatestVersion = false;
     }
 
@@ -185,7 +193,6 @@ public static class InitProgram {
 
     public static async Task<bool> SafeTheme(string themeValue)
     {
-        return await X19Extensions.Nirvana.Api<EntityResponseBase>("/api/theme/name?value=" + themeValue) is
-            { Code: 1 };
+        return await X19Extensions.Nirvana.Api<EntityResponseBase>("/api/theme/name?value=" + themeValue) is { Code: 1 };
     }
 }

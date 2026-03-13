@@ -4,6 +4,7 @@ using NirvanaAPI.Entities;
 namespace NirvanaAPI.Utils.CodeTools;
 
 public static class Code {
+    
     public static EntityResponse<string> ToJson(Exception t)
     {
         var json = new EntityResponse<string> {
@@ -13,17 +14,7 @@ public static class Code {
         return json;
     }
 
-    public static string ToJson(ErrorCode code, object? data = null)
-    {
-        return JsonSerializer.Serialize(ToJson1(code, data));
-    }
-
-    public static string ToJson<T>(EntityResponse<T> json)
-    {
-        return JsonSerializer.Serialize(json);
-    }
-
-    public static EntityResponse<object> ToJson1(ErrorCode code, object? data = null)
+    public static EntityResponse<object> ToJson(ErrorCode code, object? data = null)
     {
         return ToJson1(code, new EntityResponse<object>(), data);
     }

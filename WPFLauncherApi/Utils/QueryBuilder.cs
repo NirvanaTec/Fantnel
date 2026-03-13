@@ -10,10 +10,11 @@ public class QueryBuilder {
 
     public QueryBuilder(string urlOrQuery)
     {
-        if (IsQueryStringOnly(urlOrQuery))
+        if (IsQueryStringOnly(urlOrQuery)) {
             ParseQueryString(urlOrQuery.TrimStart('?'));
-        else
+        } else {
             ParseUrl(urlOrQuery);
+        }
     }
 
     public int Count => _parameters.Count;
@@ -42,14 +43,18 @@ public class QueryBuilder {
     {
         var queryBuilder = new QueryBuilder();
         var queryStart = url.IndexOf('?');
-        if (queryStart == -1) return queryBuilder;
+        if (queryStart == -1) {
+            return queryBuilder;
+        }
 
         var queryString = url[(queryStart + 1)..];
         var parameters = queryString.Split('&');
 
         foreach (var param in parameters) {
             var parts = param.Split('=');
-            if (parts.Length == 2) queryBuilder.Add(parts[0], Uri.UnescapeDataString(parts[1]));
+            if (parts.Length == 2) {
+                queryBuilder.Add(parts[0], Uri.UnescapeDataString(parts[1]));
+            }
         }
 
         return queryBuilder;
@@ -63,29 +68,33 @@ public class QueryBuilder {
 
     public QueryBuilder Add<T>(string key, T value)
     {
-        if (value != null)
+        if (value != null) {
             _parameters[key] = value.ToString() ?? string.Empty;
+        }
         return this;
     }
 
     public QueryBuilder AddIf(bool condition, string key, string value)
     {
-        if (condition)
+        if (condition) {
             Add(key, value);
+        }
         return this;
     }
 
     public QueryBuilder AddIf(bool condition, string key, Func<string> valueFactory)
     {
-        if (condition)
+        if (condition) {
             Add(key, valueFactory());
+        }
         return this;
     }
 
     public QueryBuilder AddIfNotEmpty(string key, string? value)
     {
-        if (!string.IsNullOrEmpty(value))
+        if (!string.IsNullOrEmpty(value)) {
             Add(key, value);
+        }
         return this;
     }
 
@@ -148,19 +157,15 @@ public class QueryBuilder {
 
     public string BuildQueryString()
     {
-        return _parameters.Count == 0
-            ? string.Empty
-            : string.Join("&",
-                _parameters.Where((Func<KeyValuePair<string, string>, bool>)(p => !string.IsNullOrEmpty(p.Value)))
-                    .Select((Func<KeyValuePair<string, string>, string>)(p =>
-                        $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}")));
+        return _parameters.Count == 0 ? string.Empty : string.Join("&",
+            _parameters.Where(p => !string.IsNullOrEmpty(p.Value)) .Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
     }
 
     public string BuildUrl()
     {
-        if (string.IsNullOrEmpty(_baseUrl))
-            throw new InvalidOperationException(
-                "Base URL is not set. Call WithBaseUrl() first or use BuildQueryString().");
+        if (string.IsNullOrEmpty(_baseUrl)) {
+            throw new InvalidOperationException("Base URL is not set. Call WithBaseUrl() first or use BuildQueryString().");
+        }
         var str = BuildQueryString();
         return string.IsNullOrEmpty(str) ? _baseUrl : _baseUrl + (_baseUrl.Contains('?') ? "&" : "?") + str;
     }
@@ -172,8 +177,9 @@ public class QueryBuilder {
 
     private static bool IsQueryStringOnly(string input)
     {
-        if (input.StartsWith('?'))
+        if (input.StartsWith('?')) {
             return true;
+        }
         return input.Contains('=') && !input.Contains("://");
     }
 
@@ -190,14 +196,18 @@ public class QueryBuilder {
 
     private void ParseQueryString(string queryString)
     {
-        if (string.IsNullOrEmpty(queryString))
+        if (string.IsNullOrEmpty(queryString)) {
             return;
-        foreach (var str in queryString.Split('&'))
-            if (!string.IsNullOrWhiteSpace(str)) {
-                var strArray = str.Split('=', 2);
-                if (strArray.Length == 2)
-                    _parameters[Uri.UnescapeDataString(strArray[0])] = Uri.UnescapeDataString(strArray[1]);
+        }
+        foreach (var str in queryString.Split('&')) {
+            if (string.IsNullOrWhiteSpace(str)) {
+                continue;
             }
+            var strArray = str.Split('=', 2);
+            if (strArray.Length == 2) {
+                _parameters[Uri.UnescapeDataString(strArray[0])] = Uri.UnescapeDataString(strArray[1]);
+            }
+        }
     }
 
     public QueryBuilder Clone()

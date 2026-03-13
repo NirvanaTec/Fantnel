@@ -338,3 +338,8 @@ export async function setUseJavaW(value = "true") {
 export async function setThemeSwitch(theme) {
     return axios.post(`/api/theme/switch`, theme).then(res => res.data);
 }
+
+// 自动更新插件
+export async function autoUpdatePlugin(value = "true") {
+    return axios.get(`/api/nirvana/set?mode=autoUpdatePlugin&value=${value}`).then(res => res.data);
+}

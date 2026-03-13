@@ -100,6 +100,20 @@
         </div>
       </div>
 
+      <!-- 其它配置卡片 -->
+      <div class="settings-card">
+        <h2 class="card-title">其它配置</h2>
+
+        <div class="form-group">
+          <div class="form-options">
+            <div class="remember-me">
+              <input v-model="autoUpdatePlugin" class="form-checkbox" id="autoUpdatePlugin" type="checkbox">
+              <label class="form-checkbox-label" for="autoUpdatePlugin">自动更新插件</label>
+            </div>
+          </div>
+        </div>
+
+      </div>
 
     </div>
   </div>
@@ -108,7 +122,7 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { Message } from '../utils/message.js'
-import { chatEnable, chatTarget, chatPrefix, jvmArgs, gameArgs, gameMemory as setGameMemory, getSettings, autoLoginGame, autoLoginGame163Email, setUseJavaW, autoLoginGameCookie as setAutoLoginGameCookie } from '../utils/Tools.js'
+import { chatEnable, chatTarget, chatPrefix, jvmArgs, gameArgs, gameMemory as setGameMemory, getSettings, autoLoginGame, autoLoginGame163Email, setUseJavaW, autoLoginGameCookie as setAutoLoginGameCookie, autoUpdatePlugin as setAutoUpdatePlugin } from '../utils/Tools.js'
 
 const vmArgs = ref('')
 const gameArguments = ref('')
@@ -121,6 +135,7 @@ const isAutoLoginGame = ref(false)
 const isAutoLoginGame163Email = ref(false)
 const autoLoginGameCookie = ref(false)
 const isInitialLoading = ref(true)
+const autoUpdatePlugin = ref(false)
 
 // 监听 IRC 开启状态变化
 watch(ircEnabled, (newValue) => {
@@ -192,6 +207,14 @@ watch(useJavaW, (newValue) => {
   }
 })
 
+// 监听自动更新插件状态变化
+watch(autoUpdatePlugin, (newValue) => {
+  if (!isInitialLoading.value) {
+    handleAutoUpdatePlugin(newValue)
+  }
+})
+
+
 onMounted(() => {
   // 加载设置的逻辑
   loadSettings()
@@ -212,6 +235,7 @@ const loadSettings = async () => {
       isAutoLoginGame.value = data.data.autoLoginGame || false
       autoLoginGameCookie.value = data.data.autoLoginGameCookie || false
       isAutoLoginGame163Email.value = data.data.autoLoginGame163Email || false
+      autoUpdatePlugin.value = data.data.autoUpdatePlugin || false
     } else {
       Message.warning(data.msg || '加载设置失败')
     }
@@ -303,6 +327,7 @@ const handleChatPrefix = async (value) => {
   }
 }
 
+// 处理自动登录状态变化
 const handleAutoLoginGame = async (value) => {
   try {
     const data = await autoLoginGame(value ? "true" : "false")
@@ -316,6 +341,7 @@ const handleAutoLoginGame = async (value) => {
   }
 }
 
+// 处理自动登录163邮箱状态变化
 const handleAutoLoginGame163Email = async (value) => {
   try {
     const data = await autoLoginGame163Email(value ? "true" : "false")
@@ -356,6 +382,21 @@ const handleAutoLoginGameCookie = async (value) => {
     Message.error('设置失败，请检查网络连接')
   }
 }
+
+// 处理自动更新插件状态变化
+const handleAutoUpdatePlugin = async (value) => {
+  try {
+    const data = await setAutoUpdatePlugin(value ? "true" : "false")
+    if (data.code === 1) {
+      Message.success(data.msg || '设置成功')
+    } else {
+      Message.warning(data.msg || '设置失败')
+    }
+  } catch (error) {
+    Message.error('设置失败，请检查网络连接')
+  }
+}
+
 
 </script>
 

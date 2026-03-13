@@ -73,14 +73,12 @@ Get Http:
 }
 
 /api/gameaccount/select?id=${游戏账号id} : 登录账号
-return:
 {
   "code": 1,
   "msg": "成功"
 }
 
 /api/gameaccount/switch?id=${游戏账号id} : 将账号设置为优先账号
-return:
 {
   "code": 1,
   "msg": "成功"
@@ -107,8 +105,10 @@ return:
   "msg": "成功"
 }
 
-/api/gameserver/get?offset=${offset}&pageSize=${pageSize} : 获取网络服务器列表
-/api/gameserver/get?offset=0&pageSize=2
+/api/gameserver/get?offset=${offset}&pageSize=${pageSize}&version=${游戏版本} : 获取网络服务器列表
+/api/gameserver/get?offset=0&pageSize=2&version=1.12.2  : 特定用途
+/api/gameserver/get?offset=0&pageSize=2  : 常用
+[offset/pageSize/version](可选)
 {
   "code": 1,
   "data": [
@@ -117,6 +117,7 @@ return:
       "brief_summary": "梦世界，老牌服务器。\n涵盖各类经典玩法，数种小游戏，生存，岛屿应有尽有。",
       "name": "梦世界",
       "online_count": "2",
+      "version": "1.18",
       "title_image_url": "http://x19.fp.ps.netease.com/file/596625295e60274478206388wvOuaExF"
     },
     {
@@ -124,6 +125,7 @@ return:
       "brief_summary": "布吉岛是手游经典服务器，曾多次获取NetEase年度服务器奖项。主打起床战争、空岛战争等小游戏玩法~",
       "name": "布吉岛·新玩法上线",
       "online_count": "20991",
+      "version": "1.20",
       "title_image_url": "https://x19.fp.ps.netease.com/file/6454d6c4883c7778f23cac4eu2egkQUX04"
     }
   ],
@@ -185,8 +187,24 @@ games: 优先账号 的 角色信息 [切换优先账号，会导致games改变]
 
 /api/gameserver/launch?id=${网络/租赁服务器id}&name=${角色name}&mode=${网络服务器 = net, 租赁服务器 = rental} : 启动代理
 {
-  "code": 1,
-  "msg": "成功"
+    "data": {
+        "interceptor": {
+            "identifier": "a0c11a7b-0c8f-41a0-8b60-cb0fc43565c9",
+            "localAddress": "10.52.8.35",
+            "localPort": 25565,
+            "nickName": "我喜欢你呀嗡嗡嗡",
+            "forwardAddress": "pc.bjd-mc.com",
+            "forwardPort": 25565,
+            "serverName": "布吉岛·新玩法上线",
+            "serverVersion": "1.20"
+        },
+        "id": 1,
+        "userId": "861518622",
+        "userToken": "0jtTjwmq5LXHQ7Ds",
+        "serverId": "4661334467366178884"
+    },
+    "code": 1,
+    "msg": "成功"
 }
 
 /api/gamelaunch/launch?id=${网络/租赁服务器id}&name=${角色name}&mode=${网络服务器 = net, 租赁服务器 = rental} : 启动游戏
@@ -642,6 +660,12 @@ Min GameMemory = 1024
   "msg": "成功"
 }
 
+/api/nirvana/set?mode=autoUpdatePlugin&value=${true/false} : 是否自动更新插件
+{
+  "code": 1,
+  "msg": "成功"
+}
+
 /api/nirvana/get : 获取配置信息
 {
   "code": 1,
@@ -679,6 +703,16 @@ Min GameMemory = 1024
   "msg": "成功"
 }
 
+/api/logs : 获取日志信息
+{
+  "data": [
+    "[Information] ----- Fantnel -----",
+    "[Information] 应用启动成功！",
+    "[Information] 版本: \"1.5.1\""
+  ],
+  "code": 1,
+  "msg": "成功"
+}
 
 Post Http :
 /api/gameaccount/save: 添加游戏账号
@@ -755,4 +789,60 @@ return:
 {
   "code": 1,
   "msg": "成功"
+}
+
+/api/gameaccount/autoLogin : 自动验证并登录指定账号
+send:
+{
+  "id": ${游戏账号id},
+  "type": "${游戏账号类型}",
+  "account": "${游戏账号}",
+  "password": "${游戏账号密码}"
+}
+return:
+{
+  "code": 1,
+  "msg": "成功"
+}
+
+/api/gameaccount/autoswitch : 切换账号，未登录时自动登录
+send:
+{
+  "id": ${游戏账号id},
+  "type": "${游戏账号类型}",
+  "account": "${游戏账号}",
+  "password": "${游戏账号密码}"
+}
+return:
+{
+  "code": 1,
+  "msg": "成功"
+}
+
+
+window.external.sendMessage: 
+// 接收消息优先使用 window.chrome.webview.addEventListener('message', (event)${接收方法})
+// window.external.receiveMessage 作为备用
+
+初始化窗口模式
+send:
+{
+  "action": "fantnel:init"
+}
+Receive:
+{
+  "code": 5,
+  "msg": "初始化窗口"
+}
+
+窗口最小化
+send:
+{
+  "action": "window:minimize"
+}
+
+窗口结束
+send:
+{
+  "action": "window:close"
 }

@@ -20,6 +20,7 @@ using TokenUtil = WPFLauncherApi.Utils.Cipher.TokenUtil;
 namespace Codexus.Game.Launcher.Services.Java;
 
 public sealed class LauncherService : IDisposable {
+
     private readonly Skip32Cipher? _skip32;
 
     private readonly int _socketPort;
@@ -41,7 +42,7 @@ public sealed class LauncherService : IDisposable {
 
     public EntityLaunchGame Entity { get; }
 
-    private Guid Identifier { get; }
+    public Guid Identifier { get; }
 
     private Process? GameProcess { get; set; }
 

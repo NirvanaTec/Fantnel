@@ -39,32 +39,33 @@ public static class ActiveGameAndProxies {
         lock (SafeLock) {
             // 关闭老代理
             var log = 0;
-            foreach (var proxy in ActiveProxies.ToList()
-                         .Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name))) {
+            foreach (var proxy in ActiveProxies.ToList() .Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name))) {
                 log++;
                 proxy.Shutdown();
                 ActiveProxies.Remove(proxy);
             }
 
-            foreach (var proxy in ActiveProxies1.ToList()
-                         .Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name))) {
+            foreach (var proxy in ActiveProxies1.ToList() .Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name))) {
                 log++;
                 proxy.Shutdown();
                 ActiveProxies1.Remove(proxy);
             }
 
-            if (log > 0) Log.Information("已清理 {log} 个旧代理", log);
+            if (log > 0) {
+                Log.Information("已清理 {log} 个旧代理", log);
+            }
 
             // 关闭老游戏
             log = 0;
-            foreach (var launcher in ActiveLaunchers.ToList()
-                         .Where(launcher => launcher.Entity.Equals(InfoManager.GetGameAccount(), id, name))) {
+            foreach (var launcher in ActiveLaunchers.ToList() .Where(launcher => launcher.Entity.Equals(InfoManager.GetGameAccount(), id, name))) {
                 log++;
                 launcher.ShutdownAsync();
                 ActiveLaunchers.Remove(launcher);
             }
 
-            if (log > 0) Log.Information("已清理 {log} 个旧游戏", log);
+            if (log > 0) {
+                Log.Information("已清理 {log} 个旧游戏", log);
+            }
         }
     }
 
@@ -79,7 +80,7 @@ public static class ActiveGameAndProxies {
     }
 
     // 添加已启动代理
-    public static void Add(Interceptor interceptor, string serverId)
+    public static RunningProxy Add(Interceptor interceptor, string serverId)
     {
         lock (SafeLock) {
             var proxy = new RunningProxy {
@@ -90,20 +91,22 @@ public static class ActiveGameAndProxies {
                 Interceptor = interceptor
             };
             ActiveProxies.Add(proxy);
+            DisposeActive();
+            return proxy;
         }
-
-        DisposeActive();
     }
 
     // 添加已启动代理1
-    public static async Task Add(Process proxy, string serverId, string name, int port)
+    public static async Task<EntityProxy> Add(Process proxy, string serverId, string name, int port)
     {
         // 服务器地址
         var address = await WPFLauncher.GetNetGameServerAddressAsync(serverId);
 
         // 服务器普通信息
         var server = ServersGameMessage.GetServerById(serverId);
-        if (server == null) throw new ErrorCodeException(ErrorCode.ServerInNot);
+        if (server == null) {
+            throw new ErrorCodeException(ErrorCode.ServerInNot);
+        }
 
         // 服务器详细信息
         var details = await WPFLauncher.GetNetGameDetailByIdAsync(server.EntityId);
@@ -126,9 +129,9 @@ public static class ActiveGameAndProxies {
             };
             entityProxy.SetProxy(proxy);
             ActiveProxies1.Add(entityProxy);
+            DisposeActive();
+            return entityProxy;
         }
-
-        DisposeActive();
     }
 
     // 添加已启动白端游戏
@@ -136,9 +139,8 @@ public static class ActiveGameAndProxies {
     {
         lock (SafeLock) {
             ActiveLaunchers.Add(launcherService);
+            DisposeActive();
         }
-
-        DisposeActive();
     }
 
     // 关闭代理
@@ -154,7 +156,9 @@ public static class ActiveGameAndProxies {
             }
 
             var proxy1 = ActiveProxies1.FirstOrDefault(x => x.Id == id);
-            if (proxy1 == null) return;
+            if (proxy1 == null) {
+                return;
+            }
             proxy1.Shutdown();
             ActiveProxies1.Remove(proxy1);
             Log.Information("已关闭代理 {Nickname} ({Id})", proxy1.GetNickName(), proxy1.Id);
@@ -191,10 +195,11 @@ public static class ActiveGameAndProxies {
     {
         var index = 0;
         foreach (var launcher in ActiveLaunchers) {
-            if (index.ToString().Equals(id)) return launcher;
+            if (index.ToString().Equals(id)) {
+                return launcher;
+            }
             index++;
         }
-
         return null;
     }
 

@@ -12,14 +12,14 @@ public class PluginsListController : ControllerBase {
     public IActionResult GetPluginsListHttp()
     {
         var entity = PluginMessage.GetPluginListSafe();
-        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 
     [HttpGet("/api/plugins/toggle")]
     public IActionResult TogglePluginHttp(string id)
     {
         PluginMessage.TogglePlugin(id);
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     [HttpGet("/api/plugins/delete")]
@@ -28,7 +28,7 @@ public class PluginsListController : ControllerBase {
         PluginMessage.DeletePlugin(id);
         // 避免执行过快
         Thread.Sleep(1000);
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     [HttpGet("/api/plugins/dependence")]
@@ -50,9 +50,9 @@ public class PluginsListController : ControllerBase {
 
         // 无支持插件 并 没有可安装的插件
         if (!support && size == 0) {
-            return Content(Code.ToJson(ErrorCode.GamePlugin), "application/json");
+            return Ok(Code.ToJson(ErrorCode.GamePlugin));
         }
 
-        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 }

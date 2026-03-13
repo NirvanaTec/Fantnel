@@ -8,25 +8,26 @@ namespace Fantnel.Servlet.PluginsController;
 [ApiController]
 [Route("[controller]")]
 public class PluginsShopController : ControllerBase {
+    
     [HttpGet("/api/pluginstore/get")]
     public IActionResult GetPluginListHttp()
     {
         var pluginList = PlugInstoreMessage.GetPluginList().Result;
-        return Content(Code.ToJson(ErrorCode.Success, pluginList), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, pluginList));
     }
 
     [HttpGet("/api/pluginstore/detail")]
     public IActionResult GetPluginDetailHttp([FromQuery] string id)
     {
         var pluginDetail = PlugInstoreMessage.GetPluginDetail(id);
-        return Content(pluginDetail == null ? Code.ToJson(ErrorCode.NotFound) : Code.ToJson(pluginDetail),
-            "application/json");
+        return Ok(pluginDetail == null ? Code.ToJson(ErrorCode.NotFound) : pluginDetail);
     }
 
     [HttpGet("/api/pluginstore/install")]
     public IActionResult DownloadHttp([FromQuery] string id)
     {
         PlugInstoreMessage.Install(id);
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
+
 }

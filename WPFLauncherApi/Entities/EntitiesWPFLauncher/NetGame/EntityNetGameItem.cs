@@ -18,6 +18,9 @@ public class EntityNetGameItem {
     [JsonConverter(typeof(NetEaseIntConverter))]
     public string OnlineCount { get; set; } = string.Empty;
 
-    [JsonPropertyName("title_image_url")]
+    [JsonPropertyName("title_image_url")] // 来自详细信息
     public string TitleImageUrl { get; set; } = string.Empty;
+    
+    [JsonPropertyName("version")]  // 来自详细信息
+    public string Version { get; set; } = string.Empty;
 }

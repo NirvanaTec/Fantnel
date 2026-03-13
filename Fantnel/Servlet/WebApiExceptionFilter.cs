@@ -11,6 +11,7 @@ using WPFLauncherApi.Entities;
 namespace Fantnel.Servlet;
 
 public class WebApiExceptionFilter : ExceptionFilterAttribute {
+    
     // 异常处理
     public override Task OnExceptionAsync(ExceptionContext context)
     {
@@ -24,15 +25,22 @@ public class WebApiExceptionFilter : ExceptionFilterAttribute {
                 Msg = Tools.GetMessage(context.Exception)
             };
             var stack = GetStackTrace(context.Exception);
-            if (stack != null) array.Add(stack);
+            if (stack != null) {
+                array.Add(stack);
+            }
         }
 
         var index = array.Count;
         var stackTrace = new StackTrace(context.Exception, true);
         foreach (var frame in stackTrace.GetFrames()) {
             var stackTraceFrame = new EntityStackTrace(frame);
-            if (stackTraceFrame.IsIgnore()) continue;
-            if (index++ > 8) break;
+            if (stackTraceFrame.IsIgnore()) {
+                continue;
+            }
+
+            if (index++ > 8) {
+                break;
+            }
             array.Add(stackTraceFrame.ToJsonDocument());
         }
 

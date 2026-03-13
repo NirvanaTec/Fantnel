@@ -12,10 +12,7 @@ public class PacketManager {
 
     private readonly Dictionary<Type, RegisterPacket> _metadata = new();
 
-    private readonly
-        Dictionary<EnumConnectionState,
-            Dictionary<EnumPacketDirection, Dictionary<EnumProtocolVersion, Dictionary<int, List<Type>>>>> _packets =
-            new();
+    private readonly Dictionary<EnumConnectionState, Dictionary<EnumPacketDirection, Dictionary<EnumProtocolVersion, Dictionary<int, List<Type>>>>> _packets = new();
 
     private readonly bool _registered;
 
@@ -39,9 +36,7 @@ public class PacketManager {
 
     public void RegisterPacketFromAssembly(Assembly assembly)
     {
-        foreach (var item in from type in assembly.GetTypes()
-                 where typeof(IPacket).IsAssignableFrom(type) && type is { IsAbstract: false, IsInterface: false }
-                 select type) {
+        foreach (var item in assembly.GetTypes().Where(type => typeof(IPacket).IsAssignableFrom(type) && type is { IsAbstract: false, IsInterface: false })) {
             var list = item.GetCustomAttributes<RegisterPacket>(false).ToList();
             if (list.Count == 0) {
                 continue;

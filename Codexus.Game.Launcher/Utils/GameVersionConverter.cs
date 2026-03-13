@@ -78,18 +78,19 @@ public static class GameVersionConverter {
 
     public static EnumGameVersion Convert(int versionId)
     {
-        return (from version in VersionMap where versionId == (uint)version.Value select version.Value)
-            .FirstOrDefault();
+        return (from version in VersionMap where versionId == (uint)version.Value select version.Value).FirstOrDefault();
     }
 
     public static int Convert(EnumGameVersion version)
     {
-        foreach (var keyValuePair in VersionMap.Where(
-                     (Func<KeyValuePair<string, EnumGameVersion>, bool>)(pair => pair.Value == version))) {
-            if (string.IsNullOrEmpty(keyValuePair.Key))
+        foreach (var keyValuePair in VersionMap.Where(pair => pair.Value == version)) {
+            if (string.IsNullOrEmpty(keyValuePair.Key)) {
                 return 0;
-            if (int.TryParse(keyValuePair.Key, out var result))
+            }
+
+            if (int.TryParse(keyValuePair.Key, out var result)) {
                 return result;
+            }
         }
 
         return -1;

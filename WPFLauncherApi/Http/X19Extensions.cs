@@ -8,6 +8,7 @@ public class X19Extensions(string url, bool token = true) {
     public static readonly X19Extensions Gateway = new("https://x19apigatewayobt.nie.netease.com");
     public static readonly X19Extensions Client = new("https://x19mclobt.nie.netease.com");
     public static readonly X19Extensions Core = new("https://x19obtcore.nie.netease.com:8443", false);
+    public static readonly X19Extensions Core1 = new("https://x19obtcore.nie.netease.com:8443", true);
     public static readonly X19Extensions Nirvana = new("http://110.42.70.32:13423", false);
     public static readonly X19Extensions Bmcl = new("https://bmclapi2.bangbang93.com", false);
 
@@ -53,8 +54,15 @@ public class X19Extensions(string url, bool token = true) {
     private async Task<T?> Api<T>(string url, string? body, string? userId, string? userToken)
     {
         var response = await ApiRaw(url, body, userId, userToken);
-        if (response == null) return default;
-        if (typeof(T) == typeof(JsonDocument)) return (T)(object)JsonDocument.Parse(response);
+        if (response == null) {
+            return default;
+        }
+        if (typeof(T) == typeof(JsonDocument)) {
+            return (T)(object)JsonDocument.Parse(response);
+        }
+        if (typeof(T) == typeof(string)) {
+            return (T)(object)response;
+        }
         return JsonSerializer.Deserialize<T>(response);
     }
 

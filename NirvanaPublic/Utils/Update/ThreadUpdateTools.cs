@@ -119,19 +119,25 @@ public static class ThreadUpdateTools {
     private static bool NeedsUpdate(JsonNode item, string filePath)
     {
         // 文件是否存在
-        if (!File.Exists(filePath)) return true;
+        if (!File.Exists(filePath)) {
+            return true;
+        }
 
         // 检查文件大小
         var size = item["size"];
         if (size != null) {
             var expectedSize = size.GetValue<long>();
             var actualSize = new FileInfo(filePath).Length;
-            if (actualSize != expectedSize) return true;
+            if (actualSize != expectedSize) {
+                return true;
+            }
         }
 
         // 检查SHA256
         var sha256 = item["sha256"];
-        if (sha256 == null) return false;
+        if (sha256 == null) {
+            return false;
+        }
         var expectedHash = sha256.GetValue<string>();
         var actualHash = Tools.ComputeSha256(filePath);
         return !string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);

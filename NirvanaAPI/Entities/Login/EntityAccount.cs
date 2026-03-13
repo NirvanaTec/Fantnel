@@ -28,16 +28,16 @@ public class EntityAccount : EntityUserInfo {
     public bool Equals(EntityAccount other)
     {
         // cookie 用 值 判断
-        if (Type == "cookie" && other.Type == "cookie") return Password == other.Password;
+        if (Type == "cookie" && other.Type == "cookie") {
+            return Password == other.Password;
+        }
         // 账号 密码 登录类型 一致 则 认为 是 同一个账号
         return Account == other.Account && Type == other.Type && Password == other.Password;
     }
 
     public new string ToString()
     {
-        return Type == "cookie"
-            ? $"Type: {Type}, Password: {Password}"
-            : $"Account: {Account}, Type: {Type}, Password: {Password}";
+        return Type == "cookie" ? $"Type: {Type}, Password: {Password}" : $"Account: {Account}, Type: {Type}, Password: {Password}";
     }
 
     public void Update(EntityAccount account)

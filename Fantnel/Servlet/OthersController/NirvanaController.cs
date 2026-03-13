@@ -13,7 +13,7 @@ public class NirvanaController : ControllerBase {
     public IActionResult Login(string account, string password)
     {
         NirvanaAccountManager.Login(account, password).Wait();
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     // 退出登录
@@ -21,7 +21,7 @@ public class NirvanaController : ControllerBase {
     public IActionResult Logout()
     {
         NirvanaConfig.Logout();
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     // 获取账号
@@ -29,7 +29,7 @@ public class NirvanaController : ControllerBase {
     public IActionResult GetAccount()
     {
         var entity = NirvanaAccountManager.GetInfo().Result;
-        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 
     // 设置配置
@@ -73,9 +73,12 @@ public class NirvanaController : ControllerBase {
             case "useJavaW":
                 NirvanaConfig.SetUseJavaW(value ?? "true");
                 break;
+            case "autoUpdatePlugin":
+                NirvanaConfig.SetAutoUpdatePlugin(value ?? "true");
+                break;
         }
 
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     // 获取配置
@@ -83,6 +86,6 @@ public class NirvanaController : ControllerBase {
     public IActionResult SetAccount()
     {
         var config = NirvanaConfig.Config;
-        return Content(Code.ToJson(ErrorCode.Success, config), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, config));
     }
 }

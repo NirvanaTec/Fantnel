@@ -1,4 +1,5 @@
 ﻿using Codexus.Game.Launcher.Utils;
+using NirvanaAPI;
 using NirvanaAPI.Entities;
 using NirvanaAPI.Utils.CodeTools;
 using NirvanaPublic.Entities.Nirvana;
@@ -80,6 +81,10 @@ public static class PlugInstoreMessage {
     {
         // 清理相同ID的插件
         PluginMessage.CleanSameIdPlugin();
+
+        if (!NirvanaConfig.Config.AutoUpdatePlugin) {
+            return;
+        }
 
         var plugins = PluginMessage.GetPluginList();
         foreach (var plugin in plugins) {

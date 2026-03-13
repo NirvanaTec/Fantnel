@@ -2,11 +2,13 @@
 using Serilog;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame;
 using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
+using WPFLauncherApi.Http;
 using WPFLauncherApi.Protocol;
 
 namespace NirvanaPublic.Message;
 
 public static class ServersGameMessage {
+    
     // 服务器列表[普通信息] - 缓存
     private static readonly List<EntityNetGameItem> ServerList = [];
 
@@ -17,7 +19,7 @@ public static class ServersGameMessage {
      * @param safeImage 是否安全获取图片
      * @return 服务器列表[普通信息]
      */
-    public static async Task<EntityNetGameItem[]> GetServerList(int offset = 0, int pageSize = 10,
+    private static async Task<EntityNetGameItem[]> GetServerList(int offset = 0, int pageSize = 10,
         bool safeImage = true)
     {
         var index = -pageSize;
@@ -40,7 +42,7 @@ public static class ServersGameMessage {
                     }
 
                     // 从 详情页 获取图片
-                    item.TitleImageUrl = GetFirstImage(item.EntityId).Result;
+                    await GetFirstImageAndVer(item);
                 }
 
                 return list;
@@ -58,26 +60,64 @@ public static class ServersGameMessage {
                 if (items.Length == 0) {
                     index = 2;
                 }
-
                 AddServerList(items);
             }
         }
     }
 
-    // 获取 第一张 图片
-    private static async Task<string> GetFirstImage(string id)
+    public static async Task<EntityNetGameItem[]> GetServerListTo(int offset = 0, int pageSize = 10,
+        bool safeImage = true, string version = "")
     {
-        var details = await WPFLauncher.GetNetGameDetailByIdAsync(id);
+        // 没有版本号, 直接获取
+        if (string.IsNullOrEmpty(version)) {
+            return await GetServerList(offset, pageSize, safeImage);
+        }
+        return await GetServerListTo(offset, pageSize, safeImage, item => item.Version == version);
+    }
+
+    private static async Task<EntityNetGameItem[]> GetServerListTo(int offset, int pageSize,
+        bool safeImage, Func<EntityNetGameItem, bool> filter)
+    {
+        var mode = true;
+        var count = pageSize + offset;
+        var pageSize1 = ServerList.Count;
+        var pageSize2 = pageSize;
+        while (true) {
+            var list = await GetServerList(0, pageSize1, safeImage);
+            var list1 = list.Where(filter.Invoke).ToArray();
+            if (list1.Length >= count) {
+                return list1.Skip(offset).Take(pageSize2).ToArray();
+            }
+            if (mode) {
+                var items = await WPFLauncher.GetAvailableNetGamesAsync(ServerList.Count, 20);
+                if (items.Length == 0) {
+                    mode = false;
+                } else { 
+                    pageSize1 += 20;
+                }
+            } else {
+                count--;
+                pageSize2--;
+            }
+        }
+    }
+
+    // 获取 第一张 图片
+    private static async Task GetFirstImageAndVer(EntityNetGameItem item)
+    {
+        var details = await WPFLauncher.GetNetGameDetailByIdAsync(item.EntityId);
         // if (details != null && details.BriefImageUrls.Length > 0)
-        return details is { BriefImageUrls.Length: > 0 } ? details.BriefImageUrls[0] : "";
+        item.Version = details is { McVersionList.Length: > 0 } ? details.McVersionList[0].Name : "";
+        item.TitleImageUrl = details is { BriefImageUrls.Length: > 0 } ? details.BriefImageUrls[0] : "";
     }
 
     // 服务器列表[普通信息] - 添加
     private static void AddServerList(EntityNetGameItem gameItem)
     {
         foreach (var item in ServerList.Where(item => item.EntityId == gameItem.EntityId)) {
-            if (item.TitleImageUrl == "" && gameItem.TitleImageUrl != "")
+            if (item.TitleImageUrl == "" && gameItem.TitleImageUrl != "") {
                 item.TitleImageUrl = gameItem.TitleImageUrl;
+            }
             return;
         }
 
@@ -101,7 +141,9 @@ public static class ServersGameMessage {
     {
         for (var i = 0; i < 100; i++) {
             var server = ServerList.Find(server => server.EntityId == id);
-            if (server != null) return server;
+            if (server != null) {
+                return server;
+            }
             GetServerList(10 * i, 10, false).Wait();
         }
 
@@ -119,10 +161,14 @@ public static class ServersGameMessage {
         for (var i = 0; i < 3; i++) {
             try {
                 var games = await WPFLauncher.GetNetGameCharactersAsync(serverId);
-                if (games == null) throw new ErrorCodeException(ErrorCode.NotFound);
-                foreach (var game in games)
-                    if (game.Name == name)
+                if (games == null) {
+                    throw new ErrorCodeException(ErrorCode.NotFound);
+                }
+                foreach (var game in games) {
+                    if (game.Name == name) {
                         return game;
+                    }
+                }
             } catch (Exception e) {
                 Log.Error("获取游戏角色 {0} 失败 {1}", name, e.Message);
             }

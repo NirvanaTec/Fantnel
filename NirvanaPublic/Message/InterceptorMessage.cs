@@ -87,7 +87,9 @@ public class InterceptorMessage {
                 var pair = Md5Mapping.GetMd5FromGameVersion(_versionName);
 
                 var modsJson = JsonSerializer.Deserialize<ModList>(_mods);
-                if (modsJson == null) throw new ErrorCodeException(ErrorCode.ModsError);
+                if (modsJson == null) {
+                    throw new ErrorCodeException(ErrorCode.ModsError);
+                }
 
                 var success = await StandardYggdrasil.JoinServerAsync(new GameProfile {
                     GameId = _entityId,

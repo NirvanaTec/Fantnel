@@ -10,11 +10,12 @@ namespace Fantnel.Servlet.GameController;
 [ApiController]
 [Route("[controller]")]
 public class GameServerController : ControllerBase {
+    
     [HttpGet("/api/gameserver/get")]
-    public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10)
+    public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10, [FromQuery] string version = "")
     {
-        var entity = ServersGameMessage.GetServerList(offset, pageSize).Result;
-        return Content(Code.ToJson(ErrorCode.Success, entity), "application/json");
+        var entity = ServersGameMessage.GetServerListTo(offset, pageSize, true, version).Result;
+        return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 
     [HttpGet("/api/gameserver/id")]
@@ -23,7 +24,7 @@ public class GameServerController : ControllerBase {
         var serverDetail = new EntityServerDetail();
         serverDetail.Set(WPFLauncher.GetNetGameDetailByIdAsync(id).Result);
         serverDetail.Set(WPFLauncher.GetNetGameServerAddressAsync(id).Result);
-        return Content(Code.ToJson(ErrorCode.Success, serverDetail), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, serverDetail));
     }
 
     [HttpGet("/api/gameserver/getlaunch")]
@@ -38,7 +39,7 @@ public class GameServerController : ControllerBase {
             accounts,
             games
         };
-        return Content(Code.ToJson(ErrorCode.Success, text), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success, text));
     }
 
     [HttpPost("/api/gameserver/createname")]
@@ -48,6 +49,6 @@ public class GameServerController : ControllerBase {
         if (name.Name == null) throw new ErrorCodeException(ErrorCode.NameInNot);
         WPFLauncher.CreateCharacterAsync(name.Id, name.Name).Wait(); // 创建游戏角色
         ServersGameMessage.GetUserName(name.Id, name.Name).Wait(); // 防止缓存
-        return Content(Code.ToJson(ErrorCode.Success), "application/json");
+        return Ok(Code.ToJson(ErrorCode.Success));
     }
 }

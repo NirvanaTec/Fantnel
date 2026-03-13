@@ -2,16 +2,9 @@
 
 namespace NirvanaPublic.Utils.ViewLogger;
 
-public class CustomConsoleTheme : ConsoleTheme {
-    private readonly ConsoleColor _color;
-
-    public CustomConsoleTheme(ConsoleColor color)
-    {
-        ResetCharCount = 0;
-        _color = color;
-    }
-
-    protected override int ResetCharCount { get; } = -1;
+public class CustomConsoleTheme(ConsoleColor color) : ConsoleTheme {
+    
+    protected override int ResetCharCount => 0;
 
     public override bool CanBuffer => false;
 
@@ -19,7 +12,7 @@ public class CustomConsoleTheme : ConsoleTheme {
     {
         switch (style) {
             case ConsoleThemeStyle.TertiaryText or ConsoleThemeStyle.SecondaryText:
-                Console.ForegroundColor = _color;
+                Console.ForegroundColor = color;
                 break;
             default:
                 Console.ResetColor();
@@ -33,4 +26,5 @@ public class CustomConsoleTheme : ConsoleTheme {
     {
         Console.ResetColor();
     }
+    
 }

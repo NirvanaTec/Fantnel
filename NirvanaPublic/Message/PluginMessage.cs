@@ -97,7 +97,7 @@ public static class PluginMessage {
         List<Plugin> plugins = [];
         List<Assembly> assemblies = [];
         try {
-            // 检查是否已经加载了相同名称的程序集
+            // 检查是否已经加载了相同内容的程序集
             var pluginAssembly = PluginAssemblies.FirstOrDefault(a => a.Equals(pluginPath));
             
             var assembly = pluginAssembly?.Assembly;
@@ -107,7 +107,7 @@ public static class PluginMessage {
                 PluginAssemblies.Add(new EntityPluginAssembly(pluginPath, assembly));
             }
 
-            foreach (var type in assembly.GetTypes().Where((Func<Type, bool>)(type => typeof(IPlugin).IsAssignableFrom(type) && type is { IsAbstract: false, IsInterface: false }))) {
+            foreach (var type in assembly.GetTypes().Where(type => typeof(IPlugin).IsAssignableFrom(type) && type is { IsAbstract: false, IsInterface: false })) {
                 
                 Plugin? customAttribute;
                 try {

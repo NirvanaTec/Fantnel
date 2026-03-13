@@ -42,28 +42,37 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
     [JsonPropertyName("useJavaW")]
     public bool UseJavaW { get; set; } = true; // 使用 javaW.exe
 
+    [JsonPropertyName("autoUpdatePlugin")]
+    public bool AutoUpdatePlugin { get; set; } = true; // 自动更新插件
+    
     public void SetHideAccount(string value)
     {
-        HideAccount = value == "true";
+        HideAccount = "true".Equals(value);
     }
 
     public void SetFriendly(string value)
     {
-        Friendly = value == "true";
+        Friendly = "true".Equals(value);
     }
 
     public void SetChatEnable(string value)
     {
-        ChatEnable = value == "true";
+        ChatEnable = "true".Equals(value);
     }
 
     public void SetChatTarget(string value)
     {
-        ChatTarget = value == "true";
+        ChatTarget = "true".Equals(value);
     }
 
     public void SetUseJavaW(string value)
     {
-        UseJavaW = value == "true";
+        UseJavaW = "true".Equals(value);
     }
+    
+    public void SetAutoUpdatePlugin(string value)
+    {
+        AutoUpdatePlugin = "true".Equals(value);
+    }
+    
 }

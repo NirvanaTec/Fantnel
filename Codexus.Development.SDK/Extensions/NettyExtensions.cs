@@ -149,8 +149,7 @@ public static class NettyExtensions {
     public static IByteBuffer WriteStringToBuffer(this IByteBuffer buffer, string stringToWrite, int maxLength = 32767)
     {
         if (stringToWrite.Length > maxLength) {
-            throw new Exception(
-                "String too big (was " + stringToWrite.Length + " bytes encoded, max " + maxLength + ")");
+            throw new Exception("String too big (was " + stringToWrite.Length + " bytes encoded, max " + maxLength + ")");
         }
 
         var bytes = Encoding.UTF8.GetBytes(stringToWrite);

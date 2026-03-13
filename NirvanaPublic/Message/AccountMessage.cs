@@ -41,9 +41,9 @@ public static class AccountMessage {
      * @param id 账号Id
      * @return 账号实体
      */
-    private static EntityAccount GetAccount(int id)
+    private static EntityAccount GetAccount(int id, bool safeUserId = true)
     {
-        var entity = GetAccountList();
+        var entity = GetAccountList(safeUserId);
         foreach (var item in entity) {
             if (item.Id == id) {
                 return item;
@@ -69,7 +69,7 @@ public static class AccountMessage {
     // 强制切换账号
     public static void SwitchAccountToForce(int id)
     {
-        InfoManager.SetGameAccount(GetAccount(id));
+        InfoManager.SetGameAccount(GetAccount(id, false));
     }
 
     // 禁止默认登录
@@ -95,16 +95,16 @@ public static class AccountMessage {
      * 获取所有账号列表
      * @return 账号实体数组
      */
-    public static EntityAccount[] GetAccountList()
+    public static EntityAccount[] GetAccountList(bool safeUserId = true)
     {
-        return GetAccountList1().Item1;
+        return GetAccountList1(safeUserId: safeUserId).Item1;
     }
 
     /**
      * 获取所有账号列表 和 账号文件路径
      * @return 账号实体数组 和 账号文件路径
      */
-    private static (EntityAccount[], string) GetAccountList1(bool defaultLogin = true)
+    private static (EntityAccount[], string) GetAccountList1(bool defaultLogin = true, bool safeUserId = true)
     {
         var (entity, path) = Tools.GetValueOrDefaultList<EntityAccount>("account.json");
 
@@ -126,11 +126,13 @@ public static class AccountMessage {
         }
 
         // 避免因配置加载的账号导致显示 UserId
-        foreach (var item in entity) {
-            var flag = InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(item));
-            if (!flag) {
-                item.UserId = null;
-                item.Token = null;
+        if (safeUserId) {
+            foreach (var item in entity) {
+                var flag = InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(item));
+                if (!flag) {
+                    item.UserId = null;
+                    item.Token = null;
+                }
             }
         }
 
@@ -147,6 +149,7 @@ public static class AccountMessage {
     public static void Login(EntityAccount account)
     {
         lock (LockManager.LoginLock) {
+            
             if (account.Password == null) {
                 throw new ErrorCodeException(ErrorCode.PasswordError);
             }
@@ -157,20 +160,18 @@ public static class AccountMessage {
                 case "cookie":
                     result = WPFLauncher.LoginWithCookieAsync(account.Password).Result;
                     break;
-                case "4399" or "4399com" or "163Email" when account.Account == null || account.Password == null:
+                case "4399" or "4399com" or "163Email" when account.Account == null:
                     throw new ErrorCodeException(ErrorCode.AccountError);
                 case "4399" or "4399com" when _session4399Id == null || Captcha4399 == null:
                     throw new ErrorCodeException(ErrorCode.CaptchaNot);
                 case "4399": {
-                    var cookie = N4399.LoginWithPasswordAsync(account.Account, account.Password, _session4399Id,
-                        Captcha4399);
+                    var cookie = N4399.LoginWithPasswordAsync(account.Account, account.Password, _session4399Id, Captcha4399);
                     result = WPFLauncher.LoginWithCookieAsync(cookie).Result;
                     UpdateCaptcha();
                     break;
                 }
                 case "4399com": {
-                    var cookie = NCom4399.LoginWithPasswordAsync(account.Account, account.Password, Captcha4399,
-                        _session4399Id);
+                    var cookie = NCom4399.LoginWithPasswordAsync(account.Account, account.Password, Captcha4399,_session4399Id);
                     result = WPFLauncher.LoginWithCookieAsync(cookie).Result;
                     UpdateCaptcha();
                     break;
@@ -185,17 +186,14 @@ public static class AccountMessage {
             }
 
             // 登录完成
-            if (result == null) {
+            if (result == null || result.EntityId.Length < 1) {
                 throw new ErrorCodeException(ErrorCode.LoginError);
-            }
-
-            if (result.EntityId.Length < 1) {
-                return;
             }
 
             account.UserId = result.EntityId;
             account.Token = result.Token;
             InfoManager.AddAccount(account);
+            
             // 登录成功后 保存账号
             SaveAccount();
         }
@@ -314,6 +312,25 @@ public static class AccountMessage {
             Log.Error("自动登录失败: {account}: {Message}", account.Id, e.Message);
         }
     }
+    
+    // 真正的自动登录
+    public static void AutoLogin1(EntityAccount account)
+    {
+        if ("4399".Equals(account.Type) || "4399com".Equals(account.Type)) {
+            UpdateCaptcha();
+            Captcha4399 = GetCaptcha4399Content().Result;
+        }
+        Login(account);
+    }
+    
+    public static void AutoSwitchAccount(EntityAccount account)
+    {
+        foreach (var gameAccount in InfoManager.GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
+            InfoManager.SetGameAccount(gameAccount);
+            return;
+        }
+        AutoLogin1(account);
+    }
 
     public static bool AutoUpdateAccount(EntityAccount account)
     {
@@ -369,11 +386,11 @@ public static class AccountMessage {
      */
     public static async Task<string> GetCaptcha4399Content()
     {
-        if (Captcha4399Bytes == null)
+        if (Captcha4399Bytes == null) {
             throw new ErrorCodeException(ErrorCode.Failure);
+        }
         var httpClient = new HttpClient();
-        var response = await httpClient.PostAsync("http://110.42.70.32:13423/api/fantnel/captcha",
-            new ByteArrayContent(Captcha4399Bytes));
+        var response = await httpClient.PostAsync("http://110.42.70.32:13423/api/fantnel/captcha", new ByteArrayContent(Captcha4399Bytes));
         var resultJson = await response.Content.ReadAsStringAsync();
         var captcha = JsonSerializer.Deserialize<EntityResponse<string>>(resultJson);
         return captcha?.Data ?? throw new ErrorCodeException(ErrorCode.Failure);

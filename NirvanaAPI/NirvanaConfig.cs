@@ -75,6 +75,12 @@ public class NirvanaConfig {
         Config.SetUseJavaW(value);
         SaveConfig();
     }
+    
+    public static void SetAutoUpdatePlugin(string value)
+    {
+        Config.SetAutoUpdatePlugin(value);
+        SaveConfig();
+    }
 
     public static void SetGameMemory(string value)
     {

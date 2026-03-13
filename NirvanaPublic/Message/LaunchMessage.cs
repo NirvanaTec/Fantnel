@@ -15,17 +15,16 @@ namespace NirvanaPublic.Message;
 
 public static class LaunchMessage {
     // 启动游戏
-    public static async Task LaunchGame(string id, string name, string mode = "net")
+    public static async Task<LauncherService> LaunchGame(string id, string name, string mode = "net")
     {
         if ("rental".Equals(mode)) {
-            await LaunchGameRental(id, name);
-            return;
+            return await LaunchGameRental(id, name);
         }
 
-        await LaunchGameNet(id, name);
+        return await LaunchGameNet(id, name);
     }
 
-    private static async Task LaunchGameRental(string id, string name)
+    private static async Task<LauncherService> LaunchGameRental(string id, string name)
     {
         // 清理旧白端
         ActiveGameAndProxies.Close(id, name);
@@ -45,7 +44,9 @@ public static class LaunchMessage {
 
         // 服务器角色信息
         var character = await RentalGameMessage.GetUserName(server.EntityId, name);
-        if (character == null) throw new ErrorCodeException(ErrorCode.NotFoundName);
+        if (character == null) {
+            throw new ErrorCodeException(ErrorCode.NotFoundName);
+        }
 
         // 服务器地址
         var address = await WPFLauncher.GetGameRentalAddressAsync(server.EntityId);
@@ -69,9 +70,10 @@ public static class LaunchMessage {
         var launcherService = new LauncherService(launchRequest);
         await launcherService.LaunchGameAsync();
         ActiveGameAndProxies.Add(launcherService);
+        return launcherService;
     }
 
-    private static async Task LaunchGameNet(string id, string name)
+    private static async Task<LauncherService> LaunchGameNet(string id, string name)
     {
         // 清理旧白端
         ActiveGameAndProxies.Close(id, name);
@@ -91,7 +93,9 @@ public static class LaunchMessage {
 
         // 服务器角色信息
         var character = await ServersGameMessage.GetUserName(server.EntityId, name);
-        if (character == null) throw new ErrorCodeException(ErrorCode.NotFoundName);
+        if (character == null) {
+            throw new ErrorCodeException(ErrorCode.NotFoundName);
+        }
 
         // 服务器地址
         var address = await WPFLauncher.GetNetGameServerAddressAsync(server.EntityId);
@@ -115,6 +119,7 @@ public static class LaunchMessage {
         var launcherService = new LauncherService(launchRequest);
         await launcherService.LaunchGameAsync();
         ActiveGameAndProxies.Add(launcherService);
+        return launcherService;
     }
 
     private static void ExEnvironment(EnumGameVersion gameVersion)

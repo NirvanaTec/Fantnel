@@ -4,6 +4,7 @@ using Serilog.Events;
 namespace NirvanaPublic.Utils.ViewLogger;
 
 public class Logger : LoggerConfiguration {
+
     public void SetColor(LogEventLevel level, ConsoleColor color)
     {
         WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(evt => evt.Level == level).WriteTo.Console(
@@ -11,4 +12,6 @@ public class Logger : LoggerConfiguration {
             theme: new CustomConsoleTheme(color)
         ));
     }
+
+
 }

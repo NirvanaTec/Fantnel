@@ -11,7 +11,7 @@ public class EntityQueryNetGameDetailItem {
     public string EntityId { get; set; } = string.Empty;
 
     [JsonPropertyName("brief_image_urls")]
-    public string[] BriefImageUrls { get; set; } = Array.Empty<string>();
+    public string[] BriefImageUrls { get; set; } = [];
 
     [JsonPropertyName("detail_description")]
     public string DetailDescription { get; set; } = string.Empty;

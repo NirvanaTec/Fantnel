@@ -3,9 +3,13 @@
 
 ### 我们的核心优势
 1. 借助 CodexusApi 实现 CodexusPluginsX [涅槃云] ，加速插件商城。
-1. 借助 BmclApi 实现 Linux/MacOS 库资源修复。
-1. 参考 FaithXL [未发布] 启动器实现启动参数 解析/生成。
-1. 完善的 AI 文档，帮助 AI 生成 Fantnel UI。 [web/FantnelAi]
+2. 借助 BmclApi 实现 Linux/MacOS 库资源修复。
+3. 参考 FaithXL [未发布] 启动器实现启动参数 解析/生成。
+4. 完善的 AI 文档，帮助 AI 生成 Fantnel UI。 [web/FantnelAi]
+
+### 特殊优势
+1. 主题：支持自定义主题，您可以根据自己的喜好和需求，选择不同的主题样式。
+2. 插件自动更新：借助 CodexusPluginsX [涅槃云] 实现自动更新已安装插件
 
 ### 说明
     项目版本：Release

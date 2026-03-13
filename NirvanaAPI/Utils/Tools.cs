@@ -62,16 +62,20 @@ public static class Tools {
     // 获取异常信息 【简化版】
     public static string GetMessage(Exception exception)
     {
-        if (exception is AggregateException aggregateException) {
-            var message = aggregateException.InnerExceptions.Aggregate("",
-                (current, innerException) => current + GetMessage(innerException) + ", ");
-            return message.TrimEnd(',', ' ');
-        }
+        switch (exception) {
+            case AggregateException aggregateException: {
+                var message1 = aggregateException.InnerExceptions.Aggregate("",
+                    (current, innerException) => current + GetMessage(innerException) + ", ");
+                return message1.TrimEnd(',', ' ');
+            }
+            case ErrorCodeException errorCodeException: {
+                var message = errorCodeException.Entity.Msg;
+                if (message != null) {
+                    return message;
+                }
 
-        if (exception is not ErrorCodeException errorCodeException) return exception.Message;
-        {
-            var message = errorCodeException.Entity.Msg;
-            if (message != null) return message;
+                break;
+            }
         }
         return exception.Message;
     }
@@ -99,8 +103,9 @@ public static class Tools {
      */
     public static string ComputeSha256(string filePath)
     {
-        if (string.IsNullOrEmpty(filePath))
+        if (string.IsNullOrEmpty(filePath)) {
             throw new ArgumentException("文件路径不能为空", nameof(filePath));
+        }
 
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"文件不存在: {filePath}");
