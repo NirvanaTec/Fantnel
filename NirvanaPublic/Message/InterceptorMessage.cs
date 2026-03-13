@@ -29,7 +29,7 @@ public class InterceptorMessage {
         EntityGameCharacter character,
         EntityMcVersion version,
         EntityNetGameServerAddress address,
-        string mods, int port)
+        string mods, int port, bool isRental)
     {
         _mods = mods;
         _versionName = version.Name;
@@ -37,6 +37,7 @@ public class InterceptorMessage {
         _availableUser = InfoManager.GetGameAccount();
         // 创建代理
         Interceptor = Interceptor.CreateInterceptor(
+            isRental,
             new EntitySocks5 { Enabled = false },
             mods,
             server.EntityId,
@@ -48,13 +49,13 @@ public class InterceptorMessage {
             _availableUser.GetUserId(),
             _availableUser.GetToken(),
             YggdrasilCallback,
-            Tools.GetLocalIpAddress(false),
+            "0.0.0.0",
             port
         );
     }
 
     public InterceptorMessage(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName,
-        EntityRentalGameServerAddress address, string mods, int port)
+        EntityRentalGameServerAddress address, string mods, int port, bool isRental)
     {
         _mods = mods;
         _versionName = versionName;
@@ -62,6 +63,7 @@ public class InterceptorMessage {
         _availableUser = InfoManager.GetGameAccount();
         // 创建代理
         Interceptor = Interceptor.CreateInterceptor(
+            isRental,
             new EntitySocks5 { Enabled = false },
             mods,
             server.EntityId,
@@ -73,12 +75,12 @@ public class InterceptorMessage {
             _availableUser.GetUserId(),
             _availableUser.GetToken(),
             YggdrasilCallback,
-            Tools.GetLocalIpAddress(false),
+            "0.0.0.0",
             port
         );
     }
 
-    private void YggdrasilCallback(string serverId)
+    private void YggdrasilCallback(InterceptorConfig config, string serverId)
     {
         Log.Warning("认证中: {serverId}", serverId);
         var signal = new SemaphoreSlim(0);

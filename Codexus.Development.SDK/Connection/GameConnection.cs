@@ -16,200 +16,209 @@ using Serilog;
 
 namespace Codexus.Development.SDK.Connection;
 
-public class GameConnection(
-    EntitySocks5 socks5,
-    string modInfo,
-    string gameId,
-    string forwardAddress,
-    int forwardPort,
-    string nickName,
-    string userId,
-    string userToken,
-    IChannel channel,
-    Action<string> onJoinServer) : IConnection {
-    public readonly IChannel ClientChannel = channel;
+public class GameConnection(InterceptorConfig config, IChannel channel) : IConnection
+{
+	public readonly IChannel ClientChannel = channel;
 
-    private bool _initialized;
-    private MultithreadEventLoopGroup? _workerGroup;
+	private bool _initialized;
 
-    public IChannel? ServerChannel;
+	private MultithreadEventLoopGroup? _workerGroup;
 
-    public string NickName { get; set; } = nickName;
+	public IChannel? ServerChannel;
 
-    public EnumProtocolVersion ProtocolVersion { get; set; } = EnumProtocolVersion.None;
+	public InterceptorConfig Config { get; } = config;
 
-    public EnumConnectionState State { get; set; }
+	public string NickName { get; set; } = config.NickName;
 
-    public Action<string> OnJoinServer { get; set; } = onJoinServer;
+	public EnumProtocolVersion ProtocolVersion { get; set; } = EnumProtocolVersion.None;
 
-    public MultithreadEventLoopGroup TaskGroup { get; } = new();
+	public EnumConnectionState State { get; set; }
 
-    public GameSession Session { get; set; } = new(nickName, userId, userToken);
+	public Action<InterceptorConfig, string>? OnJoinServer { get; set; } = config.OnJoinServer;
 
-    public string GameId { get; } = gameId;
+	public MultithreadEventLoopGroup TaskGroup { get; } = new ();
 
-    public string ModInfo { get; } = modInfo;
+	public GameSession Session { get; set; } = new (config.NickName, config.UserId, config.UserToken);
 
-    public int ForwardPort { get; } = forwardPort;
+	public string GameId { get; } = config.GameId;
 
-    public string ForwardAddress { get; } = forwardAddress;
+	public string ModInfo { get; } = config.ModInfo;
 
-    public byte[] Uuid { get; set; } = new byte[16];
+	public int ForwardPort { get; } = config.ForwardPort;
 
-    public void Prepare()
-    {
-        _initialized = false;
-        if (_workerGroup != null) {
-            Shutdown();
-        }
+	public string ForwardAddress { get; } = config.ForwardAddress;
 
-        _workerGroup = new MultithreadEventLoopGroup();
-        var bootstrap = new Bootstrap().Group(_workerGroup).Channel<TcpSocketChannel>()
-            .Option(ChannelOption.TcpNodelay, true).Option(ChannelOption.SoKeepalive, true)
-            .Option(ChannelOption.Allocator, PooledByteBufferAllocator.Default)
-            .Option(ChannelOption.SoSndbuf, 1048576).Option(ChannelOption.SoRcvbuf, 1048576)
-            .Option(ChannelOption.WriteBufferHighWaterMark, 1048576)
-            .Option(ChannelOption.ConnectTimeout, TimeSpan.FromSeconds(30.0)).Handler(
-                new ActionChannelInitializer<IChannel>(channel => {
-                    if (socks5.Enabled) {
-                        if (!IPAddress.TryParse(socks5.Address, out var address)) {
-                            address = Dns.GetHostAddressesAsync(socks5.Address).GetAwaiter().GetResult().First();
-                        }
-                        channel.Pipeline.AddLast("socks5", new Socks5ProxyHandler(new IPEndPoint(address, socks5.Port), socks5.Username, socks5.Password));
-                    }
-                    channel.Pipeline.AddLast("splitter", new MessageDeserializer21Bit());
-                    channel.Pipeline.AddLast("handler", new ClientHandler(this));
-                    channel.Pipeline.AddLast("pre-encoder", new MessageSerializer21Bit());
-                    channel.Pipeline.AddLast("encoder", new MessageSerializer());
-                }));
-        Task.Run(async () => {
-            var finalAddress = EventManager.Instance.TriggerEvent("channel_connection", new EventParseAddress(this, ForwardAddress, ForwardPort));
-            ServerChannel = await (IPAddress.TryParse(finalAddress.Address, out var address)
-                    ? bootstrap.ConnectAsync(address, finalAddress.Port)
-                    : bootstrap.ConnectAsync(finalAddress.Address, finalAddress.Port)).ContinueWith(
-                    channel => {
-                        if (!channel.IsFaulted) {
-                            return channel.Result;
-                        }
-                        Log.Error(channel.Exception, "Failed to connect to remote server {Address}:{Port}", finalAddress.Address, finalAddress.Port);
-                        return null;
-                    });
-            _initialized = true;
-        });
-        while (!_initialized) {
-            Thread.Sleep(100);
-        }
+	public byte[] Uuid { get; set; } = new byte[16];
 
-        if (ServerChannel != null) {
-            return;
-        }
+	public void Prepare()
+	{
+		_initialized = false;
+		if (_workerGroup != null)
+		{
+			Shutdown();
+		}
+		_workerGroup = new MultithreadEventLoopGroup();
+		var bootstrap = new Bootstrap().Group(_workerGroup).Channel<TcpSocketChannel>().Option(ChannelOption.TcpNodelay, value: true)
+			.Option(ChannelOption.SoKeepalive, value: true)
+			.Option(ChannelOption.Allocator, PooledByteBufferAllocator.Default)
+			.Option(ChannelOption.SoSndbuf, 1048576)
+			.Option(ChannelOption.SoRcvbuf, 1048576)
+			.Option(ChannelOption.WriteBufferHighWaterMark, 1048576)
+			.Option(ChannelOption.ConnectTimeout, TimeSpan.FromSeconds(30.0))
+			.Handler(new ActionChannelInitializer<IChannel>(delegate(IChannel channel)
+			{
+				if (Config.Socks5.Enabled)
+				{
+					if (!IPAddress.TryParse(Config.Socks5.Address, out var address))
+					{
+						address = Dns.GetHostAddressesAsync(Config.Socks5.Address).GetAwaiter().GetResult() .First();
+					}
+					channel.Pipeline.AddLast("socks5", new Socks5ProxyHandler(new IPEndPoint(address, Config.Socks5.Port), Config.Socks5.Username, Config.Socks5.Password));
+				}
+				channel.Pipeline.AddLast("splitter", new MessageDeserializer21Bit());
+				channel.Pipeline.AddLast("handler", new ClientHandler(this)).AddLast("pre-encoder", new MessageSerializer21Bit()).AddLast("encoder", new MessageSerializer());
+			}));
+		Task.Run(async() => 
+		{
+			var finalAddress = EventManager.Instance.TriggerEvent("channel_connection", new EventParseAddress(this, ForwardAddress, ForwardPort));
+			var serverChannel = await (IPAddress.TryParse(finalAddress.Address, out var address) ? bootstrap.ConnectAsync(address, finalAddress.Port) : bootstrap.ConnectAsync(finalAddress.Address, finalAddress.Port)).ContinueWith(channel =>
+			{
+				if (!channel.IsFaulted)
+				{
+					return channel.Result;
+				}
+				Log.Error(channel.Exception, "Failed to connect to remote server {Address}:{Port}", finalAddress.Address, finalAddress.Port);
+				return null;
+			});
+			ServerChannel = serverChannel;
+			_initialized = true;
+		});
+		while (!_initialized)
+		{
+			Thread.Sleep(100);
+		}
+		if (ServerChannel == null)
+		{
+			Shutdown();
+		}
+	}
 
-        Shutdown();
-    }
+	public void OnServerReceived(IByteBuffer buffer)
+	{
+		HandlePacketReceived(buffer, EnumPacketDirection.ClientBound, data =>
+		{
+			ClientChannel.WriteAndFlushAsync(data);
+		});
+	}
 
-    public void OnServerReceived(IByteBuffer buffer)
-    {
-        HandlePacketReceived(buffer, EnumPacketDirection.ClientBound,
-            data => ClientChannel.WriteAndFlushAsync(data));
-    }
+	public void OnClientReceived(IByteBuffer buffer)
+	{
+		HandlePacketReceived(buffer, EnumPacketDirection.ServerBound, data =>
+		{
+			ServerChannel?.WriteAndFlushAsync(data);
+		});
+	}
 
-    public void OnClientReceived(IByteBuffer buffer)
-    {
-        HandlePacketReceived(buffer, EnumPacketDirection.ServerBound,
-            data => ServerChannel?.WriteAndFlushAsync(data));
-    }
+	public void Shutdown()
+	{
+		EventManager.Instance.TriggerEvent("channel_connection", new EventConnectionClosed(this));
+		Log.Debug("Shutting down connection...");
+		TaskGroup.ShutdownGracefullyAsync();
+		ClientChannel.CloseAsync();
+		ServerChannel?.CloseAsync();
+		_workerGroup?.ShutdownGracefullyAsync();
+	}
 
-    public void Shutdown()
-    {
-        EventManager.Instance.TriggerEvent("channel_connection",
-            new EventConnectionClosed(this));
-        Log.Debug("Shutting down connection...");
-        TaskGroup.ShutdownGracefullyAsync();
-        ClientChannel.CloseAsync();
-        ServerChannel?.CloseAsync();
-        _workerGroup?.ShutdownGracefullyAsync();
-    }
-
-    private void HandlePacketReceived(
-        IByteBuffer buffer,
-        EnumPacketDirection direction,
-        Action<object> onRedirect)
-    {
-        buffer.MarkReaderIndex();
+	private void HandlePacketReceived(
+		IByteBuffer buffer,
+		EnumPacketDirection direction,
+		Action<object> onRedirect)
+	{
+		buffer.MarkReaderIndex();
         
-        var packetId = buffer.ReadVarIntFromBuffer();
-        var packets = PacketManager.Instance.BuildPacket(State, direction, ProtocolVersion, packetId);
-        if (packets == null) {
-            buffer.ResetReaderIndex();
-            onRedirect(buffer);
-            return;
-        }
+		var packetId = buffer.ReadVarIntFromBuffer();
+		var packets = PacketManager.Instance.BuildPacket(State, direction, ProtocolVersion, packetId);
+		if (packets == null) {
+			buffer.ResetReaderIndex();
+			onRedirect(buffer);
+			return;
+		}
 
-        foreach (var packet in packets) {
-            if (packet == null) {
-                continue;
-            }
+		foreach (var packet in packets) {
+			if (packet == null) {
+				continue;
+			}
 
-            var metadata = PacketManager.Instance.GetMetadata(packet);
-            if (metadata is { Skip: true }) {
-                continue;
-            }
+			var metadata = PacketManager.Instance.GetMetadata(packet);
+			if (metadata is { Skip: true }) {
+				continue;
+			}
 
-            packet.ClientProtocolVersion = ProtocolVersion;
-            try {
-                packet.ReadFromBuffer(buffer);
-            } catch (Exception ex) {
-                var objArray = new object[] {
-                    direction,
-                    packetId,
-                    packet,
-                    ProtocolVersion
-                };
-                Log.Error(ex, "Cannot read packet from buffer, direction: {Direction}, Id: {Id}, Packet: {Packet}, ProtocolVersion: {ProtocolVersion}", objArray);
-                throw;
-            }
+			packet.ClientProtocolVersion = ProtocolVersion;
+			try {
+				packet.ReadFromBuffer(buffer);
+			} catch (Exception ex) {
+				var objArray = new object[] {
+					direction,
+					packetId,
+					packet,
+					ProtocolVersion
+				};
+				Log.Error(ex, "Cannot read packet from buffer, direction: {Direction}, Id: {Id}, Packet: {Packet}, ProtocolVersion: {ProtocolVersion}", objArray);
+				throw;
+			}
 
-            if (packet.HandlePacket(this)) {
-                buffer.ResetReaderIndex();
-                return;
-            }
+			if (packet.HandlePacket(this)) {
+				buffer.ResetReaderIndex();
+				return;
+			}
 
-            buffer.Clear();
-            buffer.WriteVarInt(packetId);
-            buffer.ReadVarIntFromBuffer();
-            packet.WriteToBuffer(buffer);
-        }
+			buffer.Clear();
+			buffer.WriteVarInt(packetId);
+			buffer.ReadVarIntFromBuffer();
+			packet.WriteToBuffer(buffer);
+		}
 
-        buffer.ResetReaderIndex();
-        onRedirect(buffer);
-    }
+		buffer.ResetReaderIndex();
+		onRedirect(buffer);
+	}
+	
+	public static void EnableCompression(IChannel channel, int threshold)
+	{
+		if (threshold < 0)
+		{
+			if (channel.Pipeline.Get("decompress") is NettyCompressionDecoder)
+			{
+				channel.Pipeline.Remove("decompress");
+			}
+			if (channel.Pipeline.Get("compress") is NettyCompressionEncoder)
+			{
+				channel.Pipeline.Remove("compress");
+			}
+		}
+		else
+		{
+			if (channel.Pipeline.Get("decompress") is NettyCompressionDecoder nettyCompressionDecoder)
+			{
+				nettyCompressionDecoder.Threshold = threshold;
+			}
+			else
+			{
+				channel.Pipeline.AddAfter("splitter", "decompress", new NettyCompressionDecoder(threshold));
+			}
+			if (channel.Pipeline.Get("compress") is NettyCompressionEncoder nettyCompressionEncoder)
+			{
+				nettyCompressionEncoder.Threshold = threshold;
+			}
+			else
+			{
+				channel.Pipeline.AddBefore("encoder", "compress", new NettyCompressionEncoder(threshold));
+			}
+		}
+	}
 
-    public static void EnableCompression(IChannel channel, int threshold)
-    {
-        if (threshold < 0) {
-            if (channel.Pipeline.Get("decompress") is NettyCompressionDecoder) {
-                channel.Pipeline.Remove("decompress");
-            }
-            if (channel.Pipeline.Get("compress") is not NettyCompressionEncoder) {
-                channel.Pipeline.Remove("compress");
-            }
-        } else {
-            if (channel.Pipeline.Get("decompress") is NettyCompressionDecoder compressionDecoder) {
-                compressionDecoder.Threshold = threshold;
-            } else {
-                channel.Pipeline.AddAfter("splitter", "decompress", new NettyCompressionDecoder(threshold));
-            }
-            if (channel.Pipeline.Get("compress") is NettyCompressionEncoder compressionEncoder) {
-                compressionEncoder.Threshold = threshold;
-            } else {
-                channel.Pipeline.AddBefore("encoder", "compress", new NettyCompressionEncoder(threshold));
-            }
-        }
-    }
-
-    public static void EnableEncryption(IChannel channel, byte[] secretKey)
-    {
-        channel.Pipeline.AddBefore("splitter", "decrypt", new NettyEncryptionDecoder(secretKey))
-            .AddBefore("pre-encoder", "encrypt", new NettyEncryptionEncoder(secretKey));
-    }
+	public static void EnableEncryption(IChannel channel, byte[] secretKey)
+	{
+		channel.Pipeline.AddBefore("splitter", "decrypt", new NettyEncryptionDecoder(secretKey)).AddBefore("pre-encoder", "encrypt", new NettyEncryptionEncoder(secretKey));
+	}
 }

@@ -113,7 +113,7 @@ public static class ProxiesMessage {
             PluginMessage.InitializeAuto();
 
             // 创建代理 并 下载资源
-            var interceptor = new InterceptorMessage(server, character, version, address, mods, port).Interceptor;
+            var interceptor = new InterceptorMessage(server, character, version, address, mods, port, false).Interceptor;
 
             // 增加代理
             return ActiveGameAndProxies.Add(interceptor, server.EntityId);
@@ -154,7 +154,7 @@ public static class ProxiesMessage {
             PluginMessage.InitializeAuto();
 
             // 创建代理 并 下载资源
-            var interceptor = new InterceptorMessage(server, character, versionName, address, mods, port).Interceptor;
+            var interceptor = new InterceptorMessage(server, character, versionName, address, mods, port, true).Interceptor;
 
             // 增加代理
             return ActiveGameAndProxies.Add(interceptor, server.EntityId);
