@@ -1,9 +1,12 @@
 <script setup>
 import { ref, provide, onMounted } from 'vue'
-import { getThemeName, setThemeName, getNirvanaAccount } from './utils/Tools'
+import { getThemeName, setThemeName, getNirvanaAccount, initWindowMode, minimizeWindow, closeWindow } from './utils/Tools'
 
 const theme = ref('dark')
 const account = ref('')
+const showCloseIcon = ref(false)
+const showMinimizeIcon = ref(false)
+const showWindowControls = ref(false)
 
 // Initialize theme from API
 onMounted(async () => {
@@ -12,6 +15,10 @@ onMounted(async () => {
   // 获取涅槃账号信息
   const accountInfo = await getNirvanaAccount().then(res => res.data);
   account.value = accountInfo.account
+  // 初始化消息接收
+  initMessageReceiver()
+  // 初始化窗口模式
+  await initWindowMode();
 })
 
 function toggleTheme() {
@@ -23,13 +30,67 @@ function toggleTheme() {
   theme.value = nextTheme
 }
 
+function handleMinimize() {
+  minimizeWindow();
+}
+
+function handleClose() {
+  closeWindow();
+}
+
 provide('theme', theme)
+
+// 初始化消息接收
+const initMessageReceiver = () => {
+  try {
+    // 优先使用 window.chrome.webview.addEventListener
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.addEventListener('message', (event) => {
+        handleMessage(event.data)
+      })
+    }
+    // 备用使用 window.external.receiveMessage
+    else if (window.external && window.external.receiveMessage) {
+      window.external.receiveMessage = (message) => {
+        handleMessage(message)
+      }
+    }
+  } catch (error) {
+    console.error('Failed to initialize message receiver:', error)
+  }
+}
+
+// 处理接收到的消息
+const handleMessage = (message) => {
+  try {
+    var msg = JSON.parse(message)
+    console.log('Received message:', msg)
+    if (msg && msg.code == 5) {
+      showWindowControls.value = true
+    }
+    // 在这里处理接收到的消息
+    // 例如：根据消息类型执行不同的操作
+  } catch (error) {
+    console.error('Failed to handle message:', error)
+  }
+}
+
 </script>
 
 <template>
   <div class="app" :class="theme">
+    <!-- 窗口控制按钮 -->
     <div class="container">
-
+      <div class="window-controls" v-if="showWindowControls">
+        <button class="window-btn minimize-btn" @click="handleMinimize" @mouseenter="showMinimizeIcon = true"
+          @mouseleave="showMinimizeIcon = false">
+          {{ showMinimizeIcon ? '-' : '' }}
+        </button>
+        <button class="window-btn close-btn" @click="handleClose" @mouseenter="showCloseIcon = true"
+          @mouseleave="showCloseIcon = false">
+          {{ showCloseIcon ? '×' : '' }}
+        </button>
+      </div>
       <!-- 左侧导航栏 -->
       <nav class="sidebar">
         <div class="logo">
@@ -67,6 +128,9 @@ provide('theme', theme)
           </li>
           <li>
             <router-link to="/settings" active-class="active">系统设置</router-link>
+          </li>
+          <li>
+            <router-link to="/logs" active-class="active">日志信息</router-link>
           </li>
         </ul>
 
@@ -143,11 +207,51 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-.container {
+/* 窗口控制按钮 */
+.window-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.window-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.minimize-btn {
+  background-color: #4cd964;
+  color: var(--bg-color);
+}
+
+.close-btn {
+  background-color: #ff3b30;
+  color: var(--bg-color);
+}
+
+.window-btn:hover {
+  transform: scale(1.1);
+}
+
+/* 确保容器内容不被窗口控制按钮遮挡 */
+.container {
   flex: 1;
+  display: flex;
 }
 
 /* 左侧导航栏 */

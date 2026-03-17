@@ -1,9 +1,9 @@
 ﻿using System.Text;
+using Nirvana.WPFLauncher.Protocol;
 using OpenSDK.Cipher;
 using OpenSDK.Entities.Yggdrasil;
 using OpenSDK.Extensions;
 using Org.BouncyCastle.Crypto;
-using WPFLauncherApi.Protocol;
 
 namespace OpenSDK.Generator;
 

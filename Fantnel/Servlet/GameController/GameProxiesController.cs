@@ -1,16 +1,15 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public.Message;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Message;
 
 namespace Fantnel.Servlet.GameController;
 
 [ApiController]
 [Route("[controller]")]
 public class GameProxiesController : ControllerBase {
-    
     [HttpGet("/api/gameserver/launch")]
     public IActionResult LaunchGame([FromQuery] string id, [FromQuery] string name, [FromQuery] string mode = "net")
     {

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NirvanaAPI.Entities.EntitiesNirvana;
+using Nirvana.Public.Message;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Message;
 
 namespace Fantnel.Servlet.GameController;
 
@@ -9,7 +8,6 @@ namespace Fantnel.Servlet.GameController;
 [ApiController]
 [Route("[controller]")]
 public class GameLaunchController : ControllerBase {
-    
     [HttpGet("/api/gamelaunch/launch")]
     public IActionResult LaunchGame([FromQuery] string id, [FromQuery] string name, [FromQuery] string mode = "net")
     {

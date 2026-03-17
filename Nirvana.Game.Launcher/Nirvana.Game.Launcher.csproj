@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyName>Nirvana.Game.Launcher</AssemblyName>
+        <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Copyright>Nirvana And Codexus</Copyright>
+        <Authors/>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Mono.Posix.NETStandard" Version="5.20.1-preview"/>
+        <PackageReference Include="Serilog" Version="4.3.1"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
+        <PackageReference Include="Serilog.Sinks.Console.LogThemes" Version="0.4.0"/>
+        <PackageReference Include="SharpCompress" Version="0.47.0"/>
+        <PackageReference Include="System.Management" Version="10.0.5"/>
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.5"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Services\"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Nirvana.Development\Nirvana.Development.csproj"/>
+        <ProjectReference Include="..\NirvanaAPI\NirvanaAPI.csproj"/>
+        <ProjectReference Include="..\OpenSDK\OpenSDK.csproj"/>
+        <ProjectReference Include="..\Nirvana.WPFLauncher\Nirvana.WPFLauncher.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="Codexus.Development.SDK">
+            <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
+        </Reference>
+        <Reference Include="Codexus.Game.Launcher">
+            <HintPath>..\SDK\Codexus.Game.Launcher.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+</Project>

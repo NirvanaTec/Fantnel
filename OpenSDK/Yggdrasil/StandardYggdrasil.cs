@@ -1,11 +1,11 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using Nirvana.WPFLauncher.Http;
 using OpenSDK.Cipher;
 using OpenSDK.Entities;
 using OpenSDK.Entities.Yggdrasil;
 using OpenSDK.Extensions;
 using OpenSDK.Generator;
-using WPFLauncherApi.Http;
 
 namespace OpenSDK.Yggdrasil;
 

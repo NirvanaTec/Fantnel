@@ -1,10 +1,8 @@
-using System.Text.Json;
 using NirvanaAPI.Entities;
 
 namespace NirvanaAPI.Utils.CodeTools;
 
 public static class Code {
-    
     public static EntityResponse<string> ToJson(Exception t)
     {
         var json = new EntityResponse<string> {

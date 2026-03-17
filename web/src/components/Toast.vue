@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 
 const messages = ref([])
 let messageId = 0
@@ -77,23 +77,6 @@ defineExpose({
   opacity: 0;
   transform: translateY(-20px);
   animation: toastShow 0.3s ease forwards;
-}
-
-.toast-success {
-  background-color: #4CAF50;
-}
-
-.toast-error {
-  background-color: #F44336;
-}
-
-.toast-info {
-  background-color: #2196F3;
-}
-
-.toast-warning {
-  background-color: #FFC107;
-  color: #333;
 }
 
 @keyframes toastShow {

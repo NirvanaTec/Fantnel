@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Copyright>Nirvana And Codexus</Copyright>
+        <Authors/>
+        <AssemblyName>Nirvana.Development</AssemblyName>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2"/>
+        <PackageReference Include="DotNetty.Buffers" Version="0.7.6"/>
+        <PackageReference Include="DotNetty.Codecs" Version="0.7.6"/>
+        <PackageReference Include="DotNetty.Common" Version="0.7.6"/>
+        <PackageReference Include="DotNetty.Handlers" Version="0.7.6"/>
+        <PackageReference Include="DotNetty.Transport" Version="0.7.6"/>
+        <PackageReference Include="MessagePack" Version="3.1.4"/>
+        <PackageReference Include="OpenTl.Netty.Socks" Version="1.0.2"/>
+        <PackageReference Include="Serilog" Version="4.3.1"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
+        <PackageReference Include="Serilog.Sinks.Console.LogThemes" Version="0.4.0"/>
+        <PackageReference Include="SharpCompress" Version="0.47.0"/>
+        <PackageReference Include="SharpZipLib" Version="1.4.2"/>
+        <PackageReference Include="YamlDotNet" Version="16.3.0"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="Codexus.Cipher">
+            <HintPath>..\SDK\Codexus.Cipher.dll</HintPath>
+        </Reference>
+        <Reference Include="Codexus.Development.SDK">
+            <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
+        </Reference>
+        <Reference Include="Codexus.Interceptors">
+            <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\NirvanaAPI\NirvanaAPI.csproj"/>
+    </ItemGroup>
+
+</Project>

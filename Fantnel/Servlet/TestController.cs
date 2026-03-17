@@ -7,7 +7,6 @@ namespace Fantnel.Servlet;
 [ApiController]
 [Route("[controller]")]
 public class TestController : ControllerBase {
-    
     [HttpGet("/api/test")]
     public IActionResult Test()
     {
@@ -18,5 +17,4 @@ public class TestController : ControllerBase {
 
         return Ok(Code.ToJson(ErrorCode.Success));
     }
-    
 }

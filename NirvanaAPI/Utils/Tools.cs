@@ -77,6 +77,7 @@ public static class Tools {
                 break;
             }
         }
+
         return exception.Message;
     }
 
@@ -138,7 +139,7 @@ public static class Tools {
      * @param startPort 起始端口号
      * @return 未被占用的端口号，如果所有端口都被占用则返回-1
      */
-    public static int GetUnusedPort(int startPort)
+    public static int GetUnusedPort(int startPort = 25565)
     {
         for (var port = startPort; port <= startPort + 1024; port++) {
             if (!IsPortInUse(port)) {

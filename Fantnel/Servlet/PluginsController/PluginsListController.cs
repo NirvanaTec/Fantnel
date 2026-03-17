@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public.Message;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Message;
 
 namespace Fantnel.Servlet.PluginsController;
 

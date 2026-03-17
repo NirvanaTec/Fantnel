@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public.Message;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Message;
 
 namespace Fantnel.Servlet.PluginsController;
 
@@ -8,7 +8,6 @@ namespace Fantnel.Servlet.PluginsController;
 [ApiController]
 [Route("[controller]")]
 public class PluginsShopController : ControllerBase {
-    
     [HttpGet("/api/pluginstore/get")]
     public IActionResult GetPluginListHttp()
     {
@@ -29,5 +28,4 @@ public class PluginsShopController : ControllerBase {
         PlugInstoreMessage.Install(id);
         return Ok(Code.ToJson(ErrorCode.Success));
     }
-
 }

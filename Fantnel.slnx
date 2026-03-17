@@ -1,11 +1,11 @@
 <Solution>
-    <Project Path="Codexus.Development.SDK/Codexus.Development.SDK.csproj"/>
-    <Project Path="Codexus.Game.Launcher/Codexus.Game.Launcher.csproj"/>
     <Project Path="ConsoleAppTest/ConsoleAppTest.csproj"/>
     <Project Path="Fantnel/Fantnel.csproj"/>
+    <Project Path="Nirvana.Chat/Nirvana.Chat.csproj"/>
+    <Project Path="Nirvana.Development/Nirvana.Development.csproj"/>
+    <Project Path="Nirvana.Game.Launcher/Nirvana.Game.Launcher.csproj"/>
+    <Project Path="Nirvana.Public/Nirvana.Public.csproj"/>
+    <Project Path="Nirvana.WPFLauncher/Nirvana.WPFLauncher.csproj"/>
     <Project Path="NirvanaAPI/NirvanaAPI.csproj"/>
-    <Project Path="NirvanaChat/NirvanaChat.csproj"/>
-    <Project Path="NirvanaPublic/NirvanaPublic.csproj"/>
     <Project Path="OpenSDK/OpenSDK.csproj"/>
-    <Project Path="WPFLauncherApi/WPFLauncherApi.csproj"/>
 </Solution>

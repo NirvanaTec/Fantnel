@@ -64,18 +64,12 @@ public class NirvanaConfig {
         SaveConfig();
     }
 
-    public static void SetChatTarget(string value)
-    {
-        Config.SetChatTarget(value);
-        SaveConfig();
-    }
-
     public static void SetUseJavaW(string value)
     {
         Config.SetUseJavaW(value);
         SaveConfig();
     }
-    
+
     public static void SetAutoUpdatePlugin(string value)
     {
         Config.SetAutoUpdatePlugin(value);
@@ -102,12 +96,6 @@ public class NirvanaConfig {
     public static void SetGameArgs(string value)
     {
         Config.GameArgs = value;
-        SaveConfig();
-    }
-
-    public static void SetChatPrefix(string value)
-    {
-        Config.ChatPrefix = value;
         SaveConfig();
     }
 

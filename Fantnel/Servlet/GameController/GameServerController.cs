@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public.Entities.NEL;
+using Nirvana.Public.Message;
+using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Entities.NEL;
-using NirvanaPublic.Message;
-using WPFLauncherApi.Protocol;
 
 namespace Fantnel.Servlet.GameController;
 
@@ -10,7 +10,6 @@ namespace Fantnel.Servlet.GameController;
 [ApiController]
 [Route("[controller]")]
 public class GameServerController : ControllerBase {
-    
     [HttpGet("/api/gameserver/get")]
     public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10, [FromQuery] string version = "")
     {

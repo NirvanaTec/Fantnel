@@ -12,13 +12,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0-beta.98"/>
-        <PackageReference Include="System.IO.Hashing" Version="11.0.0-preview.1.26104.118"/>
+        <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2"/>
+        <PackageReference Include="System.IO.Hashing" Version="10.0.5"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\NirvanaAPI\NirvanaAPI.csproj"/>
-        <ProjectReference Include="..\WPFLauncherApi\WPFLauncherApi.csproj"/>
+        <ProjectReference Include="..\Nirvana.WPFLauncher\Nirvana.WPFLauncher.csproj"/>
     </ItemGroup>
 
 </Project>

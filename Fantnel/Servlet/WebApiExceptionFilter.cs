@@ -2,16 +2,15 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Nirvana.Public.Entities.Nirvana;
+using Nirvana.WPFLauncher.Entities;
 using NirvanaAPI.Entities;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Entities.Nirvana;
-using WPFLauncherApi.Entities;
 
 namespace Fantnel.Servlet;
 
 public class WebApiExceptionFilter : ExceptionFilterAttribute {
-    
     // 异常处理
     public override Task OnExceptionAsync(ExceptionContext context)
     {
@@ -41,6 +40,7 @@ public class WebApiExceptionFilter : ExceptionFilterAttribute {
             if (index++ > 8) {
                 break;
             }
+
             array.Add(stackTraceFrame.ToJsonDocument());
         }
 

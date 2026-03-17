@@ -31,6 +31,7 @@ public class EntityAccount : EntityUserInfo {
         if (Type == "cookie" && other.Type == "cookie") {
             return Password == other.Password;
         }
+
         // 账号 密码 登录类型 一致 则 认为 是 同一个账号
         return Account == other.Account && Type == other.Type && Password == other.Password;
     }

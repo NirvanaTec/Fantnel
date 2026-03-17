@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public.Manager;
 using NirvanaAPI;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Manager;
 
 namespace Fantnel.Servlet.OthersController;
 
@@ -40,14 +40,8 @@ public class NirvanaController : ControllerBase {
             case "hideAccount":
                 NirvanaConfig.SetHideAccount(value ?? "false");
                 break;
-            case "friendly":
-                NirvanaAccountManager.SetFriendly(value ?? "false");
-                break;
             case "chatEnable":
                 NirvanaAccountManager.SetChatEnable(value ?? "true");
-                break;
-            case "chatTarget":
-                NirvanaConfig.SetChatTarget(value ?? "true");
                 break;
             case "gameMemory":
                 NirvanaConfig.SetGameMemory(value ?? "4096");
@@ -57,9 +51,6 @@ public class NirvanaController : ControllerBase {
                 break;
             case "gameArgs":
                 NirvanaConfig.SetGameArgs(value ?? string.Empty);
-                break;
-            case "chatPrefix":
-                NirvanaConfig.SetChatPrefix(value ?? "§6§l涅槃科技 §8|§r ");
                 break;
             case "autoLoginGame":
                 NirvanaConfig.SetAutoLoginGame(value ?? "true");

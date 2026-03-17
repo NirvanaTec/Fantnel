@@ -9,17 +9,8 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
     [JsonPropertyName("hideAccount")]
     public bool HideAccount { get; set; } // 隐藏账号
 
-    [JsonPropertyName("friendly")]
-    public bool Friendly { get; set; } // 友好模式
-
     [JsonPropertyName("chatEnable")]
     public bool ChatEnable { get; set; } // 聊天功能
-
-    [JsonPropertyName("chatTarget")]
-    public bool ChatTarget { get; set; } // 玩家标识
-
-    [JsonPropertyName("chatPrefix")]
-    public string ChatPrefix { get; set; } = "§6§l涅槃科技 §8|§r "; // 玩家标识
 
     [JsonPropertyName("gameMemory")]
     public int GameMemory { get; set; } = 4096; // 游戏内存
@@ -44,15 +35,10 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
 
     [JsonPropertyName("autoUpdatePlugin")]
     public bool AutoUpdatePlugin { get; set; } = true; // 自动更新插件
-    
+
     public void SetHideAccount(string value)
     {
         HideAccount = "true".Equals(value);
-    }
-
-    public void SetFriendly(string value)
-    {
-        Friendly = "true".Equals(value);
     }
 
     public void SetChatEnable(string value)
@@ -60,19 +46,13 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
         ChatEnable = "true".Equals(value);
     }
 
-    public void SetChatTarget(string value)
-    {
-        ChatTarget = "true".Equals(value);
-    }
-
     public void SetUseJavaW(string value)
     {
         UseJavaW = "true".Equals(value);
     }
-    
+
     public void SetAutoUpdatePlugin(string value)
     {
         AutoUpdatePlugin = "true".Equals(value);
     }
-    
 }

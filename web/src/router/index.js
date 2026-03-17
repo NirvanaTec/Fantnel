@@ -86,6 +86,11 @@ const routes = [
     name: 'Settings',
     component: () => import('../views/Settings.vue')
   },
+  {
+    path: '/logs',
+    name: 'Logs',
+    component: () => import('../views/others/Logs.vue')
+  },
 ]
 
 const router = createRouter({

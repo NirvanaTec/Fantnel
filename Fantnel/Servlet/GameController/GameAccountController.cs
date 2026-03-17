@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public.Entities.Login;
+using Nirvana.Public.Message;
 using NirvanaAPI.Entities.Login;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic.Entities.Login;
-using NirvanaPublic.Message;
 using Serilog;
 
 namespace Fantnel.Servlet.GameController;
@@ -13,7 +13,6 @@ namespace Fantnel.Servlet.GameController;
 [ApiController]
 [Route("[controller]")]
 public class GameAccountController : ControllerBase {
-    
     [HttpGet("/api/gameaccount/get")]
     public IActionResult GetAccountHttp()
     {
@@ -61,7 +60,7 @@ public class GameAccountController : ControllerBase {
 
         return Ok(Code.ToJson(ErrorCode.Success));
     }
-    
+
     [HttpPost("/api/gameaccount/autoLogin")]
     public IActionResult AutoLoginHttp([FromBody] EntityAccount account)
     {
@@ -107,7 +106,7 @@ public class GameAccountController : ControllerBase {
         AccountMessage.SwitchAccount(id);
         return Ok(Code.ToJson(ErrorCode.Success));
     }
-    
+
     [HttpPost("/api/gameaccount/autoswitch")]
     public IActionResult AutoSwitchAccountHttp([FromBody] EntityAccount account)
     {
@@ -120,5 +119,4 @@ public class GameAccountController : ControllerBase {
     {
         return Ok(Code.ToJson(ErrorCode.Success, InfoManager.GetGameAccount()));
     }
-    
 }

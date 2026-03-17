@@ -255,7 +255,7 @@ onMounted(() => {
 })
 
 function selectAccount1(event) {
-  var account = switchAccount(event.target.value);
+  const account = switchAccount(event.target.value);
   account.then(data => {
     if (data.code === 1) {
       getServerInfo1();
@@ -334,7 +334,7 @@ async function launchProxyBtn() {
 }
 
 function loadServerPlugins() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     isLoadingPlugins.value = true;
     pluginError.value = null;
     getServerPlugins(serverId, server.value.gameVersion).then(data => {
@@ -700,12 +700,6 @@ function handleNoticeOk() {
 
 .plugin-link:hover {
   text-decoration: underline;
-}
-
-.plugin-id {
-  font-size: 12px;
-  color: var(--text-color);
-  opacity: 0.7;
 }
 
 .loading {

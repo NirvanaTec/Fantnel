@@ -22,6 +22,7 @@ public static class InfoManager {
             gameAccount.Update(account);
             return;
         }
+
         GameAccountList.Add(account);
     }
 

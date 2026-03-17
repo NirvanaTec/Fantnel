@@ -593,19 +593,7 @@ games: 优先账号 的 角色信息 [切换优先账号，会导致games改变]
   "msg": "成功"
 }
 
-/api/nirvana/set?mode=friendly&value=${true/false} : 设置是否友好模式
-{
-  "code": 1,
-  "msg": "成功"
-}
-
 /api/nirvana/set?mode=chatEnable&value=${true/false} : 设置是否启用游戏聊天室
-{
-  "code": 1,
-  "msg": "成功"
-}
-
-/api/nirvana/set?mode=chatTarget&value=${true/false} : 是否聊天室玩家标明
 {
   "code": 1,
   "msg": "成功"
@@ -625,12 +613,6 @@ Min GameMemory = 1024
 }
 
 /api/nirvana/set?mode=gameArgs&value=${参数} : 设置启动游戏-游戏参数
-{
-  "code": 1,
-  "msg": "成功"
-}
-
-/api/nirvana/set?mode=chatPrefix&value=${value} : 设置启动代理-聊天室-玩家前缀
 {
   "code": 1,
   "msg": "成功"
@@ -671,10 +653,7 @@ Min GameMemory = 1024
   "code": 1,
   "data": {
     "hideAccount": false,
-    "friendly": false,
     "chatEnable": true,
-    "chatTarget": true,
-    "chatPrefix": "§6§l涅槃科技 §8|§r ",
     "gameMemory": 1024,
     "jvmArgs": "-XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true",
     "gameArgs": "",

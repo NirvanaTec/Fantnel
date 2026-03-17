@@ -116,11 +116,6 @@ export async function setThemeName(name) {
     return axios.get(`/api/theme/set?name=${name}`).then(res => res.data);
 }
 
-// 获取 4399验证码 图片
-export async function getCaptcha4399() {
-    return axios.get(getCaptcha4399Url());
-}
-
 // 获取 4399验证码 图片URL
 export async function getCaptcha4399Url() {
     return "/api/gameaccount/captcha4399";
@@ -274,19 +269,9 @@ export async function hideNirvanaAccount(value = "true") {
     return axios.get(`/api/nirvana/set?mode=hideAccount&value=${value}`).then(res => res.data);
 }
 
-// 友好模式
-export async function friendlyNirvana(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=friendly&value=${value}`).then(res => res.data);
-}
-
 // 聊天启用
 export async function chatEnable(value = "true") {
     return axios.get(`/api/nirvana/set?mode=chatEnable&value=${value}`).then(res => res.data);
-}
-
-// 聊天目标
-export async function chatTarget(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=chatTarget&value=${value}`).then(res => res.data);
 }
 
 // 游戏内存
@@ -307,11 +292,6 @@ export async function gameArgs(value) {
 // 获取设置配置
 export async function getSettings() {
     return axios.get(`/api/nirvana/get`).then(res => res.data);
-}
-
-// 聊天标记前缀
-export async function chatPrefix(value) {
-    return axios.get(`/api/nirvana/set?mode=chatPrefix&value=${value}`).then(res => res.data);
 }
 
 // 自动登录游戏
@@ -342,4 +322,31 @@ export async function setThemeSwitch(theme) {
 // 自动更新插件
 export async function autoUpdatePlugin(value = "true") {
     return axios.get(`/api/nirvana/set?mode=autoUpdatePlugin&value=${value}`).then(res => res.data);
+}
+
+// 初始化窗口模式
+export async function initWindowMode() {
+    // 发送初始化窗口模式消息
+    if (window.external && window.external.sendMessage) {
+        window.external.sendMessage(JSON.stringify({ action: "fantnel:init" }));
+    }
+}
+
+// 窗口最小化
+export async function minimizeWindow() {
+    if (window.external && window.external.sendMessage) {
+        window.external.sendMessage(JSON.stringify({ action: "window:minimize" }));
+    }
+}
+
+// 窗口关闭
+export async function closeWindow() {
+    if (window.external && window.external.sendMessage) {
+        window.external.sendMessage(JSON.stringify({ action: "window:close" }));
+    }
+}
+
+// 获取日志信息
+export async function getLogs() {
+    return axios.get("/api/logs").then(res => res.data);
 }

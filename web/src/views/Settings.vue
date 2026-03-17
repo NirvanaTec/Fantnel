@@ -51,20 +51,6 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <div class="form-options" style="margin-bottom: 10px;">
-            <div class="remember-me">
-              <input v-model="playerIdentifier" class="form-checkbox" id="playerIdentifier" type="checkbox">
-              <label class="form-checkbox-label" for="playerIdentifier">玩家标识</label>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <label class="form-checkbox-label" for="chatPrefix">标记前缀</label>
-            <input v-model="chatPrefixValue" class="form-input" id="chatPrefix" type="text" :disabled="!ircEnabled"
-              style="width: 150px;">
-          </div>
-        </div>
-
       </div>
 
       <!-- 启动配置卡片 -->
@@ -122,15 +108,13 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { Message } from '../utils/message.js'
-import { chatEnable, chatTarget, chatPrefix, jvmArgs, gameArgs, gameMemory as setGameMemory, getSettings, autoLoginGame, autoLoginGame163Email, setUseJavaW, autoLoginGameCookie as setAutoLoginGameCookie, autoUpdatePlugin as setAutoUpdatePlugin } from '../utils/Tools.js'
+import { chatEnable, jvmArgs, gameArgs, gameMemory as setGameMemory, getSettings, autoLoginGame, autoLoginGame163Email, setUseJavaW, autoLoginGameCookie as setAutoLoginGameCookie, autoUpdatePlugin as setAutoUpdatePlugin } from '../utils/Tools.js'
 
 const vmArgs = ref('')
 const gameArguments = ref('')
 const gameMemory = ref('')
 const useJavaW = ref(false)
 const ircEnabled = ref(false)
-const playerIdentifier = ref(false)
-const chatPrefixValue = ref('')
 const isAutoLoginGame = ref(false)
 const isAutoLoginGame163Email = ref(false)
 const autoLoginGameCookie = ref(false)
@@ -141,13 +125,6 @@ const autoUpdatePlugin = ref(false)
 watch(ircEnabled, (newValue) => {
   if (!isInitialLoading.value) {
     handleChatEnable(newValue)
-  }
-})
-
-// 监听玩家标识状态变化
-watch(playerIdentifier, (newValue) => {
-  if (!isInitialLoading.value) {
-    handleChatTarget(newValue)
   }
 })
 
@@ -169,13 +146,6 @@ watch(gameArguments, (newValue) => {
 watch(gameMemory, (newValue) => {
   if (!isInitialLoading.value) {
     handleGameMemory(newValue)
-  }
-})
-
-// 监听聊天标记前缀变化
-watch(chatPrefixValue, (newValue) => {
-  if (!isInitialLoading.value) {
-    handleChatPrefix(newValue)
   }
 })
 
@@ -230,8 +200,6 @@ const loadSettings = async () => {
       gameMemory.value = data.data.gameMemory || '4096'
       useJavaW.value = data.data.useJavaW || false
       ircEnabled.value = data.data.chatEnable || false
-      playerIdentifier.value = data.data.chatTarget || false
-      chatPrefixValue.value = data.data.chatPrefix || ''
       isAutoLoginGame.value = data.data.autoLoginGame || false
       autoLoginGameCookie.value = data.data.autoLoginGameCookie || false
       isAutoLoginGame163Email.value = data.data.autoLoginGame163Email || false
@@ -252,19 +220,6 @@ const loadSettings = async () => {
 const handleChatEnable = async (value) => {
   try {
     const data = await chatEnable(value ? "true" : "false")
-    if (data.code === 1) {
-      Message.success(data.msg || '设置成功')
-    } else {
-      Message.warning(data.msg || '设置失败')
-    }
-  } catch (error) {
-    Message.error('设置失败，请检查网络连接')
-  }
-}
-
-const handleChatTarget = async (value) => {
-  try {
-    const data = await chatTarget(value ? "true" : "false")
     if (data.code === 1) {
       Message.success(data.msg || '设置成功')
     } else {
@@ -304,19 +259,6 @@ const handleGameArgs = async (value) => {
 const handleGameMemory = async (value) => {
   try {
     const data = await setGameMemory(value)
-    if (data.code === 1) {
-      Message.success(data.msg || '设置成功')
-    } else {
-      Message.warning(data.msg || '设置失败')
-    }
-  } catch (error) {
-    Message.error('设置失败，请检查网络连接')
-  }
-}
-
-const handleChatPrefix = async (value) => {
-  try {
-    const data = await chatPrefix(value)
     if (data.code === 1) {
       Message.success(data.msg || '设置成功')
     } else {

@@ -1,17 +1,15 @@
 ﻿using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public;
+using Nirvana.Public.Utils.ViewLogger;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
-using NirvanaPublic;
-using NirvanaPublic.Utils.ViewLogger;
-using Serilog;
 
 namespace Fantnel.Servlet.OthersController;
 
 [ApiController]
 [Route("[controller]")]
 public class FantController : ControllerBase {
-    
     // 获取版本
     [HttpGet("/api/version")]
     public IActionResult GetVersion()
@@ -33,7 +31,7 @@ public class FantController : ControllerBase {
         Tools.Restart();
         return Ok(Code.ToJson(ErrorCode.Success));
     }
-    
+
     // 关闭程序
     [HttpGet("/api/exit")]
     public IActionResult Exit()
@@ -41,12 +39,11 @@ public class FantController : ControllerBase {
         Environment.Exit(0);
         return Ok(Code.ToJson(ErrorCode.Success));
     }
-    
+
     // 关闭程序
     [HttpGet("/api/logs")]
     public IActionResult GetLogs()
     {
         return Ok(Code.ToJson(ErrorCode.Success, InMemorySink.GetLogs()));
     }
-
 }

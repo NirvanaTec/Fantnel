@@ -22,18 +22,6 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <div class="form-options">
-            <div class="remember-me">
-              <input v-model="friendlyMode" class="form-checkbox" id="friendlyMode" type="checkbox">
-              <Tooltip width="255px">
-                <label class="form-checkbox-label" for="friendlyMode">友好模式</label>
-                <template #tooltip>其它 Fantnel 用户无法攻击您 【高级功能】</template>
-              </Tooltip>
-            </div>
-          </div>
-        </div>
-
         <div class="user-card-content">
           <p class="text-gray-400 mb-4">当前剩余 <span class="text-red-400">{{ info.days }}</span> 天。</p>
           <div class="aligned-row">
@@ -58,7 +46,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { logoutNirvana, getNirvanaAccount, hideNirvanaAccount, friendlyNirvana } from '../../utils/Tools.js'
+import { logoutNirvana, getNirvanaAccount, hideNirvanaAccount } from '../../utils/Tools.js'
 import { Message } from '../../utils/message.js'
 import Tooltip from '../../components/Tooltip.vue'
 
@@ -81,13 +69,6 @@ watch(() => countdown.value, (newValue) => {
 watch(hideAccount, (newValue) => {
   if (!isInitialLoading.value) {
     handleHideAccount(newValue)
-  }
-})
-
-// 监听友好模式变化
-watch(friendlyMode, (newValue) => {
-  if (!isInitialLoading.value) {
-    handleFriendlyMode(newValue)
   }
 })
 
@@ -115,19 +96,6 @@ const loadAccountInfo = async () => {
 const handleHideAccount = async (value) => {
   try {
     const data = await hideNirvanaAccount(value ? "true" : "false")
-    if (data.code === 1) {
-      Message.success(data.msg || '设置成功')
-    } else {
-      Message.warning(data.msg || '设置失败')
-    }
-  } catch (error) {
-    Message.error('设置失败，请检查网络连接')
-  }
-}
-
-const handleFriendlyMode = async (value) => {
-  try {
-    const data = await friendlyNirvana(value ? "true" : "false")
     if (data.code === 1) {
       Message.success(data.msg || '设置成功')
     } else {

@@ -1,12 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using Nirvana.Public.Message;
+using Nirvana.Public.Utils;
+using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
+using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Entities.Login;
 using NirvanaAPI.Manager;
-using NirvanaPublic.Message;
-using NirvanaPublic.Utils;
 using Serilog;
-using WPFLauncherApi.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
-using WPFLauncherApi.Protocol;
 
 // Fantnel 日志初始化
 InitProgram.LogoInit();
@@ -28,6 +28,7 @@ AccountMessage.Login(cookie);
 while (true) {
     try {
         InfoManager.GetGameAccount();
+        break;
     } catch (Exception) {
         Log.Information("请输入cookie内容: ");
         cookie.Password = Console.ReadLine();
