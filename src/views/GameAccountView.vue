@@ -135,8 +135,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getGameAccounts, deleteGameAccount, saveGameAccount, updateGameAccount, getCaptcha4399, getCaptcha4399Content, selectGameAccount, verifyCaptcha4399 } from '../services/api'
+import {onMounted, ref} from 'vue'
+import {
+  deleteGameAccount,
+  getCaptcha4399,
+  getCaptcha4399Content,
+  getGameAccounts,
+  saveGameAccount,
+  selectGameAccount,
+  updateGameAccount,
+  verifyCaptcha4399
+} from '../services/api'
 
 const gameAccounts = ref([])
 const showAddModal = ref(false)
@@ -233,8 +242,7 @@ const loginAccount = async (account) => {
       // 获取验证码图片（直接返回blob）
       const captchaResponse = await getCaptcha4399()
       // 将blob转换为Data URL
-      const imageUrl = URL.createObjectURL(captchaResponse.data)
-      captchaImage.value = imageUrl
+      captchaImage.value = URL.createObjectURL(captchaResponse.data)
       loginStatus.value = 'captcha'
 
       // 自动获取验证码内容
@@ -288,8 +296,7 @@ const autoGetCaptcha = async () => {
 const refreshCaptcha = async () => {
   try {
     const captchaResponse = await getCaptcha4399()
-    const imageUrl = URL.createObjectURL(captchaResponse.data)
-    captchaImage.value = imageUrl
+    captchaImage.value = URL.createObjectURL(captchaResponse.data)
 
     // 清空之前的验证码内容
     captchaCode.value = ''
@@ -333,7 +340,4 @@ const submitCaptcha = async () => {
 </script>
 
 <style scoped>
-.bg-gray-750 {
-  background-color: rgba(59, 130, 246, 0.1);
-}
 </style>
