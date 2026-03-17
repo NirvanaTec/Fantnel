@@ -23,10 +23,6 @@
             <span class="text-gray-400">隐藏账号:</span>
             <span class="ml-2">{{ nirvanaAccount.hideAccount ? '是' : '否' }}</span>
           </div>
-          <div>
-            <span class="text-gray-400">友好模式:</span>
-            <span class="ml-2">{{ nirvanaAccount.friendly ? '是' : '否' }}</span>
-          </div>
 
         </div>
       </div>
@@ -42,13 +38,7 @@
               {{ nirvanaAccount.hideAccount ? '显示账号' : '隐藏账号' }}
             </button>
           </div>
-          <div class="flex justify-between items-center">
-            <span>设置是否友好模式</span>
-            <button @click="toggleFriendlyMode"
-              class="bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors">
-              {{ nirvanaAccount.friendly ? '关闭友好模式' : '开启友好模式' }}
-            </button>
-          </div>
+
         </div>
       </div>
 
@@ -124,22 +114,11 @@ const toggleHideAccount = async () => {
     const response = await setSystemConfig('hideAccount', newState)
     if (response.data.code === 1) {
       nirvanaAccount.value.hideAccount = newState
+      location.reload()
     }
   } catch (error) {
     console.error('Failed to toggle hide account:', error)
   }
 }
 
-// 切换友好模式状态
-const toggleFriendlyMode = async () => {
-  try {
-    const newState = !nirvanaAccount.value.friendly
-    const response = await setSystemConfig('friendly', newState)
-    if (response.data.code === 1) {
-      nirvanaAccount.value.friendly = newState
-    }
-  } catch (error) {
-    console.error('Failed to toggle friendly mode:', error)
-  }
-}
 </script>
