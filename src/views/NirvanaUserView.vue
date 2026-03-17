@@ -83,7 +83,7 @@ onMounted(() => {
 const loadAccountInfo = async () => {
   try {
     const response = await getNirvanaAccountInfo()
-    if (response.data.code == 1) {
+    if (response.data.code === 1) {
       nirvanaAccount.value = response.data.data
     } else {
       console.log("未登录涅槃账号\n" + response.data.msg)

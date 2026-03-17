@@ -56,22 +56,7 @@
               </div>
             </label>
           </div>
-          <div class="flex items-center justify-between">
-            <span>聊天室玩家标明</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" :checked="systemConfig.chatTarget"
-                @change="updateConfig('chatTarget', !systemConfig.chatTarget)" class="sr-only peer">
-              <div
-                class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500">
-              </div>
-            </label>
-          </div>
-          <div>
-            <label class="block text-sm text-gray-400 mb-1">启动代理-聊天室-玩家前缀</label>
-            <input type="text" :value="systemConfig.chatPrefix"
-              @change="updateConfig('chatPrefix', $event.target.value)"
-              class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
-          </div>
+
         </div>
       </div>
 
