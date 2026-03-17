@@ -23,7 +23,7 @@
             <td class="py-3 px-4">{{ game.user_id }}</td>
             <td class="py-3 px-4">{{ game.game_version }}</td>
             <td class="py-3 px-4">
-              <button @click="closeGame(game.game_id)" class="text-red-400 hover:text-red-300">
+              <button @click="closeGame(game.id)" class="text-red-400 hover:text-red-300">
                 关闭游戏
               </button>
             </td>
@@ -61,9 +61,9 @@ const loadGames = async () => {
 }
 
 // 关闭游戏
-const closeGame = async (gameId) => {
+const closeGame = async (id) => {
   try {
-    const response = await apiCloseGame(gameId)
+    const response = await apiCloseGame(id)
     if (response.data.code === 1) {
       await loadGames()
     }
