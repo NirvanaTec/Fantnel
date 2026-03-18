@@ -40,7 +40,8 @@
       </table>
     </div>
 
-    <button @click="showAddModal = true" class="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors shadow-lg z-40">
+    <button @click="showAddModal = true"
+      class="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors shadow-lg z-40">
       添加账号
     </button>
 
@@ -135,7 +136,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   deleteGameAccount,
   getCaptcha4399,
@@ -267,12 +268,12 @@ const loginAccount = async (account) => {
         await loadGameAccounts()
       } else {
         loginStatus.value = 'error'
-        errorMessage.value = '登录失败'
+        errorMessage.value = response.data.msg || '登录失败'
       }
     } catch (error) {
       console.error('Failed to login:', error)
       loginStatus.value = 'error'
-      errorMessage.value = '登录失败'
+      errorMessage.value = '登录出错'
     }
   }
 }
@@ -302,10 +303,7 @@ const refreshCaptcha = async () => {
     captchaCode.value = ''
 
     // 重新自动获取验证码内容
-    const autoCaptchaResponse = await getCaptcha4399Content()
-    if (autoCaptchaResponse.data.code === 1) {
-      captchaCode.value = autoCaptchaResponse.data.data
-    }
+    autoGetCaptcha()
   } catch (error) {
     console.error('Failed to refresh captcha:', error)
     alert('刷新验证码失败')
@@ -323,21 +321,25 @@ const submitCaptcha = async () => {
     })
     if (response.data.code === 1) {
       // 将账号设置为优先账号
-      await selectGameAccount(currentAccount.value.id)
-      loginStatus.value = 'success'
-      // 更新账号信息
-      await loadGameAccounts()
+      const response1 = await selectGameAccount(currentAccount.value.id)
+      if (response1.data.code === 1) {
+        loginStatus.value = 'success'
+        // 更新账号信息
+        await loadGameAccounts()
+      } else {
+        loginStatus.value = 'error'
+        errorMessage.value = response1.data.msg || '登录失败'
+      }
     } else {
       loginStatus.value = 'error'
-      errorMessage.value = '登录失败'
+      errorMessage.value = response.data.msg || '验证失败'
     }
   } catch (error) {
     console.error('Failed to submit captcha:', error)
     loginStatus.value = 'error'
-    errorMessage.value = '登录失败'
+    errorMessage.value = '验证出错'
   }
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
