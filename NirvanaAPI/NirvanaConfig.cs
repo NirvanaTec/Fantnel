@@ -7,8 +7,6 @@ using NirvanaAPI.Utils.CodeTools;
 namespace NirvanaAPI;
 
 public class NirvanaConfig {
-    public const string JvmArgsConst =
-        "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true"; // 虚拟机参数
 
     public static EntityNirvanaConfig Config = new();
 
@@ -54,25 +52,25 @@ public class NirvanaConfig {
 
     public static void SetHideAccount(string value)
     {
-        Config.SetHideAccount(value);
+        Config.HideAccount = bool.Parse(value);
         SaveConfig();
     }
 
     public static void SetChatEnable(string value)
     {
-        Config.SetChatEnable(value);
+        Config.ChatEnable = bool.Parse(value);
         SaveConfig();
     }
 
     public static void SetUseJavaW(string value)
     {
-        Config.SetUseJavaW(value);
+        Config.UseJavaW = bool.Parse(value);
         SaveConfig();
     }
 
     public static void SetAutoUpdatePlugin(string value)
     {
-        Config.SetAutoUpdatePlugin(value);
+        Config.AutoUpdatePlugin = bool.Parse(value);
         SaveConfig();
     }
 
@@ -87,9 +85,9 @@ public class NirvanaConfig {
         SaveConfig();
     }
 
-    public static void SetJvmArgs(string? value)
+    public static void SetJvmArgs(string value)
     {
-        Config.JvmArgs = value ?? JvmArgsConst;
+        Config.JvmArgs = value;
         SaveConfig();
     }
 
@@ -101,19 +99,20 @@ public class NirvanaConfig {
 
     public static void SetAutoLoginGame(string value)
     {
-        Config.AutoLoginGame = "true".Equals(value);
+        Config.AutoLoginGame = bool.Parse(value);
         SaveConfig();
     }
 
     public static void SetAutoLoginGame163Email(string value)
     {
-        Config.AutoLoginGame163Email = "true".Equals(value);
+        Config.AutoLoginGame163Email = bool.Parse(value);
         SaveConfig();
     }
 
     public static void SetAutoLoginGameCookie(string value)
     {
-        Config.AutoLoginGameCookie = "true".Equals(value);
+        Config.AutoLoginGameCookie = bool.Parse(value);
         SaveConfig();
     }
+    
 }

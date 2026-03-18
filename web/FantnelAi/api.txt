@@ -332,6 +332,7 @@ status == 0 时 status 变成 1
   "code": 1,
   "data": [
     {
+      "id": 1,
       "game_name": "梦世界",
       "game_id": "77140593557373952",
       "role_name": "谨慎的僵尸村2",
@@ -349,7 +350,7 @@ status == 0 时 status 变成 1
   "msg": "成功"
 }
 
-/api/gamelaunch/close?id=${游戏data.index} : 关闭指定游戏
+/api/gamelaunch/close?id=${游戏data.id} : 关闭指定游戏
 {
   "code": 1,
   "msg": "成功"
@@ -382,7 +383,7 @@ status == 0 时 status 变成 1
   "msg": "成功"
 }
 
-/api/server/close?id=${游戏data.index} : 关闭指定代理
+/api/server/close?id=${游戏data.id} : 关闭指定代理
 {
   "code": 1,
   "msg": "成功"

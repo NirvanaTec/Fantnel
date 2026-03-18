@@ -1,43 +1,77 @@
 # Fantnel
-## 本项目基于 [Codexus.OpenSDK](https://github.com/denetease/OpenSDK.NEL) ，后二次开发的 Web Api (C#) 完全脱离盒子 项目
 
-### 我们的核心优势
-1. 借助 CodexusApi 实现 CodexusPluginsX [涅槃云] ，加速插件商城。
-2. 借助 BmclApi 实现 Linux/MacOS 库资源修复。
-3. 参考 FaithXL [未发布] 启动器实现启动参数 解析/生成。
-4. 完善的 AI 文档，帮助 AI 生成 Fantnel UI。 [web/FantnelAi]
+Fantnel 是一个基于 .NET 10.0 开发的 完全脱离盒子 项目。本项目基于 [Codexus.OpenSDK](https://github.com/denetease/OpenSDK.NEL) 二次开发。
 
-### 特殊优势
-1. 主题：支持自定义主题，您可以根据自己的喜好和需求，选择不同的主题样式。
-2. 插件自动更新：借助 CodexusPluginsX [涅槃云] 实现自动更新已安装插件
+## 🚀 核心特性
 
-### 说明
-    项目版本：Release
-    自动更新：会更新至Beta版本，这可能不会同步至仓库。
+### 技术优势
+1. **AI 文档完善** - [完整的 AI 文档，助力 Fantnel UI 生成](web/FantnelAi/)
+2. **BmclApi 支持** - 借助 BmclApi 来为 Linux/MacOS 库资源修复功能
+3. **启动参数解析** - 参考 FaithXL 启动器实现启动参数解析与生成
+4. **插件兼容性** - 支持 Nirvana.Development 插件，与 Codexus.Development 同时运行, 且无冲突
+5. **CodexusApi 加速 [涅槃云]** - 借助 Codexus API 加速插件商城功能，提供更快的插件下载速度和更新检查
 
-### 如何参与
-    如果您想为 Fantnel 做出贡献，或者有任何问题想要咨询，欢迎加入我们的官方QQ频道，或者在 GitHub 上提交 issue 或 pull request。
+### 用户体验
+1. **插件自动更新** - 已安装插件自动更新
+2. **跨平台支持** - 支持 Windows、Linux、macOS 多平台运行
+3. **自定义主题** - 支持个性化主题设置，用户可根据喜好选择不同界面风格
 
-    让我们一起携手，共同推动公益技术的发展！
+## 🛠️ 技术架构
 
-### 商用声明
-```text
+### 开发环境
+- **框架**: .NET 10.0
+- **语言**: C# 12
+- **Web 框架**: ASP.NET Core Web API
+- **日志系统**: Serilog
+
+### 多平台支持
+项目支持以下平台的构建和运行：
+- **Windows**: x64, ARM64
+- **Linux**: x64, ARM64  
+- **MacOS**: x64, ARM64
+
+## 🤝 参与贡献
+
+欢迎社区成员为 Fantnel 项目做出贡献！
+
+### 参与方式
+1. **问题反馈** - 在 GitHub 提交 Issue
+2. **功能建议** - 提出新功能或改进建议  
+3. **代码贡献** - 提交 Pull Request
+4. **文档完善** - 改进项目文档
+
+### 开发规范
+- 遵循 C# 编码规范
+- 保持代码注释清晰
+- 编写单元测试
+- 遵循 Git 提交规范
+
+## 📄 开源协议
+```
 本程序是自由软件，你可以重新发布或修改它，但必须：
- 1.保留原始版权声明
- 2.采用相同许可证分发
- 3.提供完整的源代码
+1. 保留原始版权声明
+2. 采用相同许可证分发  
+3. 提供完整的源代码
 
 详细条款请查阅 LICENSE 文件。
 ```
 
-##### 开发人员
-- 涅槃科技
-  - 开发者: 风横
-  - QQ: 3547694806
-  - 邮箱: fengheng1111@126.com
+## 👥 开发团队
 
+**涅槃科技**
+- 开发者: 风横
+- QQ: 3547694806
+- 邮箱: fengheng1111@126.com
 
-### 联系方式
-- 官网: https://npyyds.top/
-- Gitee: https://gitee.com/newNP/fantnel/
-- GitHub: https://github.com/NirvanaTec/fantnel/
+**涅槃频道**
+- QQ 频道: 请前往官网来加入涅槃频道
+
+## 🌐 官方资源
+
+- **官方网站**: https://npyyds.top/
+- **Gitee 仓库**: https://gitee.com/newNP/fantnel/
+- **GitHub 仓库**: https://github.com/NirvanaTec/fantnel/
+
+---
+
+*最终解释权归于 涅槃科技 所有*

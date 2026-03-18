@@ -43,6 +43,9 @@ public class EntityLaunchGame {
     [JsonPropertyName("load_core_mods")]
     public bool LoadCoreMods { get; init; }
 
+    [JsonPropertyName("id")]
+    public required int Id { get; set; }
+
     /**
      * 清理 相同/过期 的代理
      * @param gameUser 游戏用户

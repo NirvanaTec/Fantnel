@@ -16,7 +16,7 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
     public int GameMemory { get; set; } = 4096; // 游戏内存
 
     [JsonPropertyName("jvmArgs")]
-    public string JvmArgs { get; set; } = NirvanaConfig.JvmArgsConst; // 虚拟机参数
+    public string JvmArgs { get; set; } = "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true"; // 虚拟机参数
 
     [JsonPropertyName("gameArgs")]
     public string GameArgs { get; set; } = string.Empty; // 游戏参数
@@ -35,24 +35,5 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
 
     [JsonPropertyName("autoUpdatePlugin")]
     public bool AutoUpdatePlugin { get; set; } = true; // 自动更新插件
-
-    public void SetHideAccount(string value)
-    {
-        HideAccount = "true".Equals(value);
-    }
-
-    public void SetChatEnable(string value)
-    {
-        ChatEnable = "true".Equals(value);
-    }
-
-    public void SetUseJavaW(string value)
-    {
-        UseJavaW = "true".Equals(value);
-    }
-
-    public void SetAutoUpdatePlugin(string value)
-    {
-        AutoUpdatePlugin = "true".Equals(value);
-    }
+    
 }

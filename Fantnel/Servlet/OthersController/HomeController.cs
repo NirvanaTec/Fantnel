@@ -33,7 +33,7 @@ public class HomeController : ControllerBase {
     [HttpGet("/api/home")]
     public IActionResult HomeInfo()
     {
-        return Ok(JsonSerializer.Serialize(InfoManager.FantnelInfo));
+        return Ok(InfoManager.FantnelInfo);
     }
 
     // 设置主题

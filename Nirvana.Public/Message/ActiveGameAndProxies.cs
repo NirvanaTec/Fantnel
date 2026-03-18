@@ -30,21 +30,21 @@ public static class ActiveGameAndProxies {
 
     /**
      * 清理已启动代理和游戏
-     * @param id 服务器ID
+     * @param gameId 服务器ID
      * @param name 角色名称
      */
-    public static void Close(string id, string name)
+    public static void Close(string gameId, string name)
     {
         lock (SafeLock) {
             // 关闭老代理
             var log = 0;
-            foreach (var proxy in ActiveProxies.ToList().Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name))) {
+            foreach (var proxy in ActiveProxies.ToList().Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), gameId, name))) {
                 log++;
                 proxy.Shutdown();
                 ActiveProxies.Remove(proxy);
             }
 
-            foreach (var proxy in ActiveProxies1.ToList().Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), id, name))) {
+            foreach (var proxy in ActiveProxies1.ToList().Where(proxy => proxy.Equals(InfoManager.GetGameAccount(), gameId, name))) {
                 log++;
                 proxy.Shutdown();
                 ActiveProxies1.Remove(proxy);
@@ -56,7 +56,7 @@ public static class ActiveGameAndProxies {
 
             // 关闭老游戏
             log = 0;
-            foreach (var launcher in ActiveLaunchers.ToList().Where(launcher => launcher.Entity.Equals(InfoManager.GetGameAccount(), id, name))) {
+            foreach (var launcher in ActiveLaunchers.ToList().Where(launcher => launcher.Entity.Equals(InfoManager.GetGameAccount(), gameId, name))) {
                 log++;
                 launcher.ShutdownAsync();
                 ActiveLaunchers.Remove(launcher);
@@ -83,7 +83,7 @@ public static class ActiveGameAndProxies {
     {
         lock (SafeLock) {
             var proxy = new RunningProxy {
-                Id = GetProxiesIndex(),
+                Id = GetIndex(),
                 UserId = InfoManager.GetGameAccount().UserId,
                 UserToken = InfoManager.GetGameAccount().Token,
                 ServerId = serverId,
@@ -120,7 +120,7 @@ public static class ActiveGameAndProxies {
                 ServerVersion = details.McVersionList[0].Name
             };
             var entityProxy = new EntityProxy {
-                Id = GetProxiesIndex(),
+                Id = GetIndex(),
                 UserId = InfoManager.GetGameAccount().UserId,
                 UserToken = InfoManager.GetGameAccount().Token,
                 ServerId = serverId,
@@ -193,16 +193,7 @@ public static class ActiveGameAndProxies {
     // 获取白端游戏
     private static LauncherService? GetLauncherService(string id)
     {
-        var index = 0;
-        foreach (var launcher in ActiveLaunchers) {
-            if (index.ToString().Equals(id)) {
-                return launcher;
-            }
-
-            index++;
-        }
-
-        return null;
+        return ActiveLaunchers.FirstOrDefault(launcher => id.Equals(launcher.Entity.Id));
     }
 
     // 获取所有已启动代理
@@ -217,11 +208,12 @@ public static class ActiveGameAndProxies {
         }
     }
 
-    private static int GetProxiesIndex()
+    public static int GetIndex()
     {
         lock (SafeLock) {
             var max = ActiveProxies.Select(proxy => proxy.Id).Prepend(0).Max();
             max = ActiveProxies1.Select(proxy => proxy.Id).Prepend(max).Max();
+            max = ActiveLaunchers.Select(proxy => proxy.Entity.Id).Prepend(max).Max();
             return max + 1;
         }
     }

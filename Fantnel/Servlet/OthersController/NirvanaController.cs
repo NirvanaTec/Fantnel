@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Nirvana.Public.Manager;
 using NirvanaAPI;
+using NirvanaAPI.Entities.EntitiesNirvana;
 using NirvanaAPI.Utils.CodeTools;
 
 namespace Fantnel.Servlet.OthersController;
@@ -38,34 +39,34 @@ public class NirvanaController : ControllerBase {
     {
         switch (mode) {
             case "hideAccount":
-                NirvanaConfig.SetHideAccount(value ?? "false");
+                NirvanaConfig.SetHideAccount(value ?? new EntityNirvanaConfig().HideAccount.ToString());
                 break;
             case "chatEnable":
-                NirvanaAccountManager.SetChatEnable(value ?? "true");
+                NirvanaAccountManager.SetChatEnable(value ??  new EntityNirvanaConfig().ChatEnable.ToString());
                 break;
             case "gameMemory":
-                NirvanaConfig.SetGameMemory(value ?? "4096");
+                NirvanaConfig.SetGameMemory(value ?? new EntityNirvanaConfig().GameMemory.ToString());
                 break;
             case "jvmArgs":
-                NirvanaConfig.SetJvmArgs(value);
+                NirvanaConfig.SetJvmArgs(value ?? new EntityNirvanaConfig().JvmArgs);
                 break;
             case "gameArgs":
-                NirvanaConfig.SetGameArgs(value ?? string.Empty);
+                NirvanaConfig.SetGameArgs(value ?? new EntityNirvanaConfig().GameArgs);
                 break;
             case "autoLoginGame":
-                NirvanaConfig.SetAutoLoginGame(value ?? "true");
+                NirvanaConfig.SetAutoLoginGame(value ?? new EntityNirvanaConfig().AutoLoginGame.ToString());
                 break;
             case "autoLoginGame163Email":
-                NirvanaConfig.SetAutoLoginGame163Email(value ?? "true");
+                NirvanaConfig.SetAutoLoginGame163Email(value ?? new EntityNirvanaConfig().AutoLoginGame163Email.ToString());
                 break;
             case "autoLoginGameCookie":
-                NirvanaConfig.SetAutoLoginGameCookie(value ?? "true");
+                NirvanaConfig.SetAutoLoginGameCookie(value ?? new EntityNirvanaConfig().AutoLoginGameCookie.ToString());
                 break;
             case "useJavaW":
-                NirvanaConfig.SetUseJavaW(value ?? "true");
+                NirvanaConfig.SetUseJavaW(value ?? new EntityNirvanaConfig().UseJavaW.ToString());
                 break;
             case "autoUpdatePlugin":
-                NirvanaConfig.SetAutoUpdatePlugin(value ?? "true");
+                NirvanaConfig.SetAutoUpdatePlugin(value ?? new EntityNirvanaConfig().AutoUpdatePlugin.ToString());
                 break;
         }
 

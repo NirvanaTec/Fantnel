@@ -29,7 +29,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(game, index) in gameLaunchList" :key="game.game_id">
+          <tr v-for="(game) in gameLaunchList" :key="game.id">
             <td>{{ game.game_name }}</td>
             <td>{{ game.role_name }}</td>
             <td>{{ game.game_id }}</td>
@@ -41,7 +41,7 @@
             <td>{{ game.max_game_memory }} MB</td>
             <td>
               <div class="action-buttons">
-                <button class="close-btn" @click="showCloseSingleConfirm(index)">
+                <button class="close-btn" @click="showCloseSingleConfirm(game.id)">
                   关闭
                 </button>
               </div>
@@ -111,12 +111,12 @@ const showCloseAllConfirm = () => {
 }
 
 // 关闭单个游戏实例
-const handleCloseSingle = async (index) => {
+const handleCloseSingle = async (id) => {
   try {
-    const data = await closeGameLaunch(index)
+    const data = await closeGameLaunch(id)
     if (data.code === 1) {
       // 从列表中移除关闭的游戏实例
-      gameLaunchList.value = gameLaunchList.value.filter((_, i) => i !== index)
+      await fetchGameLaunchInfo()
     } else {
       console.error('关闭游戏实例失败:', data.msg)
     }
@@ -127,12 +127,10 @@ const handleCloseSingle = async (index) => {
 
 // 关闭全部游戏实例
 const handleCloseAll = async () => {
-  if (gameLaunchList.value.length === 0) return
-
   try {
     // 依次关闭所有游戏实例
-    for(var index = 0; index < gameLaunchList.value.length; index++){
-      await closeGameLaunch(index)
+    for(var game of gameLaunchList.value){
+      await closeGameLaunch(game.id)
     }
     // 清空游戏实例列表
     gameLaunchList.value = []

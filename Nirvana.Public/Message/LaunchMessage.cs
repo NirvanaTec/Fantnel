@@ -51,6 +51,7 @@ public static class LaunchMessage {
         var address = await WPFLauncher.Protocol.WPFLauncher.GetGameRentalAddressAsync(server.EntityId);
 
         var launchRequest = new EntityLaunchGame {
+            Id = ActiveGameAndProxies.GetIndex(),
             GameName = server.ServerName,
             GameId = server.EntityId,
             RoleName = character.Name,
@@ -100,6 +101,7 @@ public static class LaunchMessage {
         var address = await WPFLauncher.Protocol.WPFLauncher.GetNetGameServerAddressAsync(server.EntityId);
 
         var launchRequest = new EntityLaunchGame {
+            Id = ActiveGameAndProxies.GetIndex(),
             GameName = server.Name,
             GameId = server.EntityId,
             RoleName = character.Name,

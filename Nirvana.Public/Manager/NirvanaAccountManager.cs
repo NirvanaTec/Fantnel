@@ -96,15 +96,10 @@ public class NirvanaAccountManager {
     public static void SetChatEnable(string value)
     {
         NirvanaConfig.SetChatEnable(value);
-        switch (value) {
-            case "true": {
-                _ = ChatMessage.StartAsync();
-                return;
-            }
-            case "false": {
-                ChatMessage.Shutdown();
-                return;
-            }
+        if ("true".Equals(value, StringComparison.OrdinalIgnoreCase)) {
+            _ = ChatMessage.StartAsync();
+        } else {
+            ChatMessage.Shutdown();
         }
     }
 }
