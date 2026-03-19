@@ -35,40 +35,11 @@ public static class PathUtil {
 
     public static string JavaExePath => GetJavaExePath(); // javaw.exe
 
-    public static string JavaPath => GetJavaPath();
+    public static readonly string JavaPath = Path.Combine(CachePath, "Java");
 
-    public static string Jre8Path => Path.Combine(JavaPath, "jre8");
+    public static readonly string Jre8Path = Path.Combine(JavaPath, "jre8");
 
-    public static string Jre17Path => Path.Combine(JavaPath, "jdk17");
-
-    /**
-     * 获取Java路径
-     * 先检测 网易版，不存在返回默认
-     * 网易版 : 先检测注册表，再手动检测 C:/MCLDownload
-     */
-    private static string GetJavaPath()
-    {
-        var cacheJava = Path.Combine(CachePath, "Java"); // .game_cache/Java
-        // 非 win 版 或 已存在 .game_cache/Java
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || ExistJava(cacheJava))
-            return cacheJava;
-        var reg4399 = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Netease\PC4399_MCLauncher");
-        var reg163 = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Netease\MCLauncher");
-        if (reg4399?.GetValue("DownloadPath") is string patch) {
-            var javaPath = Path.Combine(patch, "ext", "jre-v64-220420");
-            if (ExistJava(javaPath)) return javaPath;
-        } else if (reg163?.GetValue("DownloadPath") is string patch2) {
-            var javaPath = Path.Combine(patch2, "ext", "jre-v64-220420");
-            if (ExistJava(javaPath)) return javaPath;
-        } else {
-            var wpf = Path.Combine("C:/MCLDownload", "ext", "jre-v64-220420");
-            if (ExistJava(wpf)) return wpf;
-            wpf = Path.Combine("D:/MCLDownload", "ext", "jre-v64-220420");
-            if (ExistJava(wpf)) return wpf;
-        }
-
-        return cacheJava;
-    }
+    public static readonly string Jre17Path = Path.Combine(JavaPath, "jdk17");
 
     private static string GetJavaExePath()
     {
@@ -76,7 +47,6 @@ public static class PathUtil {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             return NirvanaConfig.Config.UseJavaW ? "javaw.exe" : "java.exe";
         }
-
         return "java";
     }
 

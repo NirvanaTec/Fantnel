@@ -7,7 +7,7 @@ namespace Nirvana.Game.Launcher.Utils;
 public static class DownloadUtil {
 
     public static async Task<bool> DownloadAsync(string url, string destinationPath,
-        Action<double>? downloadProgress = null, int maxConcurrentSegments = 24) {
+        Action<double>? downloadProgress = null, int maxConcurrentSegments = 4) {
 
         try {
             var downloadOpt = new DownloadConfiguration {
@@ -66,12 +66,15 @@ public static class DownloadUtil {
      * @param path 保存路径
      * @param name 下载名称
      */
-    public static async Task DownloadAsync(string url, string path, string name)
+    public static async Task DownloadAsync(string url, string path, string name, SyncCallback<SyncProgressBarUtil.ProgressReport>? progress = null)
     {
-        // 下载插件 进度条 初始化
-        var progress = new SyncProgressBarUtil.ProgressBar();
-        // 下载插件 进度条 回调
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => progress.Update(update.Percent, update.Message));
+        var uiProgress = progress;
+        if (uiProgress == null) {
+            // 下载插件 进度条 初始化
+            var progressBar = new SyncProgressBarUtil.ProgressBar();
+            // 下载插件 进度条 回调
+            uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => progressBar.Update(update.Percent, update.Message));
+        } 
         await DownloadAsync(url, path, dp => { 
             uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
                 Percent = dp,

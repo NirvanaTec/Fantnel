@@ -686,7 +686,9 @@ public class CommandService {
             var targetPath = natives + "/";
             var linkPath = "/tmp/fantnel-natives-" + _version;
             // 创建 natives 目录符号链。
-            if (Directory.Exists(linkPath)) Directory.Delete(linkPath);
+            if (Directory.Exists(linkPath)) {
+                Directory.Delete(linkPath, false);
+            }
             Directory.CreateSymbolicLink(linkPath, targetPath);
             natives = linkPath;
         }

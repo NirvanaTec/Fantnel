@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Nirvana.Game.Launcher.Utils.Progress;
 using NirvanaAPI.Utils;
 using Serilog;
 using SharpCompress.Archives;
@@ -51,9 +52,27 @@ public static class CompressionUtil {
         }
     }
 
-        /**
-         * @Return 是否为7z格式
-         */
+    public static async Task ExtractAsync(string archivePath, string outPath,
+        string name, SyncCallback<SyncProgressBarUtil.ProgressReport>? progress = null)
+    {
+        var uiProgress = progress;
+        if (uiProgress == null) {
+            // 解压 进度条 初始化
+            var progressBar = new SyncProgressBarUtil.ProgressBar();
+            // 解压 进度条 回调
+            uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => progressBar.Update(update.Percent, update.Message));
+        } 
+        await ExtractAsync(archivePath, outPath, dp => { 
+            uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
+                Percent = dp,
+                Message = $"Extracting: {name}"
+            });
+        });
+    }
+
+    /**
+     * @Return 是否为7z格式
+     */
     private static bool Is7ZipFormat(string archivePath)
     {
         using var stream = File.OpenRead(archivePath);

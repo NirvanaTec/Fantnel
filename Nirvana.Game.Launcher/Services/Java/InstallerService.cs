@@ -25,8 +25,7 @@ public static class InstallerService {
         var zipPath = Path.Combine(PathUtil.CachePath, "GameBase.zip");
 
         var minecraftClientLibs = await NPFLauncher.GetMinecraftClientLibsAsync();
-        await ProcessPackage(minecraftClientLibs.Url, zipPath, PathUtil.GameBasePath, md5Path, minecraftClientLibs.Md5,
-            "base package");
+        await ProcessPackage(minecraftClientLibs.Url, zipPath, PathUtil.GameBasePath, md5Path, minecraftClientLibs.Md5, "base package");
 
         var versionMd5File = Path.Combine(PathUtil.GameBasePath, versionName + ".MD5");
         var versionZip = Path.Combine(PathUtil.CachePath, versionName + ".zip");
@@ -47,24 +46,13 @@ public static class InstallerService {
         string label)
     {
         // 已经下载过，且md5匹配，直接返回
-        if (File.Exists(md5Path) && await File.ReadAllTextAsync(md5Path) == md5) return;
-
+        if (File.Exists(md5Path) && await File.ReadAllTextAsync(md5Path) == md5) {
+            return;
+        }
         var progress = new SyncProgressBarUtil.ProgressBar();
         var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => { progress.Update(update.Percent, update.Message); });
-        await DownloadUtil.DownloadAsync(url, zipPath, p => {
-            uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
-                Percent = p,
-                Message = "Downloading " + label
-            });
-        });
-
-        await CompressionUtil.ExtractAsync(zipPath, extractTo, p => {
-            uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
-                Percent = p,
-                Message = "Extracting " + label
-            });
-        });
-
+        await DownloadUtil.DownloadAsync(url, zipPath, label, uiProgress);
+        await CompressionUtil.ExtractAsync(zipPath, extractTo, label, uiProgress);
         await File.WriteAllTextAsync(md5Path, md5);
         FileUtil.DeleteFileSafe(zipPath);
     }
@@ -77,16 +65,16 @@ public static class InstallerService {
         var text3 = "MercuriusUpdater-";
         var text4 = gameVersionFromEnum + ".jar";
         var text5 = gameVersionFromEnum + ".json";
-        if (!Directory.Exists(libPath)) return;
+        if (!Directory.Exists(libPath)) {
+            return;
+        }
         var files = Directory.GetFiles(libPath, "*", SearchOption.AllDirectories);
         foreach (var text6 in files) {
             var fileName = Path.GetFileName(text6);
             if (fileName.StartsWith(text)) {
                 text = Path.GetFileNameWithoutExtension(text6);
                 var path = text.Replace("forge-", "");
-                var text7 = Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries", "net", "minecraftforge",
-                    "forge",
-                    path);
+                var text7 = Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries", "net", "minecraftforge", "forge", path);
                 var text8 = Path.Combine(text7, text + ".jar");
                 if (!Directory.Exists(text7)) {
                     Directory.CreateDirectory(text7);
@@ -245,8 +233,7 @@ public static class InstallerService {
             }
 
             if (!flag && File.Exists(archive)) {
-                var entityModsInfos = JsonSerializer.Deserialize<EntityModsList>(await File.ReadAllTextAsync(archive))
-                    ?.Mods;
+                var entityModsInfos = JsonSerializer.Deserialize<EntityModsList>(await File.ReadAllTextAsync(archive))?.Mods;
                 if (entityModsInfos != null) {
                     foreach (var mod in entityModsInfos) {
                         modList.Mods.Add(mod);
@@ -331,7 +318,9 @@ public static class InstallerService {
         var linkPath = Path.Combine(text2, "assets");
         var targetPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "assets");
         // 创建assets目录符号链接
-        if (Directory.Exists(linkPath)) Directory.Delete(linkPath);
+        if (Directory.Exists(linkPath)) {
+            Directory.Delete(linkPath, false);
+        }
         Directory.CreateSymbolicLink(linkPath, targetPath + Path.DirectorySeparatorChar);
         return text;
     }
@@ -339,13 +328,17 @@ public static class InstallerService {
     public static void InstallCoreMods(string gameId, string targetModsPath)
     {
         var text = Path.Combine(PathUtil.GameModsPath, gameId);
-        if (!Directory.Exists(text)) return;
+        if (!Directory.Exists(text)) {
+            return;
+        }
         Directory.CreateDirectory(targetModsPath);
         var array = FileUtil.EnumerateFiles(text);
         foreach (var text2 in array) {
             var text3 = Path.Combine(targetModsPath, Path.GetRelativePath(text, text2));
             var dir = Path.GetDirectoryName(text3);
-            if (dir == null) continue;
+            if (dir == null) {
+                continue;
+            }
             Directory.CreateDirectory(dir);
             FileUtil.CopyFileSafe(text2, text3);
         }

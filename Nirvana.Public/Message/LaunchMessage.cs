@@ -5,8 +5,11 @@ using Nirvana.Public.Manager;
 using Nirvana.Public.Utils.Update;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Minecraft;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
+using Nirvana.WPFLauncher.Http;
 using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
+using NirvanaAPI.Entities;
+using NirvanaAPI.Entities.EntitiesNirvana;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
@@ -127,11 +130,11 @@ public static class LaunchMessage {
 
     private static void ExEnvironment(EnumGameVersion gameVersion)
     {
-        ExEnvironmentByJava(gameVersion);
+        ExEnvironmentByJava(gameVersion).Wait();
     }
 
     // 检测并自动安装java环境
-    private static void ExEnvironmentByJava(EnumGameVersion gameVersion)
+    private static async Task ExEnvironmentByJava(EnumGameVersion gameVersion)
     {
         // 检查并安装Java环境
         string javaName;
@@ -143,12 +146,23 @@ public static class LaunchMessage {
             javaName = "jre8";
             javaPath = PathUtil.Jre8Path;
         }
-
-        // 不存在
-        if (!PathUtil.ExistJava(javaPath)) {
-            UpdateTools.CheckUpdate(PublicProgram.Mode + "." + PublicProgram.Arch + "." + javaName + ".java", "Java").Wait();
+        var id = PublicProgram.Mode + "." + PublicProgram.Arch + "." + javaName + ".java";
+        var response = await X19Extensions.Nirvana.Api<EntityResponse<EntityMd5AndUrl>>("/api/fantnel/resource/md5?id=" + id);
+        if (response?.Data == null) {
+            throw new ErrorCodeException(ErrorCode.NotFound);
         }
-
+        var md5File = Path.Combine(PathUtil.JavaPath, javaName + ".md5");
+        if (File.Exists(md5File)) {
+            var fileMd5 = await File.ReadAllTextAsync(md5File);
+            if (fileMd5 == response.Data.Md5) {
+                Log.Information("Java Path: {0}", javaPath);
+                return;
+            }
+        }
+        var filePath = Path.Combine(javaPath, javaName + ".zip");
+        await DownloadUtil.DownloadAsync(response.Data.Url, filePath, javaName);;
+        await CompressionUtil.ExtractAsync(filePath, javaPath, javaName);
+        await File.WriteAllTextAsync(md5File, response.Data.Md5);
         Log.Information("Java Path: {0}", javaPath);
     }
 }
