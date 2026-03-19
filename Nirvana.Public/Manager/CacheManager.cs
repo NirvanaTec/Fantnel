@@ -63,8 +63,8 @@ public class CacheManager {
                 foreach (var thread in threads) {
                     thread.Join();
                 }
-            }
-        });
+            } 
+         });
     }
 
     // 缓存图片
@@ -111,11 +111,9 @@ public class CacheManager {
                 item.TitleImageUrl = "/image/skin/" + item.EntityId + ".png";
                 return;
             }
-
             if (CacheSkin.Any(cache => cache.EntityId == item.EntityId)) {
                 return;
             }
-
             CacheSkin.Add(item);
         }
     }
@@ -267,7 +265,7 @@ public class CacheManager {
         var tmpPath = filePath + ".tmp";
         if (await DownloadUtil.DownloadAsync(item.ImageUrl, tmpPath)) {
             File.Move(tmpPath, filePath);
-            item.ImageUrl = "/image/net/" + item.EntityId + ".png";
+            item.ImageUrl = "/image/rental/" + item.EntityId + ".png";
         } else {
             Log.Error("缓存 Rental 图片 {0} 失败", item.EntityId);
         }

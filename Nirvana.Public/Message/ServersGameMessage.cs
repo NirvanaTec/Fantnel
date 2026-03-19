@@ -25,13 +25,13 @@ public static class ServersGameMessage {
         var count = pageSize + offset;
 
         while (true) {
+            // 缓存图片下载
+            CacheManager.DownloadCacheImage();
+            
             // ServerList 有 就用缓存
             // 分页
             if (ServerList.Count >= count) {
                 var list = ServerList.Skip(offset).Take(pageSize).ToArray();
-
-                // 缓存图片下载
-                CacheManager.DownloadCacheImage();
 
                 // 无须修复图片
                 if (!safeImage) {

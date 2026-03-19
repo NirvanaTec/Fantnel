@@ -15,12 +15,13 @@ public static class SkinMessage {
         var count = offset + pageSize;
 
         while (true) {
+            // 缓存图片下载
+            CacheManager.DownloadCacheImage();
+            
             // ServerList 有 就用缓存
             // 分页
             if (SkinList.Count >= count) {
                 var list = SkinList.Skip(offset).Take(pageSize).ToArray();
-                // 缓存图片下载
-                CacheManager.DownloadCacheImage();
                 // 无须修复图片
                 if (!safeImage) {
                     return list;

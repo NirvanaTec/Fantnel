@@ -23,12 +23,13 @@ public static class RentalGameMessage {
         var count = offset + pageSize;
 
         while (true) {
+            // 缓存图片下载
+            CacheManager.DownloadCacheImage();
+            
             // ServerList 有 就用缓存
             // 分页
             if (ServerList.Count >= count) {
                 var list = ServerList.Skip(offset).Take(pageSize).ToArray();
-                // 缓存图片下载
-                CacheManager.DownloadCacheImage();
                 return GetServerList(list);
             }
 
