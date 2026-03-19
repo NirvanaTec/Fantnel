@@ -41,11 +41,11 @@ public class EntityAccount : EntityUserInfo {
         return Type == "cookie" ? $"Type: {Type}, Password: {Password}" : $"Account: {Account}, Type: {Type}, Password: {Password}";
     }
 
-    public void Update(EntityAccount account)
-    {
-        Token = account.Token;
-        UserId = account.UserId;
-    }
+    // public void Update(EntityAccount account)
+    // {
+    //     Token = account.Token;
+    //     UserId = account.UserId;
+    // }
 
     public bool IsConfig()
     {

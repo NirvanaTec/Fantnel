@@ -44,15 +44,16 @@ public static class CompressionUtil {
     public static async Task ExtractAsync(string archivePath, string outPath,
         Action<int>? progress = null)
     {
-        if (Is7ZipFormat(archivePath))
+        if (Is7ZipFormat(archivePath)) {
             await Extract7ZAsync(archivePath, outPath, progress);
-        else
+        } else{
             await ExtractZipAsync(archivePath, outPath, progress);
+        }
     }
 
-    /**
-     * @Return 是否为7z格式
-     */
+        /**
+         * @Return 是否为7z格式
+         */
     private static bool Is7ZipFormat(string archivePath)
     {
         using var stream = File.OpenRead(archivePath);

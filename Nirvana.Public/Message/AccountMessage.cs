@@ -201,6 +201,7 @@ public static class AccountMessage {
 
             // 登录成功后 保存账号
             SaveAccount();
+            
             CacheManager.CacheServer();
         }
     }

@@ -22,7 +22,6 @@ public static class ThreadUpdateTools {
     public static async Task CheckUpdate(EntityUpdateConfig1 entityUpdateConfig1)
     {
         var downloadSize = 0;
-        var threads = new List<Thread>();
         var progress = new List<IntPtrReference>();
 
         foreach (var item in entityUpdateConfig1.Array) {
@@ -65,16 +64,8 @@ public static class ThreadUpdateTools {
                 downloadSize++;
             }
 
-            var thread = new Thread(() => {
-                DownloadWithRetryAsync(url, resourcesPath1, newProgress, entityUpdateConfig1.Name, progress, entityUpdateConfig1.Count()).Wait();
-            });
+            DownloadWithRetryAsync(url, resourcesPath1, newProgress, entityUpdateConfig1.Name, progress, entityUpdateConfig1.Count()).Wait();
             
-            threads.Add(thread);
-            thread.Start();
-        }
-
-        foreach (var thread in threads) {
-            thread.Join();
         }
 
         if (entityUpdateConfig1.Safe && downloadSize > 0) {

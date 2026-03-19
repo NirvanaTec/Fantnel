@@ -18,18 +18,18 @@ public static class InfoManager {
     {
         Log.Information("登录成功! 用户ID: {0}", account.UserId);
         // 账号已存在
-        foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
-            gameAccount.Update(account);
-            return;
+        foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account)).ToArray()) {
+            GameAccountList.Remove(gameAccount);
+            // gameAccount.Update(account);
         }
 
-        GameAccountList.Add(account);
+        GameAccountList.Insert(0, account);
     }
 
     public static void SetGameAccount(EntityAccount? account)
     {
         if (account == null) {
-            _gameAccount = account;
+            _gameAccount = null;
             return;
         }
 
