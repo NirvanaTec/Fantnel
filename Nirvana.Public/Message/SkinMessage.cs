@@ -1,52 +1,76 @@
-﻿using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
+﻿using Nirvana.Public.Manager;
+using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
+using Nirvana.WPFLauncher.Protocol;
 
 namespace Nirvana.Public.Message;
 
 public static class SkinMessage {
     // 皮肤列表 - 缓存
-    private static readonly List<EntityQueryNetSkinItem> SkinList = [];
+    public static readonly List<EntityQueryNetSkinItem> SkinList = [];
 
-    public static EntityQueryNetSkinItem[] GetSkinList(int offset = 0, int pageSize = 10,
-        bool safeImage = true, bool refresh = true)
+    public static async Task<EntityQueryNetSkinItem[]> GetSkinList(int offset = 0, int pageSize = 10,
+        bool safeImage = true)
     {
-        // SkinList 有 就用缓存
-        // 分页 异常顺序 检测
-        var size = offset + (pageSize - 10);
-        if (SkinList.Count < size && refresh)
-            // safeImage 加快速度 | refresh 防止递归
-            GetSkinList(SkinList.Count, size, false, false);
-        // 分页
-        size = (offset == 0 ? 1 : offset) * pageSize;
-        if (SkinList.Count >= size) {
-            var list = SkinList.Skip(size - pageSize).Take(pageSize).ToArray();
-            if (!safeImage) return list;
-            // 修复没有图片的游戏项
-            foreach (var item in list)
-                // 没有图片
-                if (!item.TitleImageSafe())
+        var index = -pageSize; // 循环次数
+        var count = offset + pageSize;
+
+        while (true) {
+            // ServerList 有 就用缓存
+            // 分页
+            if (SkinList.Count >= count) {
+                var list = SkinList.Skip(offset).Take(pageSize).ToArray();
+                // 缓存图片下载
+                CacheManager.DownloadCacheImage();
+                // 无须修复图片
+                if (!safeImage) {
+                    return list;
+                }
+
+                // 修复没有图片的游戏项
+                foreach (var item in list) {
+                    // 没有图片
+                    if (item.TitleImageSafe()) {
+                        continue;
+                    }
+
                     // 从 详情页 获取图片
-                    item.TitleImageUrl = WPFLauncher.Protocol.WPFLauncher.GetFirstImage(item.EntityId).Result;
+                    await GetFirstImageByCache(item);
+                }
 
-            return list;
+                return list;
+            }
+
+            if (++index > 0) {
+                // 最后一页, 减少数量，避免丢失数据
+                count--;
+                pageSize--;
+                if (pageSize <= 0) {
+                    return [];
+                }
+            } else {
+                var items = await NPFLauncher.GetFreeSkinListAsync(SkinList.Count);
+                AddSkinList(items);
+                Thread.Sleep(500);
+            }
         }
+    }
 
-        var items = WPFLauncher.Protocol.WPFLauncher.GetFreeSkinListAsync(offset, pageSize).Result;
-
-        // safeImage: 没有图片的游戏项 就从 详情页 获取图片
-        foreach (var item in items) {
-            if (safeImage) item.TitleImageUrl = WPFLauncher.Protocol.WPFLauncher.GetFirstImage(item.EntityId).Result;
+    private static void AddSkinList(EntityQueryNetSkinItem[] skinItems)
+    {
+        foreach (var item in skinItems) {
             AddSkinList(item);
         }
-
-        return items.ToArray();
     }
 
     // 皮肤列表 - 添加
     private static void AddSkinList(EntityQueryNetSkinItem skinItem)
     {
         foreach (var item in SkinList.Where(item => item.EntityId == skinItem.EntityId)) {
-            if (item.TitleImageUrl == "" && skinItem.TitleImageUrl != "")
+            if (item.TitleImageUrl == "" && skinItem.TitleImageUrl != "") {
                 item.TitleImageUrl = skinItem.TitleImageUrl;
+                CacheManager.GetCacheImageUrl(item);
+            }
+
             return;
         }
 
@@ -54,29 +78,36 @@ public static class SkinMessage {
     }
 
     /**
-     * 皮肤列表[普通信息] - 获取
-     * @param id 皮肤ID
-     * @return 皮肤信息
+     * 获取皮肤的第一张图片
+     * 来自详情页
+     * @param entityId 皮肤ID
+     * @return 图片URL
      */
-    public static EntityQueryNetSkinItem? GetSkinId(string id)
+    private static async Task GetFirstImage(EntityQueryNetSkinItem item)
     {
-        for (var i = 0; i < 100; i++) {
-            var server = SkinList.Find(server => server.EntityId == id);
-            if (server != null) return server;
-            GetSkinList(10 * i, 10, false);
-        }
+        var details = await NPFLauncher.GetSkinDetailsAsync(item.EntityId);
+        item.TitleImageUrl = details.TitleImageUrl;
+    }
 
-        return null;
+    // 获取 主页图片[缓存保存] / 版本
+    private static async Task GetFirstImageByCache(EntityQueryNetSkinItem item)
+    {
+        await GetFirstImage(item);
+        CacheManager.GetCacheImageUrl(item);
     }
 
     public static async Task<EntityQueryNetSkinItem[]> GetSkinListByName(string name, int offset = 0, int pageSize = 10)
     {
-        var result = WPFLauncher.Protocol.WPFLauncher.GetFreeSkinByNameAsync(name, offset, pageSize).Result;
+        var result = NPFLauncher.GetFreeSkinByNameAsync(name, offset, pageSize).Result;
 
         var items = new List<EntityQueryNetSkinItem>();
         foreach (var item in result) {
-            item.TitleImageUrl = await WPFLauncher.Protocol.WPFLauncher.GetFirstImage(item.EntityId);
-            if (item.TitleImageUrl != "") items.Add(item);
+            await GetFirstImageByCache(item);
+            if (string.IsNullOrEmpty(item.TitleImageUrl)) {
+                continue;
+            }
+
+            items.Add(item);
         }
 
         return items.ToArray();

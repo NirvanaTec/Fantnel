@@ -7,7 +7,6 @@ using Serilog;
 namespace Nirvana.Public.Utils.Update;
 
 public static class UpdateTools {
-    
     // 检查更新
     public static async Task CheckUpdate(string[] args)
     {
@@ -18,7 +17,7 @@ public static class UpdateTools {
 
         var threads = new List<Thread>();
         var updateConfigs = new List<EntityUpdateConfig1>();
-        
+
         if (update == 0) {
             // 不检查 - 提醒
             // case 1:
@@ -47,7 +46,7 @@ public static class UpdateTools {
                 }));
             }
         }
-        
+
         threads.Add(CheckUpdateThread(new EntityUpdateConfig {
             Mode = "ui." + (ConfigUtil.GetConfig()["themeValue"] ?? "nirvana"),
             OnSuccess = array => {
@@ -77,11 +76,11 @@ public static class UpdateTools {
             FailureLog = false,
             OnSuccess = array => {
                 updateConfigs.Add(new EntityUpdateConfig1 {
-                    Array = array,
+                    Array = array
                 });
             }
         }));
-        
+
         foreach (var thread in threads) {
             thread.Join();
         }
@@ -90,7 +89,6 @@ public static class UpdateTools {
             // 开始检查更新
             await CheckUpdate(updateConfig);
         }
-        
     }
 
     private static Thread CheckUpdateThread(EntityUpdateConfig entityUpdateConfig)
@@ -106,10 +104,10 @@ public static class UpdateTools {
     }
 
     /**
-    * 获取检查更新消息
-    * @param name 名称
-    * @param safe 是否安全模式
-    */
+     * 获取检查更新消息
+     * @param name 名称
+     * @param safe 是否安全模式
+     */
     private static async Task<JsonArray?> GetCheckUpdate(string mode, string name = "Resource", bool failureLog = true)
     {
         var jsonObj = await X19Extensions.Nirvana.Api<JsonObject>($"/api/fantnel/update/get?mode={mode}");
@@ -117,19 +115,23 @@ public static class UpdateTools {
             if (!failureLog) {
                 return null;
             }
-            Log.Error("{name}: {mode}", name, mode);
+
+            Log.Error("{0}: {1}", name, mode);
             Log.Error("检查更新失败, 建议更新至最新版本!");
             return null;
         }
+
         var data = jsonObj["data"];
         if (data == null) {
             if (!failureLog) {
                 return null;
             }
-            Log.Error("{name}: {mode}", name, mode);
+
+            Log.Error("{0}: {1}", name, mode);
             Log.Error("检查更新失败, 建议更新至最新版本!");
             return null;
         }
+
         return data.AsArray();
     }
 
@@ -144,6 +146,7 @@ public static class UpdateTools {
         if (array == null) {
             return -1;
         }
+
         var entityUpdateConfig1 = new EntityUpdateConfig1 {
             Name = name,
             Safe = safe,
@@ -152,15 +155,14 @@ public static class UpdateTools {
         await CheckUpdate(entityUpdateConfig1);
         return array.Count;
     }
-    
+
     /**
-    * 检查更新
-    * @param name 名称
-    * @param safe 是否安全模式
-    */
+     * 检查更新
+     * @param name 名称
+     * @param safe 是否安全模式
+     */
     private static async Task CheckUpdate(EntityUpdateConfig1 entityUpdateConfig1)
     {
         await ThreadUpdateTools.CheckUpdate(entityUpdateConfig1);
     }
-    
 }

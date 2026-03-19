@@ -56,7 +56,7 @@ public class PacketTools {
 
             argsConnection.ClientChannel.WriteAndFlushAsync(buffer);
         } catch (Exception e) {
-            Log.Error("[IRC] 发送消息失败\n{message}", e.Message);
+            Log.Error("[IRC] 发送消息失败\n{0}", e.Message);
         }
     }
 }

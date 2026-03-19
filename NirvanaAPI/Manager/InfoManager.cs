@@ -16,7 +16,7 @@ public static class InfoManager {
 
     public static void AddAccount(EntityAccount account)
     {
-        Log.Information("登录成功! 用户ID: {UserId}", account.UserId);
+        Log.Information("登录成功! 用户ID: {0}", account.UserId);
         // 账号已存在
         foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
             gameAccount.Update(account);
@@ -77,7 +77,7 @@ public static class InfoManager {
     {
         foreach (var gameAccount in GameAccountList.Where(gameAccount => gameAccount.Equals(account))) {
             GameAccountList.Remove(gameAccount);
-            Log.Warning("账号 {account} 已过期! 原因{code}: {message}", gameAccount.Account, message.Code, message.Message);
+            Log.Warning("账号 {0} 已过期! 原因{1}: {2}", gameAccount.Account, message.Code, message.Message);
             break;
         }
     }

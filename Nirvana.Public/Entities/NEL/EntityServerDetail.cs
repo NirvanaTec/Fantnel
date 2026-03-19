@@ -1,11 +1,55 @@
 ﻿using System.Text.Json.Serialization;
+using Nirvana.Public.Manager;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
+using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Utils.CodeTools;
 
 namespace Nirvana.Public.Entities.NEL;
 
 public class EntityServerDetail {
+    public EntityServerDetail(string id)
+    {
+        Exception? exception = null;
+        var threads = new List<Thread> {
+            new(() => {
+                try {
+                    if (exception != null) {
+                        return;
+                    }
+
+                    var item = NPFLauncher.GetNetGameDetailByIdAsync(id).Result;
+                    CacheManager.ClearCacheImage(item);
+                    Set(item);
+                } catch (Exception e) {
+                    exception = e;
+                }
+            }),
+            new(() => {
+                try {
+                    if (exception != null) {
+                        return;
+                    }
+
+                    Set(NPFLauncher.GetNetGameServerAddressAsync(id).Result);
+                } catch (Exception e) {
+                    exception = e;
+                }
+            })
+        };
+        foreach (var thread in threads) {
+            thread.Start();
+        }
+
+        foreach (var thread in threads) {
+            thread.Join();
+        }
+
+        if (exception != null) {
+            throw exception;
+        }
+    }
+
     [JsonPropertyName("id")]
     public string? Id { get; set; }
 
@@ -30,7 +74,7 @@ public class EntityServerDetail {
     [JsonPropertyName("brief_image_urls")]
     public string[]? BriefImageUrls { get; set; }
 
-    public void Set(EntityQueryNetGameDetailItem? data)
+    private void Set(EntityQueryNetGameDetailItem? data)
     {
         // 成功检测
         if (data == null) {
@@ -53,9 +97,12 @@ public class EntityServerDetail {
         BriefImageUrls = data.BriefImageUrls;
     }
 
-    public void Set(EntityNetGameServerAddress data)
+    private void Set(EntityNetGameServerAddress data)
     {
-        if (data == null) throw new ErrorCodeException(ErrorCode.AddressError);
+        if (data == null) {
+            throw new ErrorCodeException(ErrorCode.AddressError);
+        }
+
         Address = data.Host;
         if (data.Port != 25565) Address += $":{data.Port}";
     }

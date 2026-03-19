@@ -53,7 +53,7 @@ public class ServerHandler(GameConnection connection) : ChannelHandlerAdapter {
                     packet,
                     gameConnection.ProtocolVersion
                 };
-                Log.Error(ex, "Cannot read packet from buffer, direction: {Direction}, Id: {Id}, Packet: {Packet}, ProtocolVersion: {ProtocolVersion}", objArray);
+                Log.Error(ex, "Cannot read packet from buffer, direction: {0}, Id: {1}, Packet: {2}, ProtocolVersion: {3}", objArray);
                 throw;
             }
 

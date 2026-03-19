@@ -5,6 +5,7 @@ using Nirvana.Game.Launcher.Utils.Progress;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.GameMods;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
+using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
 using Serilog;
 using CompressionUtil = Nirvana.Game.Launcher.Utils.CompressionUtil;
@@ -23,14 +24,14 @@ public static class InstallerService {
         var md5Path = Path.Combine(PathUtil.GameBasePath, "GAME_BASE.MD5");
         var zipPath = Path.Combine(PathUtil.CachePath, "GameBase.zip");
 
-        var minecraftClientLibs = await WPFLauncher.Protocol.WPFLauncher.GetMinecraftClientLibsAsync();
+        var minecraftClientLibs = await NPFLauncher.GetMinecraftClientLibsAsync();
         await ProcessPackage(minecraftClientLibs.Url, zipPath, PathUtil.GameBasePath, md5Path, minecraftClientLibs.Md5,
             "base package");
 
         var versionMd5File = Path.Combine(PathUtil.GameBasePath, versionName + ".MD5");
         var versionZip = Path.Combine(PathUtil.CachePath, versionName + ".zip");
 
-        var versionResult = await WPFLauncher.Protocol.WPFLauncher.GetMinecraftClientLibsAsync(gameVersion);
+        var versionResult = await NPFLauncher.GetMinecraftClientLibsAsync(gameVersion);
         await ProcessPackage(versionResult.Url, versionZip, PathUtil.GameBasePath, versionMd5File, versionResult.Md5,
             versionName + " package");
 
@@ -87,9 +88,11 @@ public static class InstallerService {
                     "forge",
                     path);
                 var text8 = Path.Combine(text7, text + ".jar");
-                if (!Directory.Exists(text7))
+                if (!Directory.Exists(text7)) {
                     Directory.CreateDirectory(text7);
-                else if (File.Exists(text8)) File.Delete(text8);
+                } else if (File.Exists(text8)) {
+                    File.Delete(text8);
+                }
                 File.Copy(text6, text8, true);
             } else if (fileName.StartsWith(text2)) {
                 text2 = Path.GetFileNameWithoutExtension(text6);
@@ -97,9 +100,11 @@ public static class InstallerService {
                 var text9 = Path.Combine(PathUtil.GameBasePath, ".minecraft",
                     "libraries", "net", "minecraft", "launchwrapper", path2);
                 var text10 = Path.Combine(text9, text2 + ".jar");
-                if (!Directory.Exists(text9))
+                if (!Directory.Exists(text9)) {
                     Directory.CreateDirectory(text9);
-                else if (File.Exists(text10)) File.Delete(text10);
+                } else if (File.Exists(text10)) {
+                    File.Delete(text10);
+                }
                 File.Copy(text6, text10, true);
             } else if (fileName.StartsWith(text3)) {
                 text3 = Path.GetFileNameWithoutExtension(text6);
@@ -107,9 +112,11 @@ public static class InstallerService {
                 var text11 = Path.Combine(PathUtil.GameBasePath, ".minecraft",
                     "libraries", "net", "minecraftforge", "MercuriusUpdater", path3);
                 var text12 = Path.Combine(text11, text3 + ".jar");
-                if (!Directory.Exists(text11))
+                if (!Directory.Exists(text11)) {
                     Directory.CreateDirectory(text11);
-                else if (File.Exists(text12)) File.Delete(text12);
+                } else if (File.Exists(text12)) {
+                    File.Delete(text12);
+                }
                 File.Copy(text6, text12, true);
             } else if (fileName.Equals(text4)) {
                 var destFileName = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", gameVersionFromEnum,
@@ -153,12 +160,12 @@ public static class InstallerService {
     public static async Task<EntityModsList?> InstallGameMods(EnumGameVersion gameVersion, string gameId,
         bool isRental = false)
     {
-        var entity = await WPFLauncher.Protocol.WPFLauncher.GetGameCoreModListAsync(gameVersion, isRental);
+        var entity = await NPFLauncher.GetGameCoreModListAsync(gameVersion, isRental);
         if (entity?.IidList == null) {
             return null;
         }
 
-        var entities = await WPFLauncher.Protocol.WPFLauncher.GetGameCoreModDetailsListAsync(entity.IidList);
+        var entities = await NPFLauncher.GetGameCoreModDetailsListAsync(entity.IidList);
         var modList = new EntityModsList();
 
         foreach (var entityComponentDownloadInfoResponse in entities) {
@@ -228,7 +235,7 @@ public static class InstallerService {
         Directory.CreateDirectory(compDir);
 
         try {
-            var netGameComponentDownloadList = await WPFLauncher.Protocol.WPFLauncher.GetNetGameComponentDownloadListAsync(gameId);
+            var netGameComponentDownloadList = await NPFLauncher.GetNetGameComponentDownloadListAsync(gameId);
             var comp = netGameComponentDownloadList.SubEntities[0];
             var extractDir = Path.Combine(compDir, gameId + ".MD5");
             var archive = Path.Combine(compDir, gameId + ".json");
@@ -364,7 +371,7 @@ public static class InstallerService {
             var destPath = Path.Combine(text2, "api-ms-win-crt-utility-l1-1-1.dll");
             FileUtil.CopyFileSafe(text, destPath);
         } catch (Exception ex) {
-            Log.Error("Failed to install native dll:{ex}", ex);
+            Log.Error("Failed to install native dll:{0}", ex);
         }
     }
 }

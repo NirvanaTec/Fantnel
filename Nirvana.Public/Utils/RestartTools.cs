@@ -54,7 +54,7 @@ public static class RestartTools {
             try {
                 Process.GetProcessById(pid);
             } catch (ArgumentException) {
-                Log.Error("主进程 {pid} 已退出", pid);
+                Log.Error("主进程 {0} 已退出", pid);
                 Log.Error("将于 3秒 后退出！");
                 Thread.Sleep(1000);
                 Log.Error("将于 2秒 后退出！");

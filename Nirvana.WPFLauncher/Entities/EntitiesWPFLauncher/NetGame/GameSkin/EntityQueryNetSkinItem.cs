@@ -2,7 +2,6 @@
 
 namespace Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
 
-// ReSharper disable once ClassNeverInstantiated.Global
 public class EntityQueryNetSkinItem {
     [JsonPropertyName("entity_id")]
     public required string EntityId { get; set; }
@@ -30,6 +29,6 @@ public class EntityQueryNetSkinItem {
 
     public bool TitleImageSafe()
     {
-        return TitleImageUrl.Contains("http");
+        return TitleImageUrl.Contains("http") || TitleImageUrl.Contains("/image/");
     }
 }

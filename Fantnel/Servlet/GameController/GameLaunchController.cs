@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public.Manager;
 using Nirvana.Public.Message;
 using NirvanaAPI.Utils.CodeTools;
 
@@ -23,7 +24,7 @@ public class GameLaunchController : ControllerBase {
     }
 
     [HttpGet("/api/gamelaunch/close")]
-    public IActionResult CloseGame([FromQuery] string id)
+    public IActionResult CloseGame([FromQuery] int id)
     {
         ActiveGameAndProxies.CloseGame(id);
         return Ok(Code.ToJson(ErrorCode.Success));

@@ -4,7 +4,6 @@ using NirvanaAPI.Entities;
 namespace Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher;
 
 // ReSharper disable once InconsistentNaming
-// ReSharper disable once ClassNeverInstantiated.Global
 public class EntitiesWPFLauncher<T> : EntityWPFResponse {
     // [JsonPropertyName("details")] public string Details { get; set; } = string.Empty;
 

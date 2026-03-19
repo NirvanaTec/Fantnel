@@ -15,6 +15,13 @@ using Serilog;
 namespace Nirvana.Public.Message;
 
 public static class AccountMessage {
+    // 保存/修改 游戏账号锁
+    private static readonly Lock GameSaveAccountLock = new();
+
+    // 登录游戏 锁
+    private static readonly Lock LoginLock = new();
+
+
     // 默认 自动登录 已执行完成
     private static readonly List<EntityAccount> IsDefaultLogin = [];
 
@@ -147,7 +154,7 @@ public static class AccountMessage {
     // 登录游戏账号
     public static void Login(EntityAccount account)
     {
-        lock (LockManager.LoginLock) {
+        lock (LoginLock) {
             if (account.Password == null) {
                 throw new ErrorCodeException(ErrorCode.PasswordError);
             }
@@ -156,7 +163,7 @@ public static class AccountMessage {
 
             switch (account.Type) {
                 case "cookie":
-                    result = WPFLauncher.Protocol.WPFLauncher.LoginWithCookieAsync(account.Password).Result;
+                    result = NPFLauncher.LoginWithCookieAsync(account.Password).Result;
                     break;
                 case "4399" or "4399com" or "163Email" when account.Account == null:
                     throw new ErrorCodeException(ErrorCode.AccountError);
@@ -164,13 +171,13 @@ public static class AccountMessage {
                     throw new ErrorCodeException(ErrorCode.CaptchaNot);
                 case "4399": {
                     var cookie = N4399.LoginWithPasswordAsync(account.Account, account.Password, _session4399Id, Captcha4399);
-                    result = WPFLauncher.Protocol.WPFLauncher.LoginWithCookieAsync(cookie).Result;
+                    result = NPFLauncher.LoginWithCookieAsync(cookie).Result;
                     UpdateCaptcha();
                     break;
                 }
                 case "4399com": {
                     var cookie = NCom4399.LoginWithPasswordAsync(account.Account, account.Password, Captcha4399, _session4399Id);
-                    result = WPFLauncher.Protocol.WPFLauncher.LoginWithCookieAsync(cookie).Result;
+                    result = NPFLauncher.LoginWithCookieAsync(cookie).Result;
                     UpdateCaptcha();
                     break;
                 }
@@ -178,7 +185,7 @@ public static class AccountMessage {
                     var mpay = new MPay("aecfrxodyqaaaajp-g-x19", X19.GameVersion);
                     var mPayUser = mpay.LoginWithEmailAsync(account.Account, account.Password).Result;
                     var cookie = GenerateCookie(mPayUser, mpay.GetDevice());
-                    result = WPFLauncher.Protocol.WPFLauncher.LoginWithCookieAsync(cookie).Result;
+                    result = NPFLauncher.LoginWithCookieAsync(cookie).Result;
                     break;
                 }
             }
@@ -194,6 +201,7 @@ public static class AccountMessage {
 
             // 登录成功后 保存账号
             SaveAccount();
+            CacheManager.CacheServer();
         }
     }
 
@@ -207,13 +215,13 @@ public static class AccountMessage {
             Udid = Guid.NewGuid().ToString("N").ToUpper(),
             DeviceId = device.Id,
             AimInfo = "{\"aim\":\"127.0.0.1\",\"country\":\"CN\",\"tz\":\"+0800\",\"tzid\":\"\"}"
-        }, WPFLauncher.Protocol.WPFLauncher.DefaultOptions);
+        }, NPFLauncher.DefaultOptions);
     }
 
     // 保存账号到文件
     public static void UpdateAccount(EntityAccount account, bool defaultLogin = true)
     {
-        lock (LockManager.GameSaveAccountLock) {
+        lock (GameSaveAccountLock) {
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1(defaultLogin);
 
@@ -233,7 +241,7 @@ public static class AccountMessage {
     // 保存账号到文件
     public static void SaveAccount(EntityAccount account)
     {
-        lock (LockManager.GameSaveAccountLock) {
+        lock (GameSaveAccountLock) {
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
 
@@ -257,7 +265,7 @@ public static class AccountMessage {
     // 保存账号到文件
     private static void SaveAccount()
     {
-        lock (LockManager.GameSaveAccountLock) {
+        lock (GameSaveAccountLock) {
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
             // 写入文件
@@ -307,7 +315,7 @@ public static class AccountMessage {
                 throw exception;
             }
         } catch (Exception e) {
-            Log.Error("自动登录失败: {account}: {Message}", account.Id, e.Message);
+            Log.Error("自动登录失败: {0}: {1}", account.Id, e.Message);
         }
     }
 
@@ -338,7 +346,7 @@ public static class AccountMessage {
         Exception? exception = null;
 
         try {
-            var freeSkinCount = WPFLauncher.Protocol.WPFLauncher.GetFreeSkinListAsync(0, 1).Result.Length;
+            var freeSkinCount = NPFLauncher.GetFreeSkinListAsync(0, 1).Result.Length;
             if (freeSkinCount > 0) {
                 // 登录成功
                 InfoManager.AddAccount(account);
@@ -360,7 +368,7 @@ public static class AccountMessage {
     // 删除账号到文件
     public static void DeleteAccount(int id)
     {
-        lock (LockManager.GameSaveAccountLock) {
+        lock (GameSaveAccountLock) {
             // 获取账号列表
             var (accountList, accountPath) = GetAccountList1();
 

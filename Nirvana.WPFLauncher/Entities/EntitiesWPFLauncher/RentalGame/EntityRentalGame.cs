@@ -37,7 +37,7 @@ public class EntityRentalGame {
     public uint PlayerCount { get; set; }
 
     [JsonPropertyName("image_url")]
-    public string? ImageUrl { get; set; }
+    public string ImageUrl { get; set; } = string.Empty;
 
     [JsonPropertyName("world_id")]
     public string WorldId { get; set; } = string.Empty;

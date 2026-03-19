@@ -54,7 +54,7 @@ public static class Program {
         // app.UseHttpsRedirection();
 
         // 获取运行目录路径
-        var resourcesPath = Path.Combine(PathUtil.ResourcePath, "static");
+        var resourcesPath = Path.Combine(PathUtil.WebSitePath);
 
         // 启用静态文件服务，从运行目录的 resources/static 目录提供文件
         if (Directory.Exists(resourcesPath)) {
@@ -85,13 +85,13 @@ public static class Program {
             Log.Information("访问地址:");
             foreach (var url in app.Urls) {
                 if (url.Contains("0.0.0.0")) {
-                    Log.Information("  {Url}", url.Replace("0.0.0.0", "localhost"));
+                    Log.Information("  {0}", url.Replace("0.0.0.0", "localhost"));
                     var local = Tools.GetLocalIpAddress();
                     if (!"localhost".Equals(local)) {
-                        Log.Information("  {Url}", url.Replace("0.0.0.0", local));
+                        Log.Information("  {0}", url.Replace("0.0.0.0", local));
                     }
                 } else {
-                    Log.Information("  {Url}", url);
+                    Log.Information("  {0}", url);
                 }
             }
 
@@ -103,8 +103,8 @@ public static class Program {
 
             // Fantnel 初始化
             InitProgram.NelInit1();
-            Log.Information("{Path}", resourcesPath);
-            Log.Information("Java: {Path}", PathUtil.JavaPath);
+            Log.Information("{0}", resourcesPath);
+            Log.Information("Java: {0}", PathUtil.JavaPath);
         });
 
         app.Run();
@@ -121,6 +121,6 @@ public static class Program {
         InMemorySink.Clear(); // 清空框架信息
         Log.Information("----- Fantnel -----");
         Log.Information("应用启动成功！");
-        Log.Information("版本: {ver}", PublicProgram.Version);
+        Log.Information("版本: {0}", PublicProgram.Version);
     }
 }

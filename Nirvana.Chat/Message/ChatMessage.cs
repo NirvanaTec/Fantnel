@@ -10,7 +10,6 @@ using Serilog;
 namespace Nirvana.Chat.Message;
 
 public static class ChatMessage {
-    
     private static readonly Uri Url = new("ws://110.42.70.32:13423/ws/chat");
     private static EntityChatConfig _config = new();
 
@@ -36,6 +35,7 @@ public static class ChatMessage {
         if (GameConnections.Any(a => a.GameId == gameConnection.GameId && a.NickName == gameConnection.NickName)) {
             return;
         }
+
         var entity = new EntityChatJoin {
             GameId = gameConnection.GameId,
             NickName = gameConnection.NickName
@@ -50,6 +50,7 @@ public static class ChatMessage {
             GameConnections.Remove(a);
             break;
         }
+
         var entity = new EntityChatJoin {
             Mode = "removeJoin",
             GameId = gameConnection.GameId,
@@ -70,7 +71,7 @@ public static class ChatMessage {
                 await AuthenticateAsync();
             }
 
-            new Thread(() => Initialize(gameConnection)).Start();
+            _ = Task.Run(() => Initialize(gameConnection));
         }
 
         if (_heartbeat == null) {
@@ -96,7 +97,7 @@ public static class ChatMessage {
 
             SendGameMessage(heartbeat);
         } catch (Exception e) {
-            Log.Error("[IRC] 心跳失败\n{message}", e.Message);
+            Log.Error("[IRC] 心跳失败\n{0}", e.Message);
         }
     }
 
@@ -112,7 +113,7 @@ public static class ChatMessage {
                 await _heartbeat.DisposeAsync(); // 停下
                 _heartbeat = null;
             } catch (Exception e) {
-                Log.Error("[IRC] 关闭心跳失败\n{message}", e.Message);
+                Log.Error("[IRC] 关闭心跳失败\n{0}", e.Message);
             }
         }
 
@@ -122,7 +123,7 @@ public static class ChatMessage {
                     CancellationToken.None);
             }
         } catch (Exception e) {
-            Log.Error("[IRC] 关闭连接失败\n{message}", e.Message);
+            Log.Error("[IRC] 关闭连接失败\n{0}", e.Message);
         }
 
         _webSocket = new ClientWebSocket();
@@ -167,7 +168,7 @@ public static class ChatMessage {
                         break;
                 }
             } catch (Exception e) {
-                Log.Error("[IRC] 接收消息出错\n{message}", e.Message);
+                Log.Error("[IRC] 接收消息出错\n{0}", e.Message);
             }
         }
     }
@@ -181,7 +182,7 @@ public static class ChatMessage {
             return;
         }
 
-        Log.Error("[IRC] 登录失败: {message}", messageObj.Message);
+        Log.Error("[IRC] 登录失败: {0}", messageObj.Message);
     }
 
     /// <summary>
@@ -205,7 +206,7 @@ public static class ChatMessage {
 
         await SendAsync(authMessage);
 
-        Log.Information("已发送认证请求。账户: {Account}", NirvanaConfig.Config.Account);
+        Log.Information("已发送认证请求。账户: {0}", NirvanaConfig.Config.Account);
     }
 
     private static async Task RefreshChatConfigAsync()
@@ -229,7 +230,7 @@ public static class ChatMessage {
             return;
         }
 
-        Log.Information("[IRC] 收到聊天消息: {message}", message.Text);
+        Log.Information("[IRC] 收到聊天消息: {0}", message.Text);
         SendGameMessage(message.Text);
     }
 

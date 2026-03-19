@@ -55,18 +55,17 @@ public sealed class LauncherService : IDisposable {
                 _gameProcess = null;
             }
         } catch (Exception ex) {
-            Log.Warning(ex, "Error disposing game process for {GameId}", Entity.GameId);
+            Log.Warning(ex, "Error disposing game process for {0}", Entity.GameId);
         }
 
         try {
             _rakNet?.Shutdown();
             _rakNet = null;
         } catch (Exception ex2) {
-            Log.Warning(ex2, "Error shutting down RakNet for {GameId}", Entity.GameId);
+            Log.Warning(ex2, "Error shutting down RakNet for {0}", Entity.GameId);
         }
     }
 
-    // ReSharper disable once EventNeverSubscribedTo.Global
     public event Action<Guid>? Exited;
 
     private async Task LaunchGameAsync()
@@ -81,7 +80,7 @@ public sealed class LauncherService : IDisposable {
         } catch (OperationCanceledException) {
             UpdateProgress(100, "Launch cancelled");
         } catch (Exception ex2) {
-            Log.Error(ex2, "Error while launching game for {GameId}", Entity.GameId);
+            Log.Error(ex2, "Error while launching game for {0}", Entity.GameId);
             UpdateProgress(100, "Launch failed");
         }
     }
@@ -105,7 +104,7 @@ public sealed class LauncherService : IDisposable {
                 Convert.ToUInt32(Entity.UserId), Entity.AccessToken, Entity.GameName, Entity.RoleName, availablePort,
                 availablePort2, isRental);
         } catch (Exception ex) {
-            Log.Error(ex, "Bedrock interceptor failed to launch for {GameId}", Entity.GameId);
+            Log.Error(ex, "Bedrock interceptor failed to launch for {0}", Entity.GameId);
             throw new InvalidOperationException("Failed to initialize RakNet proxy", ex);
         }
 
@@ -121,15 +120,13 @@ public sealed class LauncherService : IDisposable {
         var argumentsPath = Path.Combine(PathUtil.CppGamePath, "launch.cppconfig");
         var process = CommandService.StartGame(launchPath, argumentsPath);
         if (process == null) {
-            Log.Error("Game launch failed for LaunchType: {EntityLaunchType}, Role: {EntityRoleName}",
-                Entity.LaunchType, Entity.RoleName);
+            Log.Error("Game launch failed for LaunchType: {0}, Role: {1}", Entity.LaunchType, Entity.RoleName);
             throw new InvalidOperationException("Failed to start game process");
         }
 
         SetupGameProcess(process);
         UpdateProgress(100, "Running");
-        Log.Information("Game launched successfully. LaunchType: {LaunchType}, ProcessID: {ProcessId}, Role: {Role}",
-            Entity.LaunchType, process.Id, Entity.RoleName);
+        Log.Information("Game launched successfully. LaunchType: {0}, ProcessID: {1}, Role: {2}", Entity.LaunchType, process.Id, Entity.RoleName);
         return Task.CompletedTask;
     }
 
@@ -158,7 +155,7 @@ public sealed class LauncherService : IDisposable {
         try {
             Exited?.Invoke(Identifier);
         } catch (Exception ex) {
-            Log.Warning(ex, "Error in game process exit handler for {GameId}", Entity.GameId);
+            Log.Warning(ex, "Error in game process exit handler for {0}", Entity.GameId);
         }
     }
 
@@ -174,7 +171,7 @@ public sealed class LauncherService : IDisposable {
             _progress.Report(value);
             if (percent == 100) SyncProgressBarUtil.ProgressBar.ClearCurrent();
         } catch (Exception ex) {
-            Log.Warning(ex, "Error reporting progress for {GameId}", Entity.GameId);
+            Log.Warning(ex, "Error reporting progress for {0}", Entity.GameId);
         }
     }
 

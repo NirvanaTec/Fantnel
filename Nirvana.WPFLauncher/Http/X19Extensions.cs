@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
 
 namespace Nirvana.WPFLauncher.Http;
@@ -42,7 +43,7 @@ public class X19Extensions(string url, bool token = true) {
 
     public async Task<T?> Api<T>(string url, object? body, string? userId, string? userToken)
     {
-        return await Api<T>(url, JsonSerializer.Serialize(body, Protocol.WPFLauncher.DefaultOptions), userId, userToken);
+        return await Api<T>(url, JsonSerializer.Serialize(body, NPFLauncher.DefaultOptions), userId, userToken);
     }
 
     public async Task<T?> Api<T>(string url, string body)

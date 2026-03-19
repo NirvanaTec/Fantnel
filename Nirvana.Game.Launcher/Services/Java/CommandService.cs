@@ -87,7 +87,7 @@ public class CommandService {
             if (minecraft != null) {
                 _minecraft = BuildJarListBase(minecraft);
             } else {
-                Log.Error("BmclApi returned null, version: {version}", _version);
+                Log.Error("BmclApi returned null, version: {0}", _version);
             }
         }
 
@@ -126,18 +126,7 @@ public class CommandService {
             }
         }
 
-        // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-        foreach (var javaFile in _minecraft) {
-            // 不是 natives 库
-            if (!javaFile.IsNative) {
-                continue;
-            }
-
-            // 自动处理所需库
-            if (!javaFile.DownloadAuto()) {
-                continue;
-            }
-
+        foreach (var javaFile in _minecraft.Where(javaFile => javaFile.IsNative).Where(javaFile => javaFile.DownloadAuto())) {
             await CompressionUtil.ExtractAsync(javaFile.GetPath(), nativesPath);
         }
     }
@@ -629,7 +618,7 @@ public class CommandService {
             fullPath1 = Path.Combine(PathUtil.GameBasePath, ".minecraft", fullPath1);
 
             if (!File.Exists(fullPath1)) {
-                Log.Error("File not found: {fullPath}", fullPath1);
+                Log.Error("File not found: {0}", fullPath1);
                 continue;
             }
 
@@ -663,7 +652,7 @@ public class CommandService {
             }
 
             if (file == null) {
-                Log.Error("File not found: {lwjglName}", lwjglName);
+                Log.Error("File not found: {0}", lwjglName);
                 continue;
             }
 

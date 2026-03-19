@@ -53,7 +53,7 @@ public static class Tools {
             var json = File.ReadAllText(path, Encoding.UTF8);
             return (JsonSerializer.Deserialize<T>(json), path);
         } catch (Exception e) {
-            Log.Error("读取文件 {Path} 异常: {Message}", path, e.Message);
+            Log.Error("读取文件 {0} 异常: {1}", path, e.Message);
         }
 
         return (default, path);
@@ -200,7 +200,7 @@ public static class Tools {
             Arguments = arg,
             UseShellExecute = true
         };
-        Log.Information("正在重启: {ExecutablePath} {Arguments}", fileName, arg);
+        Log.Information("正在重启: {0} {1}", fileName, arg);
         var process = Process.Start(startInfo);
         if (isExit) Environment.Exit(0);
         return process;
@@ -259,7 +259,7 @@ public static class Tools {
         } else {
             await File.WriteAllTextAsync(filePath, content);
             // 设置权限
-            Log.Information("设置权限: {filePath}", filePath);
+            Log.Information("设置权限: {0}", filePath);
             FileUtil.SetUnixFilePermissions(filePath);
         }
     }

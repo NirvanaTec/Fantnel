@@ -36,7 +36,7 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
             try {
                 _acceptLoopTask?.Wait(TimeSpan.FromSeconds(5L));
             } catch (Exception ex) {
-                Log.Error("Authentication failed. {Message}", ex.Message);
+                Log.Error("Authentication failed. {0}", ex.Message);
             }
 
             _cts.Dispose();
@@ -70,7 +70,7 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
             } catch (ObjectDisposedException) {
                 break;
             } catch (Exception ex2) {
-                Log.Warning("Accept loop error: {Message}", ex2.Message);
+                Log.Warning("Accept loop error: {0}", ex2.Message);
                 break;
             }
     }
@@ -114,13 +114,13 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
                 await NetEaseConnection.CreateAuthenticatorAsync(serverId, gameId, version, modList,
                     int.Parse(userId), accessToken, () => { responseCode = 0u; }).ConfigureAwait(false);
             } catch (Exception ex) {
-                Log.Warning("Client handling error: {Message}", ex.Message);
+                Log.Warning("Client handling error: {0}", ex.Message);
             } finally {
                 try {
                     var bytes = BitConverter.GetBytes(responseCode);
                     await stream.WriteAsync(bytes, token).ConfigureAwait(false);
                 } catch (Exception ex2) {
-                    Log.Warning("Response writing error: {Message}", ex2.Message);
+                    Log.Warning("Response writing error: {0}", ex2.Message);
                 }
             }
         }

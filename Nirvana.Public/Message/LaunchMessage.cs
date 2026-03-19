@@ -1,9 +1,11 @@
 ﻿using Nirvana.Game.Launcher.Entities;
 using Nirvana.Game.Launcher.Services.Java;
 using Nirvana.Game.Launcher.Utils;
+using Nirvana.Public.Manager;
 using Nirvana.Public.Utils.Update;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Minecraft;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
+using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
@@ -29,10 +31,10 @@ public static class LaunchMessage {
         ActiveGameAndProxies.Close(id, name);
 
         Log.Information("正在启动白端游戏...");
-        Log.Information("名称：{name}", name);
+        Log.Information("名称：{0}", name);
 
         // 服务器详细信息
-        var server = await WPFLauncher.Protocol.WPFLauncher.GetRentalGameDetailsAsync(id);
+        var server = await NPFLauncher.GetRentalGameDetailsAsync(id);
 
         // 服务器版本
         var versionName = server.McVersion; // 1.20
@@ -48,7 +50,7 @@ public static class LaunchMessage {
         }
 
         // 服务器地址
-        var address = await WPFLauncher.Protocol.WPFLauncher.GetGameRentalAddressAsync(server.EntityId);
+        var address = await NPFLauncher.GetGameRentalAddressAsync(server.EntityId);
 
         var launchRequest = new EntityLaunchGame {
             Id = ActiveGameAndProxies.GetIndex(),
@@ -79,10 +81,10 @@ public static class LaunchMessage {
         ActiveGameAndProxies.Close(id, name);
 
         Log.Information("正在启动白端游戏...");
-        Log.Information("名称：{name}", name);
+        Log.Information("名称：{0}", name);
 
         // 服务器详细信息
-        var server = await WPFLauncher.Protocol.WPFLauncher.GetNetGameDetailByIdAsync(id);
+        var server = await NPFLauncher.GetNetGameDetailByIdAsync(id);
 
         // 服务器版本
         var version = server.McVersionList[0]; // 1.20
@@ -98,7 +100,7 @@ public static class LaunchMessage {
         }
 
         // 服务器地址
-        var address = await WPFLauncher.Protocol.WPFLauncher.GetNetGameServerAddressAsync(server.EntityId);
+        var address = await NPFLauncher.GetNetGameServerAddressAsync(server.EntityId);
 
         var launchRequest = new EntityLaunchGame {
             Id = ActiveGameAndProxies.GetIndex(),
@@ -147,6 +149,6 @@ public static class LaunchMessage {
             UpdateTools.CheckUpdate(PublicProgram.Mode + "." + PublicProgram.Arch + "." + javaName + ".java", "Java").Wait();
         }
 
-        Log.Information("Java Path: {JavaPath}", javaPath);
+        Log.Information("Java Path: {0}", javaPath);
     }
 }

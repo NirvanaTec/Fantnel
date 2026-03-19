@@ -13,7 +13,6 @@ public static class SimplePack {
         foreach (var obj in data) {
             var array2 = Array.Empty<byte>();
             var type = obj.GetType();
-            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (Type.GetTypeCode(type)) {
                 case TypeCode.Object:
                     if (type == typeof(byte[])) {
@@ -87,7 +86,9 @@ public static class SimplePack {
                     break;
             }
 
-            if (array2 != null) array = array.Concat(array2).ToArray();
+            if (array2 != null) {
+                array = array.Concat(array2).ToArray();
+            }
         }
 
         return array;

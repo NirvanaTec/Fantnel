@@ -10,7 +10,7 @@ public static class NetEaseConnection {
     public static async Task CreateAuthenticatorAsync(string serverId, string gameId, string gameVersion,
         string modInfo, int userId, string userToken, Action handleSuccess)
     {
-        Log.Warning("认证中: {serverId}", serverId);
+        Log.Warning("认证中: {0}", serverId);
         var pair = Md5Mapping.GetMd5FromGameVersion(gameVersion);
         var success = await StandardYggdrasil.JoinServerAsync(new GameProfile {
             GameId = gameId,
@@ -27,7 +27,7 @@ public static class NetEaseConnection {
             Log.Information("认证完成!");
             handleSuccess();
         } else {
-            Log.Error("认证失败: {Error}", success.Error);
+            Log.Error("认证失败: {0}", success.Error);
         }
     }
 }

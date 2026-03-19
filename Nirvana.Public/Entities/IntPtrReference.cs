@@ -1,5 +1,5 @@
 ﻿namespace Nirvana.Public.Entities;
 
-public class IntPtrReference(int initialValue = 100) {
-    public int Value { get; set; } = initialValue;
+public class IntPtrReference(double initialValue = 100) {
+    public double Value { get; set; } = initialValue;
 }

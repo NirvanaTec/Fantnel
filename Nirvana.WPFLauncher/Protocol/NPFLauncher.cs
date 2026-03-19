@@ -24,7 +24,7 @@ using Serilog;
 namespace Nirvana.WPFLauncher.Protocol;
 
 // ReSharper disable once InconsistentNaming
-public static class WPFLauncher {
+public static class NPFLauncher {
     private static readonly MgbSdk Sdk = new("x19");
 
     public static readonly JsonSerializerOptions DefaultOptions = new() {
@@ -151,7 +151,7 @@ public static class WPFLauncher {
      * @param length 数量
      * @return 服务器列表
      */
-    public static async Task<EntityNetGameItem[]> GetAvailableNetGamesAsync(int offset, int length)
+    public static async Task<EntityNetGameItem[]> GetAvailableNetGamesAsync(int offset, int length = 20)
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityNetGameItem>>("/item/query/available",
             new EntityNetGameRequest {
@@ -266,19 +266,14 @@ public static class WPFLauncher {
         return entity.Code == 0 ? entity.Data : throw new EntityX19Exception(entity.Message, entity);
     }
 
-    public static string GetUserAgent()
-    {
-        return "WPFLauncher/" + X19.GameVersion;
-    }
-
     /**
      * 获取皮肤详情
      * @param skinList 皮肤ID列表
      * @return 皮肤详情
      */
-    private static async Task<EntitySkin[]> GetSkinDetailsAsync(List<string> skinList)
+    private static async Task<EntityQueryNetSkinItem[]> GetSkinDetailsAsync(List<string> skinList)
     {
-        var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntitySkin>>("/item/query/search-by-ids",
+        var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityQueryNetSkinItem>>("/item/query/search-by-ids",
             new EntitySkinDetailsRequest {
                 ChannelId = 11,
                 EntityIds = skinList,
@@ -290,24 +285,13 @@ public static class WPFLauncher {
     }
 
     /**
-     * 获取皮肤详情
+     * 获取皮肤信息
      * @param skinId 皮肤ID
-     * @return 皮肤详情
+     * @return 皮肤信息
      */
-    public static async Task<EntitySkin> GetSkinDetailsAsync(string skinId)
+    public static async Task<EntityQueryNetSkinItem> GetSkinDetailsAsync(string skinId)
     {
         return (await GetSkinDetailsAsync([skinId]))[0];
-    }
-
-    /**
-     * 获取皮肤的第一张图片
-     * 来自详情页
-     * @param entityId 皮肤ID
-     * @return 图片URL
-     */
-    public static async Task<string> GetFirstImage(string entityId)
-    {
-        return (await GetSkinDetailsAsync(entityId)).TitleImageUrl;
     }
 
     /**
@@ -368,7 +352,7 @@ public static class WPFLauncher {
      * @return 皮肤列表
      */
     public static async Task<EntityQueryNetSkinItem[]> GetFreeSkinListAsync(
-        int offset,
+        int offset = 0,
         int length = 20)
     {
         var entity = await X19Extensions.Gateway.Api<EntitiesWPFLauncher<EntityQueryNetSkinItem>>(

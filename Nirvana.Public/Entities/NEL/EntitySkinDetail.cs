@@ -1,10 +1,17 @@
 ﻿using System.Text.Json.Serialization;
+using Nirvana.Public.Manager;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameSkin;
+using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Utils.CodeTools;
 
 namespace Nirvana.Public.Entities.NEL;
 
 public class EntitySkinDetail {
+    public EntitySkinDetail(string id)
+    {
+        Set(NPFLauncher.GetSkinDetailsAsync(id).Result);
+    }
+
     [JsonPropertyName("entity_id")]
     public string? EntityId { get; set; }
 
@@ -29,22 +36,18 @@ public class EntitySkinDetail {
     [JsonPropertyName("download_num")]
     public long? DownloadNum { get; set; }
 
-    public void Set(EntityQueryNetSkinItem? skinItem)
+    private void Set(EntityQueryNetSkinItem? item)
     {
-        if (skinItem == null) throw new ErrorCodeException(ErrorCode.IdError);
-        DeveloperName = skinItem.DeveloperName;
-        // unix 时间戳 转换为 文本
-        PublishTime = DateTimeOffset.FromUnixTimeSeconds(skinItem.PublishTime).ToString("yyyy-MM-dd");
-        DownloadNum = skinItem.DownloadNum;
-    }
-
-    public void Set(EntitySkin? skinDetails)
-    {
-        if (skinDetails == null) throw new ErrorCodeException(ErrorCode.IdError);
-        EntityId = skinDetails.EntityId;
-        BriefSummary = skinDetails.BriefSummary;
-        Name = skinDetails.Name;
-        TitleImageUrl = skinDetails.TitleImageUrl;
-        LikeNum = skinDetails.LikeNum;
+        if (item == null) throw new ErrorCodeException(ErrorCode.IdError);
+        CacheManager.ClearCacheImage(item);
+        DeveloperName = item.DeveloperName;
+        // // unix 时间戳 转换为 文本
+        PublishTime = DateTimeOffset.FromUnixTimeSeconds(item.PublishTime).ToString("yyyy-MM-dd");
+        DownloadNum = item.DownloadNum;
+        EntityId = item.EntityId;
+        BriefSummary = item.BriefSummary;
+        Name = item.Name;
+        TitleImageUrl = item.TitleImageUrl;
+        LikeNum = item.LikeNum;
     }
 }

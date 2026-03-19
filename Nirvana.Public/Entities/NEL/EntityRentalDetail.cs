@@ -1,10 +1,54 @@
 ﻿using System.Text.Json.Serialization;
+using Nirvana.Public.Manager;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.RentalGame;
+using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Utils.CodeTools;
 
 namespace Nirvana.Public.Entities.NEL;
 
 public class EntityRentalDetail {
+    public EntityRentalDetail(string id)
+    {
+        Exception? exception = null;
+        var threads = new List<Thread> {
+            new(() => {
+                try {
+                    if (exception != null) {
+                        return;
+                    }
+
+                    var item = NPFLauncher.GetRentalGameDetailsAsync(id).Result;
+                    CacheManager.ClearCacheImage(item);
+                    Set(item);
+                } catch (Exception e) {
+                    exception = e;
+                }
+            }),
+            new(() => {
+                try {
+                    if (exception != null) {
+                        return;
+                    }
+
+                    Set(NPFLauncher.GetGameRentalAddressAsync(id).Result);
+                } catch (Exception e) {
+                    exception = e;
+                }
+            })
+        };
+        foreach (var thread in threads) {
+            thread.Start();
+        }
+
+        foreach (var thread in threads) {
+            thread.Join();
+        }
+
+        if (exception != null) {
+            throw exception;
+        }
+    }
+
     [JsonPropertyName("id")]
     public string? Id { get; set; }
 
@@ -32,7 +76,7 @@ public class EntityRentalDetail {
     [JsonPropertyName("server_type")]
     public string? ServerType { get; set; }
 
-    public void Set(EntityRentalGameDetails entity)
+    private void Set(EntityRentalGameDetails entity)
     {
         if (entity == null) {
             throw new ErrorCodeException(ErrorCode.IdError);
@@ -48,9 +92,12 @@ public class EntityRentalDetail {
         BriefSummary = entity.BriefSummary;
     }
 
-    public void Set(EntityRentalGameServerAddress data)
+    private void Set(EntityRentalGameServerAddress data)
     {
-        if (data == null) throw new ErrorCodeException(ErrorCode.AddressError);
+        if (data == null) {
+            throw new ErrorCodeException(ErrorCode.AddressError);
+        }
+
         Address = data.McServerHost;
         if (data.McServerPort != 25565) Address += $":{data.McServerPort}";
     }

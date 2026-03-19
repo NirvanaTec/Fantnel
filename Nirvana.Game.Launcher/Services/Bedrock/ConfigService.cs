@@ -4,7 +4,6 @@ using NirvanaAPI.Utils;
 
 namespace Nirvana.Game.Launcher.Services.Bedrock;
 
-// ReSharper disable once ClassNeverInstantiated.Global
 public class ConfigService {
     public static void GenerateLaunchConfig(string skinPath, string roleName, string entityId, int port)
     {

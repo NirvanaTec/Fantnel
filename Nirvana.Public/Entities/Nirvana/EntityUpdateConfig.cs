@@ -3,11 +3,9 @@
 namespace Nirvana.Public.Entities.Nirvana;
 
 public class EntityUpdateConfig {
-    
+    public bool FailureLog = true;
+
     public required string Mode;
     public string Name = "Resource";
-    public bool FailureLog = true;
     public Action<JsonArray>? OnSuccess = null;
-
-
 }

@@ -54,7 +54,7 @@ public class GameAccountController : ControllerBase {
         try {
             AccountMessage.Login(id);
         } catch (Exception e) {
-            Log.Error("登录失败: {Id}: {Message}", id, Tools.GetMessage(e));
+            Log.Error("登录失败: {0}: {1}", id, Tools.GetMessage(e));
             throw;
         }
 
@@ -68,7 +68,7 @@ public class GameAccountController : ControllerBase {
             AccountMessage.AutoLogin1(account);
             return Ok(Code.ToJson(ErrorCode.Success, account.Id));
         } catch (Exception e) {
-            Log.Error("自动登录失败: {Id}: {Message}", account, Tools.GetMessage(e));
+            Log.Error("自动登录失败: {0}: {1}", account, Tools.GetMessage(e));
             throw;
         }
     }
@@ -79,7 +79,7 @@ public class GameAccountController : ControllerBase {
         try {
             AccountMessage.DeleteAccount(id);
         } catch (Exception e) {
-            Log.Error("删除账号失败: {Id}: {Message}", id, Tools.GetMessage(e));
+            Log.Error("删除账号失败: {0}: {1}", id, Tools.GetMessage(e));
             throw;
         }
 

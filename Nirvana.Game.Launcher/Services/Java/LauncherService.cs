@@ -199,8 +199,7 @@ public sealed class LauncherService : IDisposable {
         GameProcess.Exited += OnGameProcessExited;
         SyncProgressBarUtil.ProgressBar.ClearCurrent();
         Console.WriteLine();
-        Log.Information(
-            "Game launched successfully. Game Version: {GameVersion}, Process ID: {ProcessId}, Role: {Role}",
+        Log.Information("Game launched successfully. Game Version: {0}, Process ID: {1}, Role: {2}",
             Entity.GameVersion, process.Id, Entity.RoleName);
         return Task.CompletedTask;
     }
@@ -208,7 +207,7 @@ public sealed class LauncherService : IDisposable {
     private void HandleFailedLaunch()
     {
         SyncProgressBarUtil.ProgressBar.ClearCurrent();
-        Log.Error("Game launch failed. Game Version: {GameVersion}, Role: {Role}", Entity.GameVersion, Entity.RoleName);
+        Log.Error("Game launch failed. Game Version: {0}, Role: {1}", Entity.GameVersion, Entity.RoleName);
     }
 
     public event Action<Guid>? Exited;

@@ -35,5 +35,4 @@ public class EntityNirvanaConfig : EntityNirvanaAccount {
 
     [JsonPropertyName("autoUpdatePlugin")]
     public bool AutoUpdatePlugin { get; set; } = true; // 自动更新插件
-    
 }

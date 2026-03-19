@@ -29,9 +29,11 @@ public static class PathUtil {
     // 分割路径
     public static readonly string PathSeparator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ";" : ":";
 
-    public static string JavaExePath => GetJavaExePath(); // javaw.exe
+    public static readonly string WebSitePath = Path.Combine(ResourcePath, "static");
 
-    // public static readonly string WebSitePath = Path.Combine(ResourcePath, "static");
+    public static readonly string CacheImagePath = Path.Combine(WebSitePath, "image");
+
+    public static string JavaExePath => GetJavaExePath(); // javaw.exe
 
     public static string JavaPath => GetJavaPath();
 

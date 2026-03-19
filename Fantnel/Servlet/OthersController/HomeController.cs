@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Nirvana.Public.Utils;
 using Nirvana.Public.Utils.Update;
 using NirvanaAPI.Entities.EntitiesNirvana;
@@ -55,7 +54,7 @@ public class HomeController : ControllerBase {
     public static string GetIndexHtml()
     {
         // 获取运行目录路径
-        var resourcesPath = Path.Combine(PathUtil.ResourcePath, "static", "index.html");
+        var resourcesPath = Path.Combine(PathUtil.WebSitePath, "index.html");
         return System.IO.File.Exists(resourcesPath) ? System.IO.File.ReadAllText(resourcesPath) : "";
     }
 }

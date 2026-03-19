@@ -102,8 +102,7 @@ public static class YggdrasilGenerator {
 
     private static byte[] BuildHashData(GameProfile profile, int time, int id, byte[] loginSeed)
     {
-        var joinMessage =
-            $"{X19.GameVersion}{profile.GameVersion}{time}{X19.GetCrcSalt()}{profile.GetModInfo()}{profile.BootstrapMd5}{profile.DatFileMd5}{PrcCheck}";
+        var joinMessage = $"{X19.GameVersion}{profile.GameVersion}{time}{X19.GetCrcSalt()}{profile.GetModInfo()}{profile.BootstrapMd5}{profile.DatFileMd5}{PrcCheck}";
 
         return Encoding.UTF8.GetBytes(joinMessage)
             .CombineWith(id.ToByteArray())

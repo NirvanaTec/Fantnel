@@ -8,6 +8,7 @@ using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Launch.RPC;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Launch.Skin;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Minecraft;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
+using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
 using NirvanaAPI.Utils;
 using OpenSDK.Cipher.Nirvana;
@@ -54,9 +55,9 @@ public class GameRpcService(
         try {
             _mMcControlListener = new TcpListener(IPAddress.Loopback, port);
             _mMcControlListener.Start();
-            new Thread(ListenControlConnect).Start();
+            _= Task.Run (ListenControlConnect);
             Console.WriteLine();
-            Log.Information("[RPC] Control connection started on port {Port}", port);
+            Log.Information("[RPC] Control connection started on port {0}", port);
         } catch (Exception ex) {
             if (tryTimes > 0)
                 StartControlConnection(tryTimes - 1);
@@ -122,7 +123,7 @@ public class GameRpcService(
         var array = SimplePack.Pack((ushort)1799, launchGame.ServerIp, launchGame.ServerPort, launchGame.RoleName);
         if (array != null) SendControlData(array);
         Log.Information(
-            "[RPC] Sent new-version authentication to {ServerIP}:{ServerPort} | User: {UserID} | Role: {RoleName} | Protocol: {GameVersion}",
+            "[RPC] Sent new-version authentication to {0}:{1} | User: {2} | Role: {3} | Protocol: {4}",
             launchGame.ServerIp, launchGame.ServerPort, launchGame.UserId, launchGame.RoleName, gameVersion);
     }
 
@@ -132,7 +133,7 @@ public class GameRpcService(
             false);
         if (array != null) SendControlData(array);
         Log.Information(
-            "[RPC] Sent authentication to {ServerIP}:{ServerPort} | User: {UserID} | Role: {RoleName} | Protocol: {GameVersion}",
+            "[RPC] Sent authentication to {0}:{1} | User: {2} | Role: {3} | Protocol: {4}",
             launchGame.ServerIp, launchGame.ServerPort, launchGame.UserId, launchGame.RoleName, gameVersion);
     }
 
@@ -140,17 +141,17 @@ public class GameRpcService(
     {
         var array = SimplePack.Pack((ushort)512, "i'am wpflauncher");
         if (array != null) SendControlData(array);
-        Log.Information("[RPC] Heartbeat {heartBeatMsg} sent", "i'am wpflauncher");
+        Log.Information("[RPC] Heartbeat {0} sent", "i'am wpflauncher");
     }
 
     private static void OnPCycEntityCheck(byte[] data)
     {
-        Log.Information("[RPC] PCyc Entity {entity} sent", "[]");
+        Log.Information("[RPC] PCyc Entity {0} sent", "[]");
     }
 
     private void HandlePlayerSkin(byte[] content)
     {
-        Log.Information("[RPC] Event received -> {event}", "Send Player Skin");
+        Log.Information("[RPC] Event received -> {0}", "Send Player Skin");
         var entityOtherEnterWorldMsg = new EntityOtherEnterWorldMsg();
         new SimpleUnpack(content).Unpack(ref entityOtherEnterWorldMsg);
         TaskManager.Instance.GetFactory().StartNew(() => ProcessPlayerSkin(entityOtherEnterWorldMsg));
@@ -158,7 +159,7 @@ public class GameRpcService(
 
     private async Task ProcessPlayerSkin(EntityOtherEnterWorldMsg msg)
     {
-        var list = await WPFLauncher.Protocol.WPFLauncher.GetSkinListInGameAsync(launchGame.UserId, launchGame.AccessToken,
+        var list = await NPFLauncher.GetSkinListInGameAsync(launchGame.UserId, launchGame.AccessToken,
             new EntityUserGameTextureRequest {
                 UserId = _skip32Cipher.ComputeUserIdFromUuid(msg.Uuid).ToString(),
                 ClientType = EnumGameClientType.Java
@@ -176,7 +177,7 @@ public class GameRpcService(
             try {
                 var entityAvailableUser = IUserManager.Instance?.GetAvailableUser(launchGame.UserId);
                 if (entityAvailableUser == null) continue;
-                var entity = await WPFLauncher.Protocol.WPFLauncher.GetNetGameComponentDownloadListAsync(launchGame.UserId, launchGame.AccessToken, item.SkinId);
+                var entity = await NPFLauncher.GetNetGameComponentDownloadListAsync(launchGame.UserId, launchGame.AccessToken, item.SkinId);
                 var text = entity.SubEntities.Select(sub => sub.ResUrl).FirstOrDefault();
                 if (text == null) continue;
                 Directory.CreateDirectory(_dirSkinPath);
@@ -185,30 +186,32 @@ public class GameRpcService(
                 filePath = tempPath;
                 break;
             } catch (Exception ex) {
-                Log.Error(ex, "[RPC] Failed to handle skin for player {Name}", msg.Name);
+                Log.Error(ex, "[RPC] Failed to handle skin for player {0}", msg.Name);
                 try {
-                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                    if (File.Exists(tempPath)) {
+                        File.Delete(tempPath);
+                    }
                 } catch {
-                    Log.Error(ex, "[RPC] Failed to delete temp file {Path}", filePath);
+                    Log.Error(ex, "[RPC] Failed to delete temp file {0}", filePath);
                 }
             }
         }
 
-        Log.Information("[RPC] Sending skin data for {Name}: {Path}", msg.Name, filePath);
+        Log.Information("[RPC] Sending skin data for {0}: {1}", msg.Name, filePath);
         var array = SimplePack.Pack((ushort)520, msg.Name, filePath, string.Empty, skinMode);
         if (array != null) SendControlData(array);
     }
 
     private static void HandleLoginGame(byte[] data)
     {
-        Log.Information("[RPC] Event received -> {event}", "Login Game");
+        Log.Information("[RPC] Event received -> {0}", "Login Game");
     }
 
     private void HandleMsgFilterCheck(byte[] data)
     {
         var array = SimplePack.Pack((ushort)1298, false, 0L, 0L);
         if (array != null) SendControlData(array);
-        Log.Information("[RPC] Event received -> {event}", "Filter Message Check");
+        Log.Information("[RPC] Event received -> {0}", "Filter Message Check");
     }
 
     private void OnCheckPlayerMsg(byte[] data)
@@ -220,7 +223,7 @@ public class GameRpcService(
             if (array != null) SendControlData(array);
         }
 
-        Log.Information("[RPC] Event received -> {event} with data {Message}", "Player Message Check",
+        Log.Information("[RPC] Event received -> {0} with data {Message}", "Player Message Check",
             content?.Message);
     }
 
@@ -243,7 +246,7 @@ public class GameRpcService(
                     continue;
                 }
 
-                Log.Information("[RPC] Accepted control connection from {RemoteEndPoint}", remoteEndPoint);
+                Log.Information("[RPC] Accepted control connection from {0}", remoteEndPoint);
 
                 // 清理旧连接并保存新连接
                 lock (_lockObj) {
@@ -283,7 +286,7 @@ public class GameRpcService(
                 SendCacheControlData();
 
                 // 接收数据
-                new Thread(OnRecvControlData).Start();
+                _= Task.Run(OnRecvControlData);
             }
         } catch (Exception ex) {
             if (!_mIsNormalExit) // 忽略正常退出时的异常

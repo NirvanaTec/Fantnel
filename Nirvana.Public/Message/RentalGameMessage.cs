@@ -1,5 +1,7 @@
-﻿using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.RentalGame;
+﻿using Nirvana.Public.Manager;
+using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.RentalGame;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.RentalGame.GameCharacters;
+using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Utils.CodeTools;
 using Serilog;
 
@@ -7,7 +9,7 @@ namespace Nirvana.Public.Message;
 
 public static class RentalGameMessage {
     // 服务器列表[普通信息] - 缓存
-    private static Dictionary<string, EntityRentalGameDetails> _serverList = [];
+    public static Dictionary<string, EntityRentalGameDetails> ServerList = [];
 
     /**
      * 获取服务器列表[普通信息]
@@ -23,8 +25,10 @@ public static class RentalGameMessage {
         while (true) {
             // ServerList 有 就用缓存
             // 分页
-            if (_serverList.Count >= count) {
-                var list = _serverList.Skip(offset).Take(pageSize).ToArray();
+            if (ServerList.Count >= count) {
+                var list = ServerList.Skip(offset).Take(pageSize).ToArray();
+                // 缓存图片下载
+                CacheManager.DownloadCacheImage();
                 return GetServerList(list);
             }
 
@@ -36,9 +40,9 @@ public static class RentalGameMessage {
                     return [];
                 }
             } else {
-                var items = await WPFLauncher.Protocol.WPFLauncher.GetRentalGameListAsync();
+                var items = await NPFLauncher.GetRentalGameListAsync();
                 AddServerList(items);
-                Thread.Sleep(400);
+                Thread.Sleep(500);
             }
         }
     }
@@ -46,7 +50,7 @@ public static class RentalGameMessage {
     // 排序 按 PlayerCount 高到低
     public static void SortServerList()
     {
-        _serverList = _serverList.OrderByDescending(x => x.Value.PlayerCount).ToDictionary(x => x.Key, x => x.Value);
+        ServerList = ServerList.OrderByDescending(x => x.Value.PlayerCount).ToDictionary(x => x.Key, x => x.Value);
     }
 
     private static EntityRentalGameDetails[] GetServerList(KeyValuePair<string, EntityRentalGameDetails>[] serverList)
@@ -57,17 +61,18 @@ public static class RentalGameMessage {
     // 服务器列表[普通信息] - 添加
     private static void AddServerList(EntityRentalGameDetails gameItem)
     {
-        if (_serverList.Any(item => item.Value.EntityId == gameItem.EntityId)) {
+        if (ServerList.Any(item => item.Value.EntityId == gameItem.EntityId)) {
             return;
         }
 
-        _serverList.Add(gameItem.EntityId, gameItem);
+        CacheManager.GetCacheImageUrl(gameItem);
+        ServerList.Add(gameItem.EntityId, gameItem);
     }
 
     private static void AddServerList(EntityRentalGame[] gameItem)
     {
         foreach (var item in gameItem) {
-            var details = WPFLauncher.Protocol.WPFLauncher.GetRentalGameDetailsAsync(item.EntityId).Result;
+            var details = NPFLauncher.GetRentalGameDetailsAsync(item.EntityId).Result;
             AddServerList(details);
         }
     }
@@ -82,11 +87,16 @@ public static class RentalGameMessage {
     {
         for (var i = 0; i < 3; i++) {
             try {
-                var games = await WPFLauncher.Protocol.WPFLauncher.GetRentalGameRolesListAsync(serverId);
-                if (games == null) throw new ErrorCodeException(ErrorCode.NotFound);
-                foreach (var game in games)
-                    if (game.Name == name)
+                var games = await NPFLauncher.GetRentalGameRolesListAsync(serverId);
+                if (games == null) {
+                    throw new ErrorCodeException(ErrorCode.NotFound);
+                }
+
+                foreach (var game in games) {
+                    if (game.Name == name) {
                         return game;
+                    }
+                }
             } catch (Exception e) {
                 Log.Error("获取游戏角色 {0} 失败 {1}", name, e.Message);
             }

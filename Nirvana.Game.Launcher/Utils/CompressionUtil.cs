@@ -35,8 +35,8 @@ public static class CompressionUtil {
 
             await ProcessEntriesFromQueueAsync(entriesQueue, outPath, progress, progressState);
         } catch (Exception e) {
-            Log.Fatal("解压时出错: {filePath}", archivePath);
-            Log.Fatal("解压错误：{message}", e.Message);
+            Log.Fatal("解压时出错: {0}", archivePath);
+            Log.Fatal("解压错误：{0}", e.Message);
             throw;
         }
     }
@@ -68,7 +68,7 @@ public static class CompressionUtil {
         if (fileInfo.Length > 14 * 1024 * 1024) {
             if (Extract7Z_7ZIP(archivePath, outPath, progress)) return;
             Log.Warning("使用通用模式解压7z文件中....");
-            Log.Warning("Path: {archivePath}", archivePath);
+            Log.Warning("Path: {0}", archivePath);
         }
 
         await ExtractZipAsync(archivePath, outPath, progress);
@@ -81,7 +81,7 @@ public static class CompressionUtil {
     private static bool Extract7Z_7ZIP(string archivePath, string outputDirectory, Action<int>? progress = null)
     {
         if (!File.Exists(archivePath)) {
-            Log.Error("错误：压缩包文件不存在 - {ArchivePath}", archivePath);
+            Log.Error("错误：压缩包文件不存在 - {0}", archivePath);
             return false;
         }
 
@@ -105,7 +105,7 @@ public static class CompressionUtil {
             // 1: 警告 (例如，有些文件被锁定)，2: 错误，其他值可能表示不同错误。
             return process.ExitCode is 0 or 1; // 根据实际需求判断成功条件
         } catch (Exception ex) {
-            Log.Error("解压过程中发生异常: \n{ExMessage}", ex.Message);
+            Log.Error("解压过程中发生异常: \n{0}", ex.Message);
             return false;
         }
     }

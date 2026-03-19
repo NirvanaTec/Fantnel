@@ -7,7 +7,6 @@ using NirvanaAPI.Utils.CodeTools;
 namespace NirvanaAPI;
 
 public class NirvanaConfig {
-
     public static EntityNirvanaConfig Config = new();
 
     private static readonly string FilePath = Path.Combine(PathUtil.ResourcePath, "nirvanaAccount.json");
@@ -114,5 +113,4 @@ public class NirvanaConfig {
         Config.AutoLoginGameCookie = bool.Parse(value);
         SaveConfig();
     }
-    
 }

@@ -3,11 +3,11 @@ using Codexus.Interceptors;
 using Nirvana.Game.Launcher.Entities;
 using Nirvana.Game.Launcher.Services.Java;
 using Nirvana.Public.Entities.NEL;
+using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Manager;
-using NirvanaAPI.Utils.CodeTools;
 using Serilog;
 
-namespace Nirvana.Public.Message;
+namespace Nirvana.Public.Manager;
 
 public static class ActiveGameAndProxies {
     // 线程安全锁
@@ -51,7 +51,7 @@ public static class ActiveGameAndProxies {
             }
 
             if (log > 0) {
-                Log.Information("已清理 {log} 个旧代理", log);
+                Log.Information("已清理 {0} 个旧代理", log);
             }
 
             // 关闭老游戏
@@ -63,7 +63,7 @@ public static class ActiveGameAndProxies {
             }
 
             if (log > 0) {
-                Log.Information("已清理 {log} 个旧游戏", log);
+                Log.Information("已清理 {0} 个旧游戏", log);
             }
         }
     }
@@ -99,16 +99,10 @@ public static class ActiveGameAndProxies {
     public static async Task<EntityProxy> Add(Process proxy, string serverId, string name, int port)
     {
         // 服务器地址
-        var address = await WPFLauncher.Protocol.WPFLauncher.GetNetGameServerAddressAsync(serverId);
-
-        // 服务器普通信息
-        var server = ServersGameMessage.GetServerById(serverId);
-        if (server == null) {
-            throw new ErrorCodeException(ErrorCode.ServerInNot);
-        }
+        var address = await NPFLauncher.GetNetGameServerAddressAsync(serverId);
 
         // 服务器详细信息
-        var details = await WPFLauncher.Protocol.WPFLauncher.GetNetGameDetailByIdAsync(server.EntityId);
+        var details = await NPFLauncher.GetNetGameDetailByIdAsync(serverId);
 
         lock (SafeLock) {
             var interceptor = new EntityProxyItem {
@@ -116,7 +110,7 @@ public static class ActiveGameAndProxies {
                 LocalPort = port,
                 ForwardAddress = address.Host,
                 ForwardPort = address.Port,
-                ServerName = server.Name,
+                ServerName = details.Name,
                 ServerVersion = details.McVersionList[0].Name
             };
             var entityProxy = new EntityProxy {
@@ -150,7 +144,7 @@ public static class ActiveGameAndProxies {
             if (proxy != null) {
                 proxy.Interceptor.ShutdownAsync();
                 ActiveProxies.Remove(proxy);
-                Log.Information("已关闭代理 {Nickname} ({Id})", proxy.GetNickName(), proxy.Id);
+                Log.Information("已关闭代理 {0} ({1})", proxy.GetNickName(), proxy.Id);
                 return;
             }
 
@@ -161,7 +155,7 @@ public static class ActiveGameAndProxies {
 
             proxy1.Shutdown();
             ActiveProxies1.Remove(proxy1);
-            Log.Information("已关闭代理 {Nickname} ({Id})", proxy1.GetNickName(), proxy1.Id);
+            Log.Information("已关闭代理 {0} ({1})", proxy1.GetNickName(), proxy1.Id);
         }
     }
 
@@ -173,25 +167,25 @@ public static class ActiveGameAndProxies {
             if (proxy != null) {
                 proxy.Interceptor.ShutdownAsync();
                 ActiveProxies.Remove(proxy);
-                Log.Information("已关闭代理 {Nickname} ({Id})", proxy.GetNickName(), proxy.Id);
+                Log.Information("已关闭代理 {0} ({1})", proxy.GetNickName(), proxy.Id);
             }
         }
     }
 
     // 关闭白端游戏
-    public static void CloseGame(string id)
+    public static void CloseGame(int id)
     {
         lock (SafeLock) {
             var launcher = GetLauncherService(id);
             if (launcher == null) return;
             ActiveLaunchers.Remove(launcher);
             launcher.ShutdownAsync();
-            Log.Information("白端游戏 {id} 已关闭", launcher.GetPid());
+            Log.Information("白端游戏 {0} 已关闭", launcher.GetPid());
         }
     }
 
     // 获取白端游戏
-    private static LauncherService? GetLauncherService(string id)
+    private static LauncherService? GetLauncherService(int id)
     {
         return ActiveLaunchers.FirstOrDefault(launcher => id.Equals(launcher.Entity.Id));
     }
@@ -223,13 +217,13 @@ public static class ActiveGameAndProxies {
     {
         lock (SafeLock) {
             foreach (var launcher in ActiveLaunchers.ToList().Where(launcher => !launcher.IsRunning())) {
-                Log.Information("白端游戏 {id} 已清理", launcher.GetPid());
+                Log.Information("白端游戏 {0} 已清理", launcher.GetPid());
                 ActiveLaunchers.Remove(launcher);
                 launcher.ShutdownAsync().Wait();
             }
 
             foreach (var launcher in ActiveProxies1.ToList().Where(launcher => !launcher.IsRunning())) {
-                Log.Information("游戏代理 {id} 已清理", launcher.GetRunningPid());
+                Log.Information("游戏代理 {0} 已清理", launcher.GetRunningPid());
                 ActiveProxies1.Remove(launcher);
                 launcher.Shutdown();
             }

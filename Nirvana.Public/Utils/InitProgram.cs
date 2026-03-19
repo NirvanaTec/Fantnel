@@ -36,7 +36,7 @@ public static class InitProgram {
         logInit.Invoke();
 
         // 检查更新
-        Log.Information("{Path}", PathUtil.ResourcePath);
+        Log.Information("{0}", PathUtil.ResourcePath);
         UpdateTools.CheckUpdate(args).Wait();
 
         // 重置日志
@@ -77,6 +77,18 @@ public static class InitProgram {
 
         // 在线检测
         Online();
+
+        // 缓存 服务器/租凭服/皮肤 信息/图片
+        _= Task.Run(async () => {
+            try {
+                await Task.Delay(1000);
+                InfoManager.GetToken(); // 是否登录
+                CacheManager.CacheServer();
+            } catch (Exception) {
+                // ignored
+            }
+        });
+        
     }
 
     /**
@@ -146,10 +158,10 @@ public static class InitProgram {
                             { "versionId", PublicProgram.VersionId.ToString() }
                         });
                 } catch (Exception e) {
-                    Log.Warning(" 在线检测异常! 错误信息: {Exception}", e.Message);
+                    Log.Warning(" 在线检测异常! 错误信息: {0}", e.Message);
                 }
         } catch (Exception e) {
-            Log.Warning(" 在线检测出错! 错误信息: {Exception}", e.Message);
+            Log.Warning(" 在线检测出错! 错误信息: {0}", e.Message);
         }
     }
 
@@ -164,7 +176,7 @@ public static class InitProgram {
                     return;
                 }
             } catch (Exception e) {
-                Log.Error("连接服务器失败! 错误信息: {Exception}", e.Message);
+                Log.Error("连接服务器失败! 错误信息: {0}", e.Message);
             }
 
             if (i == 2) {
@@ -186,8 +198,8 @@ public static class InitProgram {
             return;
         }
 
-        Log.Information("CRC Salt 当前版本: {Version}", InfoManager.FantnelInfo.GameVersion);
-        Log.Information("CRC Salt 计算完成: {CrcSalt}....", InfoManager.FantnelInfo.CrcSalt[..6]);
+        Log.Information("CRC Salt 当前版本: {0}", InfoManager.FantnelInfo.GameVersion);
+        Log.Information("CRC Salt 计算完成: {0}....", InfoManager.FantnelInfo.CrcSalt[..6]);
         X19.CrcSalt = InfoManager.FantnelInfo.CrcSalt;
     }
 

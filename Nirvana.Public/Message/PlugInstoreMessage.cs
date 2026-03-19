@@ -1,7 +1,6 @@
 ﻿using Nirvana.Game.Launcher.Utils;
 using Nirvana.Public.Entities.Nirvana;
 using Nirvana.Public.Entities.Plugin;
-using Nirvana.Public.Manager;
 using Nirvana.WPFLauncher.Http;
 using NirvanaAPI;
 using NirvanaAPI.Entities;
@@ -11,13 +10,16 @@ using Serilog;
 namespace Nirvana.Public.Message;
 
 public static class PlugInstoreMessage {
+    // 插件列表缓存 锁
+    public static readonly Lock PluginListLock = new();
+
     // 插件列表 - 缓存
     private static readonly List<EntityComponents> PluginList = [];
 
     public static async Task<EntityComponents[]> GetPluginList(int offset = 0, int limit = 10)
     {
         // PluginList 有 就用缓存
-        lock (LockManager.PluginListLock) {
+        lock (PluginListLock) {
             // 分页 异常顺序 检测
             var size = offset + (limit - 10);
             if (PluginList.Count < size) GetPluginList(0, size).Wait();
@@ -50,7 +52,7 @@ public static class PlugInstoreMessage {
     // 插件列表 - 添加
     private static void AddServerList(EntityComponents entity)
     {
-        lock (LockManager.PluginListLock) {
+        lock (PluginListLock) {
             // 插件列表 没有 就添加
             if (PluginList.All(plugin => plugin.Id != entity.Id)) {
                 PluginList.Add(entity);

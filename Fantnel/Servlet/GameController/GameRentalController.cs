@@ -30,7 +30,7 @@ public class GameRentalController : ControllerBase {
         // 全部账号
         var accounts = AccountMessage.GetLoginAccountList();
         // 全部游戏角色
-        var games = WPFLauncher.GetRentalGameRolesListAsync(id).Result;
+        var games = NPFLauncher.GetRentalGameRolesListAsync(id).Result;
         // 合并
         var text = new {
             accounts,
@@ -42,9 +42,7 @@ public class GameRentalController : ControllerBase {
     [HttpGet("/api/gamerental/id")]
     public IActionResult GetIdServerHttp([FromQuery] string id)
     {
-        var serverDetail = new EntityRentalDetail();
-        serverDetail.Set(WPFLauncher.GetRentalGameDetailsAsync(id).Result);
-        serverDetail.Set(WPFLauncher.GetGameRentalAddressAsync(id).Result);
+        var serverDetail = new EntityRentalDetail(id);
         return Ok(Code.ToJson(ErrorCode.Success, serverDetail));
     }
 
@@ -53,7 +51,7 @@ public class GameRentalController : ControllerBase {
     {
         if (name.Id == null) throw new ErrorCodeException(ErrorCode.ServerInNot);
         if (name.Name == null) throw new ErrorCodeException(ErrorCode.NameInNot);
-        WPFLauncher.CreateCharacterRentalAsync(name.Id, name.Name).Wait(); // 创建游戏角色
+        NPFLauncher.CreateCharacterRentalAsync(name.Id, name.Name).Wait(); // 创建游戏角色
         RentalGameMessage.GetUserName(name.Id, name.Name).Wait(); // 防止缓存
         return Ok(Code.ToJson(ErrorCode.Success));
     }

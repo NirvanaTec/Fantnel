@@ -10,12 +10,19 @@ public static class InstallerService {
     {
         try {
             var paths = GetInstallationPaths();
-            if (IsMinecraftInstalledAsync(paths).GetAwaiter().GetResult()) return true;
+            if (IsMinecraftInstalledAsync(paths).GetAwaiter().GetResult()) {
+                return true;
+            }
             FileUtil.CleanDirectorySafe(paths.BasePath);
             using var progressBar = new SyncProgressBarUtil.ProgressBar();
             var progress = CreateProgressReporter(progressBar);
-            if (!await DownloadMinecraftPackage(paths.ArchivePath, progress)) return false;
-            if (!await ValidateDownloadedPackage(paths.ArchivePath, progress)) return false;
+            if (!await DownloadMinecraftPackage(paths.ArchivePath, progress)) {
+                return false;
+            }
+
+            if (!await ValidateDownloadedPackage(paths.ArchivePath, progress)) {
+                return false;
+            }
             await ExtractMinecraftPackage(paths.ArchivePath, paths.BasePath, progress);
             await SavePackageHash(paths.ArchivePath, paths.HashPath);
             await CleanupTemporaryFiles(paths.ArchivePath, progress);
@@ -38,7 +45,9 @@ public static class InstallerService {
     private static async Task<bool> IsMinecraftInstalledAsync(
         (string BasePath, string ArchivePath, string HashPath, string ExecutablePath) paths)
     {
-        if (!File.Exists(paths.ExecutablePath) || !File.Exists(paths.HashPath)) return false;
+        if (!File.Exists(paths.ExecutablePath) || !File.Exists(paths.HashPath)) {
+            return false;
+        }
         try {
             return string.Equals(Convert.ToHexStringLower(await File.ReadAllBytesAsync(paths.HashPath)),
                 "50ac5016023c295222b979565b9c707b", StringComparison.OrdinalIgnoreCase);
@@ -115,10 +124,12 @@ public static class InstallerService {
 
     private static async Task<bool> ValidatePackageAsync(string filePath, string expectedMd5)
     {
-        if (string.IsNullOrWhiteSpace(expectedMd5))
+        if (string.IsNullOrWhiteSpace(expectedMd5)) {
             throw new ArgumentException("Expected MD5 hash cannot be null or empty", nameof(expectedMd5));
-        if (!File.Exists(filePath)) throw new FileNotFoundException("File not found: " + filePath, filePath);
-        return string.Equals(Convert.ToHexStringLower(MD5.HashData(await File.ReadAllBytesAsync(filePath))),
-            expectedMd5, StringComparison.OrdinalIgnoreCase);
+        }
+        if (!File.Exists(filePath)) {
+            throw new FileNotFoundException("File not found: " + filePath, filePath);
+        }
+        return string.Equals(Convert.ToHexStringLower(MD5.HashData(await File.ReadAllBytesAsync(filePath))), expectedMd5, StringComparison.OrdinalIgnoreCase);
     }
 }

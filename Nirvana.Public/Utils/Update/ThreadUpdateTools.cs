@@ -12,7 +12,6 @@ using Tools = NirvanaAPI.Utils.Tools;
 namespace Nirvana.Public.Utils.Update;
 
 public static class ThreadUpdateTools {
-    
     /**
      * 检查更新
      * path: Fantnel1.dll,
@@ -23,7 +22,8 @@ public static class ThreadUpdateTools {
     public static async Task CheckUpdate(EntityUpdateConfig1 entityUpdateConfig1)
     {
         var downloadSize = 0;
-        List<IntPtrReference> progress = [];
+        var threads = new List<Thread>();
+        var progress = new List<IntPtrReference>();
 
         foreach (var item in entityUpdateConfig1.Array) {
             // 下载进度
@@ -65,7 +65,16 @@ public static class ThreadUpdateTools {
                 downloadSize++;
             }
 
-            DownloadWithRetryAsync(url, resourcesPath1, newProgress, entityUpdateConfig1.Name, progress, entityUpdateConfig1.Count());
+            var thread = new Thread(() => {
+                DownloadWithRetryAsync(url, resourcesPath1, newProgress, entityUpdateConfig1.Name, progress, entityUpdateConfig1.Count()).Wait();
+            });
+            
+            threads.Add(thread);
+            thread.Start();
+        }
+
+        foreach (var thread in threads) {
+            thread.Join();
         }
 
         if (entityUpdateConfig1.Safe && downloadSize > 0) {
@@ -90,7 +99,7 @@ public static class ThreadUpdateTools {
             ? Tools.GetProcessLocation()
             : Tools.GetProcessArguments();
         var updateScript = GenerateUpdateScript(PathUtil.UpdaterPath, AppDomain.CurrentDomain.BaseDirectory, exeName);
-        Log.Information("更新脚本: {UpdateScript}", updateScript);
+        Log.Information("更新脚本: {0}", updateScript);
         return updateScript;
     }
 
@@ -101,12 +110,12 @@ public static class ThreadUpdateTools {
             : $"sleep 1\ncp -r \"{tempDir}/.\" \"{targetDir}\"\ndotnet \"{exeName}\" & rm -rf \"{tempDir}\"";
     }
 
-    private static void DownloadWithRetryAsync(string url, string filePath, IntPtrReference progressRef,
+    private static async Task DownloadWithRetryAsync(string url, string filePath, IntPtrReference progressRef,
         string name, List<IntPtrReference> allProgress, int totalCount)
     {
-        DownloadUtil.DownloadAsync(url, filePath, progressValue => {
+        await DownloadUtil.DownloadAsync(url, filePath, progressValue => {
             progressRef.Value = progressValue;
-        }).Wait();
+        });
         UpdateProgress(allProgress, totalCount, name);
     }
 
@@ -116,7 +125,7 @@ public static class ThreadUpdateTools {
         var sumPercent = progress.Aggregate(0.0, (current, reference) => current + reference.Value);
         // 当前下载进度 平均值
         var totalProgress = sumPercent / totalCount;
-        var completedCount = progress.Count(p => p.Value == 100);
+        var completedCount = progress.Count(p => p.Value >= 100);
 
         var progressBar = new SyncProgressBarUtil.ProgressBar();
         progressBar.Update(totalProgress, $"Downloading {completedCount} / {totalCount} {name}");

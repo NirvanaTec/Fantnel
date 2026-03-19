@@ -46,7 +46,7 @@ while (gameName == null) {
     gameName = Console.ReadLine();
 }
 
-var list = WPFLauncher.GetNetGameCharactersAsync(serverId).Result;
+var list = NPFLauncher.GetNetGameCharactersAsync(serverId).Result;
 EntityGameCharacter? characters = null;
 
 foreach (var item in list)
@@ -54,9 +54,9 @@ foreach (var item in list)
         characters = item;
 
 if (characters == null)
-    WPFLauncher.CreateCharacterAsync(serverId, gameName).Wait();
+    NPFLauncher.CreateCharacterAsync(serverId, gameName).Wait();
 
-Log.Information("角色名称: {GameName}", gameName);
+Log.Information("角色名称: {0}", gameName);
 
 // 启动代理
 ProxiesMessage.StartProxyAsyncTo(serverId, gameName).Wait();

@@ -77,10 +77,14 @@ public static class FileUtil {
             var destFileName = Path.Combine(text, fileName);
             if (Directory.Exists(item)) {
                 CopyDirectory(item, text, true, deleteSource);
-                if (deleteSource) Directory.Delete(item, true);
+                if (deleteSource) {
+                    Directory.Delete(item, true);
+                }
             } else {
                 File.Copy(item, destFileName, true);
-                if (deleteSource) File.Delete(item);
+                if (deleteSource) {
+                    File.Delete(item);
+                }
             }
         }
     }
@@ -88,7 +92,9 @@ public static class FileUtil {
     public static bool DeleteFileSafe(string path)
     {
         try {
-            if (!File.Exists(path)) return true;
+            if (!File.Exists(path)) {
+                return true;
+            }
             File.Delete(path);
             return true;
         } catch (Exception) {
@@ -112,11 +118,18 @@ public static class FileUtil {
         try {
             await File.WriteAllBytesAsync(tempFile, buffer);
             if (File.Exists(tempFile) && new FileInfo(tempFile).Length > 0) {
-                if (File.Exists(filePath)) File.Delete(filePath);
-                if (filePath != null) File.Move(tempFile, filePath);
+                if (File.Exists(filePath)) {
+                    File.Delete(filePath);
+                }
+
+                if (filePath != null) {
+                    File.Move(tempFile, filePath);
+                }
             }
         } catch {
-            if (File.Exists(tempFile)) File.Delete(tempFile);
+            if (File.Exists(tempFile)) {
+                File.Delete(tempFile);
+            }
             throw;
         }
     }
@@ -139,9 +152,9 @@ public static class FileUtil {
             Log.Debug("已通过 Mono.Posix 设置 {FilePath} 的权限", filePath); // 可选的日志
             return;
         } catch (UnauthorizedAccessException e) {
-            Log.Warning("警告：无权修改 {FilePath} 的权限: {UAExMessage}", filePath, e.Message);
+            Log.Warning("警告：无权修改 {0} 的权限: {1}", filePath, e.Message);
         } catch (Exception e) {
-            Log.Warning("警告：使用 Mono.Posix 设置 {FilePath} 权限时出错: {PosixExMessage}", filePath, e.Message);
+            Log.Warning("警告：使用 Mono.Posix 设置 {0} 权限时出错: {1}", filePath, e.Message);
         }
 
         try {
@@ -149,7 +162,7 @@ public static class FileUtil {
             var process = Process.Start(processStartInfo);
             process?.WaitForExit();
         } catch (Exception e) {
-            Log.Warning("警告：使用 chmod 设置 {FilePath} 权限时出错: {ChmodExMessage}", filePath, e.Message);
+            Log.Warning("警告：使用 chmod 设置 {0} 权限时出错: {1}", filePath, e.Message);
         }
     }
 }

@@ -20,9 +20,7 @@ public class GameServerController : ControllerBase {
     [HttpGet("/api/gameserver/id")]
     public IActionResult GetIdServerHttp([FromQuery] string id)
     {
-        var serverDetail = new EntityServerDetail();
-        serverDetail.Set(WPFLauncher.GetNetGameDetailByIdAsync(id).Result);
-        serverDetail.Set(WPFLauncher.GetNetGameServerAddressAsync(id).Result);
+        var serverDetail = new EntityServerDetail(id);
         return Ok(Code.ToJson(ErrorCode.Success, serverDetail));
     }
 
@@ -32,7 +30,7 @@ public class GameServerController : ControllerBase {
         // 全部账号
         var accounts = AccountMessage.GetLoginAccountList();
         // 全部游戏角色
-        var games = WPFLauncher.GetNetGameCharactersAsync(id).Result;
+        var games = NPFLauncher.GetNetGameCharactersAsync(id).Result;
         // 合并
         var text = new {
             accounts,
@@ -46,7 +44,7 @@ public class GameServerController : ControllerBase {
     {
         if (name.Id == null) throw new ErrorCodeException(ErrorCode.ServerInNot);
         if (name.Name == null) throw new ErrorCodeException(ErrorCode.NameInNot);
-        WPFLauncher.CreateCharacterAsync(name.Id, name.Name).Wait(); // 创建游戏角色
+        NPFLauncher.CreateCharacterAsync(name.Id, name.Name).Wait(); // 创建游戏角色
         ServersGameMessage.GetUserName(name.Id, name.Name).Wait(); // 防止缓存
         return Ok(Code.ToJson(ErrorCode.Success));
     }

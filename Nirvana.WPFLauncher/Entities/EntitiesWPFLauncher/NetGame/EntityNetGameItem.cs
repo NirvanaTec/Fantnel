@@ -3,7 +3,6 @@ using Nirvana.WPFLauncher.Entities.EntitiesConverter;
 
 namespace Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame;
 
-// ReSharper disable once ClassNeverInstantiated.Global
 public class EntityNetGameItem {
     [JsonPropertyName("entity_id")]
     public string EntityId { get; set; } = string.Empty;
@@ -23,4 +22,9 @@ public class EntityNetGameItem {
 
     [JsonPropertyName("version")] // 来自详细信息
     public string Version { get; set; } = string.Empty;
+
+    public bool TitleImageSafe()
+    {
+        return TitleImageUrl.Contains("http") || TitleImageUrl.Contains("/image/");
+    }
 }

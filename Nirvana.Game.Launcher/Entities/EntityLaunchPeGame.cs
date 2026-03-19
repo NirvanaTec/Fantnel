@@ -4,7 +4,6 @@ using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Textur
 
 namespace Nirvana.Game.Launcher.Entities;
 
-// ReSharper disable once ClassNeverInstantiated.Global
 public class EntityLaunchPeGame {
     [JsonPropertyName("game_name")]
     public string GameName { get; set; } = string.Empty;

@@ -2,7 +2,6 @@
 
 namespace Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
 
-// ReSharper disable once ClassNeverInstantiated.Global
 public class EntityQueryNetGameDetailItem {
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;

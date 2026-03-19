@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Codexus.Development.SDK.Entities;
 using Codexus.Interceptors;
+using Nirvana.Public.Message;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameDetails;
@@ -13,9 +14,9 @@ using OpenSDK.Entities.Yggdrasil;
 using OpenSDK.Yggdrasil;
 using Serilog;
 
-namespace Nirvana.Public.Message;
+namespace Nirvana.Public.Manager;
 
-public class InterceptorMessage {
+public class InterceptorManager {
     private readonly EntityAccount _availableUser;
 
     private readonly string _entityId;
@@ -23,7 +24,7 @@ public class InterceptorMessage {
     private readonly string _versionName;
     public readonly Interceptor Interceptor;
 
-    public InterceptorMessage(
+    public InterceptorManager(
         EntityQueryNetGameDetailItem server,
         EntityGameCharacter character,
         EntityMcVersion version,
@@ -53,7 +54,7 @@ public class InterceptorMessage {
         );
     }
 
-    public InterceptorMessage(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName,
+    public InterceptorManager(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName,
         EntityRentalGameServerAddress address, string mods, int port, bool isRental)
     {
         _mods = mods;
@@ -81,8 +82,7 @@ public class InterceptorMessage {
 
     private void YggdrasilCallback(InterceptorConfig config, string serverId)
     {
-        Log.Warning("认证中: {serverId}", serverId);
-        var signal = new SemaphoreSlim(0);
+        Log.Warning("认证中: {0}", serverId);
         Task.Run(async () => {
             try {
                 var pair = Md5Mapping.GetMd5FromGameVersion(_versionName);
@@ -104,19 +104,16 @@ public class InterceptorMessage {
                 if (success.IsSuccess) {
                     Log.Information("认证完成!");
                 } else {
-                    Log.Error("认证失败: {Error}", success.Error);
+                    Log.Error("认证失败: {0}", success.Error);
                     try {
                         AccountMessage.AutoUpdateAccount(_availableUser, () => { ActiveGameAndProxies.CloseProxy(Interceptor); });
                     } catch (Exception e) {
-                        Log.Error("认证失败: {account}: {Message}", _availableUser.Account, e.Message);
+                        Log.Error("认证失败: {0}: {1}", _availableUser.Account, e.Message);
                     }
                 }
             } catch (Exception ex) {
-                Log.Fatal("认证出错: {ex}", ex.Message);
-            } finally {
-                signal.Release();
+                Log.Fatal("认证出错: {0}", ex.Message);
             }
         });
-        signal.Wait();
     }
 }

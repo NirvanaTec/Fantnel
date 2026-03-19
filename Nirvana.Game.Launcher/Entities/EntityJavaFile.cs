@@ -75,7 +75,7 @@ public class EntityJavaFile {
         }
 
         if (IsNullOrEmptyByUrl()) {
-            Log.Warning("jar {ItemKey} url is empty", GetPath());
+            Log.Warning("jar {0} url is empty", GetPath());
             return false;
         }
 
@@ -86,7 +86,7 @@ public class EntityJavaFile {
     private async Task DownloadAsync()
     {
         if (Url == null) {
-            Log.Warning("jar {ItemKey} url is empty", GetPath());
+            Log.Warning("jar {0} url is empty", GetPath());
             return;
         }
 

@@ -42,7 +42,7 @@ public class NirvanaController : ControllerBase {
                 NirvanaConfig.SetHideAccount(value ?? new EntityNirvanaConfig().HideAccount.ToString());
                 break;
             case "chatEnable":
-                NirvanaAccountManager.SetChatEnable(value ??  new EntityNirvanaConfig().ChatEnable.ToString());
+                NirvanaAccountManager.SetChatEnable(value ?? new EntityNirvanaConfig().ChatEnable.ToString());
                 break;
             case "gameMemory":
                 NirvanaConfig.SetGameMemory(value ?? new EntityNirvanaConfig().GameMemory.ToString());

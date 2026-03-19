@@ -1,5 +1,7 @@
-﻿using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame;
+﻿using Nirvana.Public.Manager;
+using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
+using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Utils.CodeTools;
 using Serilog;
 
@@ -7,7 +9,7 @@ namespace Nirvana.Public.Message;
 
 public static class ServersGameMessage {
     // 服务器列表[普通信息] - 缓存
-    private static readonly List<EntityNetGameItem> ServerList = [];
+    public static readonly List<EntityNetGameItem> ServerList = [];
 
     /**
      * 获取服务器列表[普通信息]
@@ -27,6 +29,11 @@ public static class ServersGameMessage {
             // 分页
             if (ServerList.Count >= count) {
                 var list = ServerList.Skip(offset).Take(pageSize).ToArray();
+
+                // 缓存图片下载
+                CacheManager.DownloadCacheImage();
+
+                // 无须修复图片
                 if (!safeImage) {
                     return list;
                 }
@@ -34,12 +41,12 @@ public static class ServersGameMessage {
                 // 修复没有图片的游戏项
                 foreach (var item in list) {
                     // 没有图片
-                    if (item.TitleImageUrl.Contains("http")) {
+                    if (item.TitleImageSafe()) {
                         continue;
                     }
 
                     // 从 详情页 获取图片
-                    await GetFirstImageAndVer(item);
+                    await GetFirstImageAndVerByCache(item);
                 }
 
                 return list;
@@ -53,12 +60,13 @@ public static class ServersGameMessage {
                     return [];
                 }
             } else {
-                var items = await WPFLauncher.Protocol.WPFLauncher.GetAvailableNetGamesAsync(ServerList.Count, 20);
+                var items = await NPFLauncher.GetAvailableNetGamesAsync(ServerList.Count);
                 if (items.Length == 0) {
-                    index = 2;
+                    index = 1;
                 }
 
                 AddServerList(items);
+                Thread.Sleep(500);
             }
         }
     }
@@ -77,38 +85,52 @@ public static class ServersGameMessage {
     private static async Task<EntityNetGameItem[]> GetServerListTo(int offset, int pageSize,
         bool safeImage, Func<EntityNetGameItem, bool> filter)
     {
-        var mode = true;
+        var index = -pageSize;
         var count = pageSize + offset;
         var pageSize1 = ServerList.Count;
-        var pageSize2 = pageSize;
+
         while (true) {
             var list = await GetServerList(0, pageSize1, safeImage);
             var list1 = list.Where(filter.Invoke).ToArray();
             if (list1.Length >= count) {
-                return list1.Skip(offset).Take(pageSize2).ToArray();
+                return list1.Skip(offset).Take(pageSize).ToArray();
             }
 
-            if (mode) {
-                var items = await WPFLauncher.Protocol.WPFLauncher.GetAvailableNetGamesAsync(ServerList.Count, 20);
+            if (++index > 0) {
+                // 最后一页, 减少数量，避免丢失数据
+                count--;
+                pageSize--;
+                if (pageSize <= 0) {
+                    return [];
+                }
+            } else {
+                var items = await NPFLauncher.GetAvailableNetGamesAsync(ServerList.Count);
                 if (items.Length == 0) {
-                    mode = false;
+                    index = 1;
                 } else {
                     pageSize1 += 20;
                 }
-            } else {
-                count--;
-                pageSize2--;
+
+                AddServerList(items);
+                Thread.Sleep(500);
             }
         }
     }
 
-    // 获取 第一张 图片
+    // 获取 主页图片 / 版本
     private static async Task GetFirstImageAndVer(EntityNetGameItem item)
     {
-        var details = await WPFLauncher.Protocol.WPFLauncher.GetNetGameDetailByIdAsync(item.EntityId);
+        var details = await NPFLauncher.GetNetGameDetailByIdAsync(item.EntityId);
         // if (details != null && details.BriefImageUrls.Length > 0)
         item.Version = details is { McVersionList.Length: > 0 } ? details.McVersionList[0].Name : "";
         item.TitleImageUrl = details is { BriefImageUrls.Length: > 0 } ? details.BriefImageUrls[0] : "";
+    }
+
+    // 获取 主页图片[缓存保存] / 版本
+    private static async Task GetFirstImageAndVerByCache(EntityNetGameItem item)
+    {
+        await GetFirstImageAndVer(item);
+        CacheManager.GetCacheImageUrl(item);
     }
 
     // 服务器列表[普通信息] - 添加
@@ -117,6 +139,7 @@ public static class ServersGameMessage {
         foreach (var item in ServerList.Where(item => item.EntityId == gameItem.EntityId)) {
             if (item.TitleImageUrl == "" && gameItem.TitleImageUrl != "") {
                 item.TitleImageUrl = gameItem.TitleImageUrl;
+                CacheManager.GetCacheImageUrl(item);
             }
 
             return;
@@ -134,25 +157,6 @@ public static class ServersGameMessage {
     }
 
     /**
-     * 服务器列表[普通信息] - 获取
-     * @param id 服务器ID
-     * @return 服务器信息
-     */
-    public static EntityNetGameItem? GetServerById(string id)
-    {
-        for (var i = 0; i < 100; i++) {
-            var server = ServerList.Find(server => server.EntityId == id);
-            if (server != null) {
-                return server;
-            }
-
-            GetServerList(10 * i, 10, false).Wait();
-        }
-
-        return null;
-    }
-
-    /**
      * 获取服务器上的指定游戏角色
      * @param serverId 服务器ID
      * @param name 游戏角色名称
@@ -162,7 +166,7 @@ public static class ServersGameMessage {
     {
         for (var i = 0; i < 3; i++) {
             try {
-                var games = await WPFLauncher.Protocol.WPFLauncher.GetNetGameCharactersAsync(serverId);
+                var games = await NPFLauncher.GetNetGameCharactersAsync(serverId);
                 if (games == null) {
                     throw new ErrorCodeException(ErrorCode.NotFound);
                 }
