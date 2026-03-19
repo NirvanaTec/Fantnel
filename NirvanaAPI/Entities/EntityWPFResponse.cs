@@ -15,6 +15,7 @@ public class EntityWPFResponse {
     {
         // Token 过期 | 账号被顶
         if (Code is 10 or 22) {
+            InfoManager.SetGameAccount(null);
             InfoManager.DeleteAccount(this);
         }
     }

@@ -29,7 +29,7 @@ public class InterceptorManager {
         EntityGameCharacter character,
         EntityMcVersion version,
         EntityNetGameServerAddress address,
-        string mods, int port, bool isRental)
+        string mods, int port)
     {
         _mods = mods;
         _versionName = version.Name;
@@ -37,7 +37,7 @@ public class InterceptorManager {
         _availableUser = InfoManager.GetGameAccount();
         // 创建代理
         Interceptor = Interceptor.CreateInterceptor(
-            isRental,
+            false,
             new EntitySocks5 { Enabled = false },
             mods,
             server.EntityId,
@@ -55,7 +55,7 @@ public class InterceptorManager {
     }
 
     public InterceptorManager(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName,
-        EntityRentalGameServerAddress address, string mods, int port, bool isRental)
+        EntityRentalGameServerAddress address, string mods, int port)
     {
         _mods = mods;
         _versionName = versionName;
@@ -63,7 +63,7 @@ public class InterceptorManager {
         _availableUser = InfoManager.GetGameAccount();
         // 创建代理
         Interceptor = Interceptor.CreateInterceptor(
-            isRental,
+            true,
             new EntitySocks5 { Enabled = false },
             mods,
             server.EntityId,
@@ -106,7 +106,9 @@ public class InterceptorManager {
                 } else {
                     Log.Error("认证失败: {0}", success.Error);
                     try {
-                        AccountMessage.AutoUpdateAccount(_availableUser, () => { ActiveGameAndProxies.CloseProxy(Interceptor); });
+                        AccountMessage.AutoUpdateAccount(_availableUser, () => {
+                            ActiveGameAndProxies.CloseProxy(Interceptor);
+                        });
                     } catch (Exception e) {
                         Log.Error("认证失败: {0}: {1}", _availableUser.Account, e.Message);
                     }

@@ -1,12 +1,21 @@
-﻿using NirvanaAPI.Entities.Login;
+﻿using System.Text.Json.Serialization;
+using NirvanaAPI.Entities.Login;
 
 namespace Nirvana.Public.Entities.NEL;
 
 public abstract class EntityProxyBase {
+    
+    [JsonPropertyName("id")]
     public int Id { get; init; }
-    public string? UserId { get; init; }
-    public string? UserToken { get; init; }
+    
+    [JsonPropertyName("serverId")]
     public string? ServerId { get; init; }
+    
+    [JsonIgnore]
+    public string? UserId;
+    
+    [JsonIgnore]
+    public string? UserToken;
 
     /**
      * 清理 相同/过期 的代理

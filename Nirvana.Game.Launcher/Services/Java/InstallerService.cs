@@ -39,7 +39,6 @@ public static class InstallerService {
 
         await ProcessPackage(versionResult.CoreLibUrl, libZip, PathUtil.CachePath, libMd5File, versionResult.CoreLibMd5,
             versionName + " libraries");
-        InstallCoreLibs(Path.Combine(PathUtil.CachePath, versionName + "_libs"), gameVersion);
     }
 
     private static async Task ProcessPackage(string url, string zipPath, string extractTo, string md5Path, string md5,
@@ -129,8 +128,9 @@ public static class InstallerService {
                 });
                 // 创建目录
                 var directory = Path.GetDirectoryName(destFileName4);
-                if (!Directory.Exists(directory) && directory != null)
+                if (!Directory.Exists(directory) && directory != null) {
                     Directory.CreateDirectory(directory);
+                }
                 File.Copy(text6, destFileName4, true);
             } else if (fileName.StartsWith("modlauncher-") && fileName.Contains("10.2.1")) {
                 var destFileName5 = Path.Combine(new[] {

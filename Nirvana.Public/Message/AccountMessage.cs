@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Codexus.Cipher.Entities.MPay;
 using Codexus.Cipher.Protocol;
 using Nirvana.Public.Manager;
@@ -93,8 +94,7 @@ public static class AccountMessage {
     public static EntityAccount[] GetLoginAccountList()
     {
         var accountList = GetAccountList();
-        return accountList.Where(account => InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(account)))
-            .ToArray();
+        return accountList.Where(account => InfoManager.GameAccountList.Any(gameAccount => gameAccount.Equals(account))).ToArray();
     }
 
     /**

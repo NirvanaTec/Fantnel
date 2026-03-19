@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using Nirvana.WPFLauncher.Http;
 using OpenSDK.Cipher;
 using OpenSDK.Entities;
@@ -50,8 +49,9 @@ public static class StandardYggdrasil {
     {
         using var receive = await stream.ReadSteamWithInt16Async();
 
-        if (receive.Length < 272)
+        if (receive.Length < 272) {
             return Result<byte[]>.Failure("Invalid response length");
+        }
 
         var loginSeed = new byte[16];
         var signContent = new byte[256];
@@ -63,8 +63,9 @@ public static class StandardYggdrasil {
 
         using var response = await stream.ReadSteamWithInt16Async();
 
-        if (response.Length < 1)
+        if (response.Length < 1) {
             return Result<byte[]>.Failure("Empty response");
+        }
 
         var status = (byte)response.ReadByte();
 
@@ -89,22 +90,6 @@ public static class StandardYggdrasil {
         if (type != 9 || unpackMessage[0] != 0x00) return Result.Failure(Convert.ToHexString([unpackMessage[0]]));
 
         return Result.Success();
-    }
-
-    private static async Task<IPAddress[]> ResolveAddressAsync(string address)
-    {
-        if (IPAddress.TryParse(address, out var ipAddress)) {
-            return [ipAddress];
-        }
-
-        try {
-            var addresses = await Dns.GetHostAddressesAsync(address);
-            return addresses.Length == 0
-                ? throw new InvalidOperationException($"Unable to resolve host: {address}")
-                : addresses;
-        } catch (SocketException ex) {
-            throw new InvalidOperationException($"DNS resolution failed for {address}", ex);
-        }
     }
 
     private static YggdrasilServer[] RandomAuthServer()

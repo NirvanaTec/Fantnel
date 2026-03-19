@@ -13,6 +13,7 @@ using Nirvana.WPFLauncher.Utils.Cipher;
 using NirvanaAPI;
 using NirvanaAPI.Utils;
 using Serilog;
+using TokenUtil = Nirvana.WPFLauncher.Utils.Cipher.TokenUtil;
 
 namespace Nirvana.Game.Launcher.Services.Java;
 
@@ -47,8 +48,6 @@ public class CommandService {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
-    private string _authToken = "";
-
     private string _cmd = "";
 
     private EnumGameVersion _gameVersion;
@@ -67,7 +66,7 @@ public class CommandService {
 
     private string _workPath = "";
 
-    public void Init(EnumGameVersion gameVersion, EntityLaunchGame entity, string dToken, string workPath, string uuid,
+    public void Init(EnumGameVersion gameVersion, EntityLaunchGame entity, string workPath, string uuid,
         int socketPort,
         string protocolVersion = "", int rpcPort = 11413)
     {
@@ -76,7 +75,6 @@ public class CommandService {
         _gameVersion = gameVersion;
         _rpcPort = rpcPort;
         _uuid = uuid;
-        _authToken = dToken;
         _workPath = workPath;
         _protocolVersion = protocolVersion;
 
@@ -436,8 +434,8 @@ public class CommandService {
             .Append(NirvanaConfig.Config.JvmArgs)
             .Append($" -DlauncherControlPort={socketPort}")
             .Append($" -DlauncherGameId={_launcherGame.GameId}")
-            .Append($" -DuserId={_launcherGame.UserId}")
-            .Append($" -DToken={_authToken}")
+            .Append($" -DuserId={_launcherGame.Account.GetUserId()}")
+            .Append($" -DToken={TokenUtil.GenerateEncryptToken(_launcherGame.Account.GetToken())}")
             .Append(" -DServer=RELEASE")
             .Append(AddNativePath());
 
@@ -721,7 +719,7 @@ public class CommandService {
             ? "\"uid\":[{0}],\"gameid\":[{1}],\"launcherport\":[{2}],\\\"filterkey\\\":[\\\"{3}\\\",\\\"0\\\"],\\\"filterpath\\\":[\\\"\\\",\\\"0\\\"],\\\"timedelta\\\":[0,0],\\\"launchversion\\\":[\\\"{3}\\\",\\\"0\\\"]"
             : "\\\"uid\\\":[{0},0],\\\"gameid\\\":[{1},0],\\\"launcherport\\\":[{2},0],\\\"filterkey\\\":[\\\"{3}\\\",\\\"0\\\"],\\\"filterpath\\\":[\\\"\\\",\\\"0\\\"],\\\"timedelta\\\":[0,0],\\\"launchversion\\\":[\\\"{4}\\\",\\\"0\\\"]";
         object?[] args = [
-            _launcherGame.UserId, 0, _rpcPort, RandomUtil.GetRandomString(32, "abcdefghijklmnopqrstuvwxyz"),
+            _launcherGame.Account.GetUserId(), 0, _rpcPort, RandomUtil.GetRandomString(32, "abcdefghijklmnopqrstuvwxyz"),
             _protocolVersion
         ];
         var text = string.Format(format, args);

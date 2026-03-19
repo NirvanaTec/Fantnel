@@ -1,12 +1,13 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NirvanaAPI.Entities.Login;
 using OpenSDK.Cipher.Nirvana.Connection;
 using Serilog;
 
 namespace OpenSDK.Cipher.Nirvana.Protocols;
 
-public class AuthLibProtocol(IPAddress address, int port, string modList, string version, string accessToken)
+public class AuthLibProtocol(IPAddress address, int port, string modList, string version, EntityAccount account)
     : IDisposable {
     private readonly CancellationTokenSource _cts = new();
 
@@ -58,7 +59,9 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
 
     public void Stop()
     {
-        if (!_disposed) Dispose();
+        if (!_disposed) {
+            Dispose();
+        }
     }
 
     private async Task AcceptLoopAsync(CancellationToken token)
@@ -111,8 +114,9 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
                 await ReadExactAsync(stream, serverIdBuf, 0, serverIdLen, token).ConfigureAwait(false);
                 var serverId = Encoding.UTF8.GetString(serverIdBuf);
 
-                await NetEaseConnection.CreateAuthenticatorAsync(serverId, gameId, version, modList,
-                    int.Parse(userId), accessToken, () => { responseCode = 0u; }).ConfigureAwait(false);
+                await NetEaseConnection.CreateAuthenticatorAsync(serverId, gameId, version, modList, int.Parse(userId), account.GetToken(), () => {
+                    responseCode = 0u;
+                }).ConfigureAwait(false);
             } catch (Exception ex) {
                 Log.Warning("Client handling error: {0}", ex.Message);
             } finally {

@@ -13,8 +13,6 @@ using NirvanaAPI.Utils;
 using OpenSDK.Cipher.Nirvana;
 using OpenSDK.Cipher.Nirvana.Protocols;
 using Serilog;
-using ArgumentNullException = BarsGroup.CodeGuard.Exceptions.ArgumentNullException;
-using TokenUtil = Nirvana.WPFLauncher.Utils.Cipher.TokenUtil;
 
 namespace Nirvana.Game.Launcher.Services.Java;
 
@@ -40,7 +38,7 @@ public sealed class LauncherService : IDisposable {
 
     public EntityLaunchGame Entity { get; }
 
-    public Guid Identifier { get; }
+    private Guid Identifier { get; }
 
     private Process? GameProcess { get; set; }
 
@@ -50,7 +48,7 @@ public sealed class LauncherService : IDisposable {
         GC.SuppressFinalize(this);
     }
 
-    public Process? GetProcess()
+    private Process? GetProcess()
     {
         return GameProcess;
     }
@@ -161,8 +159,7 @@ public sealed class LauncherService : IDisposable {
         }
 
         commandService.Init(enumVersion, Entity,
-            TokenUtil.GenerateEncryptToken(Entity.AccessToken),
-            workingDirectory, _skip32.GenerateRoleUuid(Entity.RoleName, Convert.ToUInt32(Entity.UserId)), _socketPort,
+            workingDirectory, _skip32.GenerateRoleUuid(Entity.RoleName, Convert.ToUInt32(Entity.Account.GetUserId())), _socketPort,
             X19.GameVersion, availablePort);
 
         return (commandService, rpcPort: availablePort);
@@ -179,7 +176,7 @@ public sealed class LauncherService : IDisposable {
     private void StartAuthenticationService()
     {
         _authLibProtocol = new AuthLibProtocol(IPAddress.Parse("127.0.0.1"), _socketPort,
-            JsonSerializer.Serialize(_modList), Entity.GameVersion, Entity.AccessToken);
+            JsonSerializer.Serialize(_modList), Entity.GameVersion, Entity.Account);
         _authLibProtocol.Start();
     }
 

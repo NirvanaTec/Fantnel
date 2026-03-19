@@ -7,6 +7,7 @@ using Serilog;
 namespace OpenSDK.Cipher.Nirvana.Connection;
 
 public static class NetEaseConnection {
+    
     public static async Task CreateAuthenticatorAsync(string serverId, string gameId, string gameVersion,
         string modInfo, int userId, string userToken, Action handleSuccess)
     {

@@ -60,12 +60,11 @@ public static class LaunchMessage {
             GameName = server.ServerName,
             GameId = server.EntityId,
             RoleName = character.Name,
-            UserId = character.UserId,
             ClientType = EnumGameClientType.Java,
             GameType = EnumGType.ServerGame,
             GameVersionId = (int)gameVersion,
             GameVersion = versionName,
-            AccessToken = InfoManager.GetGameAccount().GetToken(),
+            Account = InfoManager.GetGameAccount(),
             ServerIp = address.McServerHost,
             ServerPort = address.McServerPort,
             LoadCoreMods = true
@@ -110,12 +109,11 @@ public static class LaunchMessage {
             GameName = server.Name,
             GameId = server.EntityId,
             RoleName = character.Name,
-            UserId = character.UserId,
             ClientType = EnumGameClientType.Java,
             GameType = EnumGType.NetGame,
             GameVersionId = (int)gameVersion,
             GameVersion = version.Name,
-            AccessToken = InfoManager.GetGameAccount().GetToken(),
+            Account = InfoManager.GetGameAccount(),
             ServerIp = address.Host,
             ServerPort = address.Port,
             LoadCoreMods = true
@@ -160,7 +158,7 @@ public static class LaunchMessage {
             }
         }
         var filePath = Path.Combine(javaPath, javaName + ".zip");
-        await DownloadUtil.DownloadAsync(response.Data.Url, filePath, javaName);;
+        await DownloadUtil.DownloadAsync(response.Data.Url, filePath, javaName);
         await CompressionUtil.ExtractAsync(filePath, javaPath, javaName);
         await File.WriteAllTextAsync(md5File, response.Data.Md5);
         Log.Information("Java Path: {0}", javaPath);

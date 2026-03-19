@@ -15,10 +15,6 @@ public class EntityLaunchGame {
     [JsonPropertyName("role_name")]
     public string RoleName { get; init; } = string.Empty;
 
-    [JsonPropertyName("user_id")]
-    public string UserId { get; init; } = string.Empty;
-
-
     [JsonPropertyName("client_type")]
     public EnumGameClientType ClientType { get; set; }
 
@@ -30,9 +26,9 @@ public class EntityLaunchGame {
 
     [JsonPropertyName("game_version")]
     public string GameVersion { get; init; } = string.Empty;
-
-    [JsonPropertyName("access_token")]
-    public string AccessToken { get; init; } = string.Empty;
+    
+    [JsonIgnore]
+    public required EntityAccount Account;
 
     [JsonPropertyName("server_ip")]
     public string ServerIp { get; init; } = string.Empty;
@@ -59,8 +55,7 @@ public class EntityLaunchGame {
             if (Equals(gameAccount.UserId, serverId, nickname)) {
                 return true;
             }
-        }
-
+        } 
         return Equals(gameAccount);
     }
 
@@ -74,7 +69,7 @@ public class EntityLaunchGame {
      */
     private bool Equals(string userId, string serverId, string nickname)
     {
-        return userId == UserId && serverId == GameId && nickname == RoleName;
+        return userId == Account.UserId && serverId == GameId && nickname == RoleName;
     }
 
     /**
@@ -86,6 +81,6 @@ public class EntityLaunchGame {
      */
     private bool Equals(EntityAccount? gameUser)
     {
-        return gameUser?.UserId == UserId && gameUser.Token != AccessToken;
+        return gameUser?.UserId == Account.UserId && gameUser?.Token != Account.Token;
     }
 }

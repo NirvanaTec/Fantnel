@@ -124,7 +124,7 @@ public class GameRpcService(
         if (array != null) SendControlData(array);
         Log.Information(
             "[RPC] Sent new-version authentication to {0}:{1} | User: {2} | Role: {3} | Protocol: {4}",
-            launchGame.ServerIp, launchGame.ServerPort, launchGame.UserId, launchGame.RoleName, gameVersion);
+            launchGame.ServerIp, launchGame.ServerPort, launchGame.Account.GetUserId(), launchGame.RoleName, gameVersion);
     }
 
     private void HandleAuthentication(byte[] data)
@@ -134,7 +134,7 @@ public class GameRpcService(
         if (array != null) SendControlData(array);
         Log.Information(
             "[RPC] Sent authentication to {0}:{1} | User: {2} | Role: {3} | Protocol: {4}",
-            launchGame.ServerIp, launchGame.ServerPort, launchGame.UserId, launchGame.RoleName, gameVersion);
+            launchGame.ServerIp, launchGame.ServerPort, launchGame.Account.GetUserId(), launchGame.RoleName, gameVersion);
     }
 
     private void OnHeartBeat(byte[] data)
@@ -159,7 +159,7 @@ public class GameRpcService(
 
     private async Task ProcessPlayerSkin(EntityOtherEnterWorldMsg msg)
     {
-        var list = await NPFLauncher.GetSkinListInGameAsync(launchGame.UserId, launchGame.AccessToken,
+        var list = await NPFLauncher.GetSkinListInGameAsync(launchGame.Account.GetUserId(), launchGame.Account.GetToken(),
             new EntityUserGameTextureRequest {
                 UserId = _skip32Cipher.ComputeUserIdFromUuid(msg.Uuid).ToString(),
                 ClientType = EnumGameClientType.Java
@@ -175,14 +175,20 @@ public class GameRpcService(
             }
 
             try {
-                var entityAvailableUser = IUserManager.Instance?.GetAvailableUser(launchGame.UserId);
-                if (entityAvailableUser == null) continue;
-                var entity = await NPFLauncher.GetNetGameComponentDownloadListAsync(launchGame.UserId, launchGame.AccessToken, item.SkinId);
+                var entityAvailableUser = IUserManager.Instance?.GetAvailableUser(launchGame.Account.GetUserId());
+                if (entityAvailableUser == null) {
+                    continue;
+                }
+                var entity = await NPFLauncher.GetNetGameComponentDownloadListAsync(launchGame.Account.GetUserId(), launchGame.Account.GetToken(), item.SkinId);
                 var text = entity.SubEntities.Select(sub => sub.ResUrl).FirstOrDefault();
-                if (text == null) continue;
+                if (text == null) {
+                    continue;
+                }
                 Directory.CreateDirectory(_dirSkinPath);
                 await FileUtil.WriteFileSafelyAsync(tempPath, await _httpClient.GetByteArrayAsync(text));
-                if (!File.Exists(tempPath) || !FileUtil.IsFileReadable(tempPath)) continue;
+                if (!File.Exists(tempPath) || !FileUtil.IsFileReadable(tempPath)) {
+                    continue;
+                }
                 filePath = tempPath;
                 break;
             } catch (Exception ex) {
@@ -199,7 +205,9 @@ public class GameRpcService(
 
         Log.Information("[RPC] Sending skin data for {0}: {1}", msg.Name, filePath);
         var array = SimplePack.Pack((ushort)520, msg.Name, filePath, string.Empty, skinMode);
-        if (array != null) SendControlData(array);
+        if (array != null) {
+            SendControlData(array);
+        }
     }
 
     private static void HandleLoginGame(byte[] data)
@@ -378,7 +386,9 @@ public class GameRpcService(
                 break;
             } catch (Exception ex) {
                 Log.Error(ex, "[RPC] Error receiving control data");
-                if (!_mIsNormalExit) CloseControlConnection();
+                if (!_mIsNormalExit) {
+                    CloseControlConnection();
+                }
                 break;
             }
     }

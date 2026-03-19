@@ -336,12 +336,10 @@ status == 0 时 status 变成 1
       "game_name": "梦世界",
       "game_id": "77140593557373952",
       "role_name": "谨慎的僵尸村2",
-      "user_id": "887123821",
       "client_type": 1,
       "game_type": 2,
       "game_version_id": 1018000,
       "game_version": "1.18",
-      "access_token": "hxWKTq5c7ViC3a8y",
       "server_ip": "china-pc.i5mc.com",
       "server_port": 25565,
       "load_core_mods": true
@@ -373,10 +371,8 @@ status == 0 时 status 变成 1
           "ServerName": "梦世界",
           "ServerVersion": "1.18"
         },
-        "Id": 1,
-        "UserId": "887123821",
-        "UserToken": "hxWKTq5c7ViC3a8y",
-        "ServerId": "77140593557373952"
+        "id": 1,
+        "serverId": "77140593557373952"
       }
     ]
   },
