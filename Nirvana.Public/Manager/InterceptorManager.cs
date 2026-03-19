@@ -114,6 +114,6 @@ public class InterceptorManager {
             } catch (Exception ex) {
                 Log.Fatal("认证出错: {0}", ex.Message);
             }
-        });
+        }).Wait();
     }
 }
