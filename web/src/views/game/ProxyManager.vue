@@ -19,19 +19,18 @@
             <th>ID</th>
             <th>昵称</th>
             <th>本地地址</th>
-            <th>转发地址</th>
+            <th>用户ID</th>
             <th>服务器名称</th>
             <th>服务器版本</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="proxy in proxyList" :key="proxy.Id">
-            <td>{{ proxy.Id }}</td>
+          <tr v-for="proxy in proxyList" :key="proxy.id">
+            <td>{{ proxy.id }}</td>
             <td>{{ proxy.Interceptor.NickName }}</td>
             <td>{{ serverIp }}:{{ proxy.Interceptor.LocalPort }}</td>
-            <td v-if="proxy.Interceptor.ForwardPort == 25565">{{ proxy.Interceptor.ForwardAddress }}</td>
-            <td v-else>{{ proxy.Interceptor.ForwardAddress }}:{{ proxy.Interceptor.ForwardPort }}</td>
+            <td>{{ proxy.Interceptor.CurrentConfig.user_id }}</td>
             <td>{{ proxy.Interceptor.ServerName }}</td>
             <td>{{ proxy.Interceptor.ServerVersion }}</td>
             <td>
@@ -41,7 +40,7 @@
                   title="复制本地地址">
                   复制
                 </button>
-                <button class="close-btn" @click="showCloseSingleConfirm(proxy.Id)">
+                <button class="close-btn" @click="showCloseSingleConfirm(proxy.id)">
                   关闭
                 </button>
               </div>
@@ -142,7 +141,7 @@ const handleCloseSingle = async (id) => {
     const data = await closeProxyServer(id)
     if (data.code === 1) {
       // 从列表中移除关闭的代理
-      proxyList.value = proxyList.value.filter(proxy => proxy.Id !== id)
+      proxyList.value = proxyList.value.filter(proxy => proxy.id !== id)
     } else {
       console.error('关闭代理失败:', data.msg)
     }
@@ -158,7 +157,7 @@ const handleCloseAll = async () => {
   try {
     // 依次关闭所有代理
     for (const proxy of proxyList.value) {
-      await closeProxyServer(proxy.Id)
+      await closeProxyServer(proxy.id)
     }
     // 清空代理列表
     proxyList.value = []

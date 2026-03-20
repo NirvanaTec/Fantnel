@@ -84,8 +84,7 @@ public static class ActiveGameAndProxies {
         lock (SafeLock) {
             var proxy = new RunningProxy {
                 Id = GetIndex(),
-                UserId = InfoManager.GetGameAccount().UserId,
-                UserToken = InfoManager.GetGameAccount().Token,
+                Account = InfoManager.GetGameAccount(),
                 ServerId = serverId,
                 Interceptor = interceptor
             };
@@ -115,8 +114,7 @@ public static class ActiveGameAndProxies {
             };
             var entityProxy = new EntityProxy {
                 Id = GetIndex(),
-                UserId = InfoManager.GetGameAccount().UserId,
-                UserToken = InfoManager.GetGameAccount().Token,
+                Account = InfoManager.GetGameAccount(),
                 ServerId = serverId,
                 Interceptor = interceptor
             };

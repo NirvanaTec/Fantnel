@@ -338,6 +338,9 @@ status == 0 时 status 变成 1
       "role_name": "谨慎的僵尸村2",
       "client_type": 1,
       "game_type": 2,
+      "account": {
+        "userId": "861518622"
+      },
       "game_version_id": 1018000,
       "game_version": "1.18",
       "server_ip": "china-pc.i5mc.com",
@@ -356,26 +359,28 @@ status == 0 时 status 变成 1
 
 /api/server/get : 获取已启动的代理信息
 {
-  "code": 1,
   "data": {
-    "ip": "192.168.43.25",
+    "ip": "10.62.8.45",
     "proxies": [
       {
         "Interceptor": {
-          "Identifier": "d5af8971-a442-43e6-877f-359d9682f8ce",
-          "LocalAddress": "192.168.43.25",
+          "IsRental": false,
           "LocalPort": 25565,
-          "NickName": "谨慎的僵尸村2",
-          "ForwardAddress": "china-pc.i5mc.com",
+          "NickName": "我喜欢你呀嗡嗡嗡",
+          "ForwardAddress": "pc.bjd-mc.com",
           "ForwardPort": 25565,
-          "ServerName": "梦世界",
-          "ServerVersion": "1.18"
+          "ServerName": "布吉岛·新玩法上线",
+          "ServerVersion": "1.20",
+          "CurrentConfig": {
+            "game_id": "4661334467366178884",
+            "user_id": "861518622"
+          }
         },
-        "id": 1,
-        "serverId": "77140593557373952"
+        "id": 1
       }
     ]
   },
+  "code": 1,
   "msg": "成功"
 }
 

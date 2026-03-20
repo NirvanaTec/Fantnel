@@ -7,7 +7,7 @@ using Serilog;
 
 namespace OpenSDK.Cipher.Nirvana.Protocols;
 
-public class AuthLibProtocol(IPAddress address, int port, string modList, string version, EntityAccount account)
+public class AuthLibProtocol(IPAddress address, int port, string modList, string version, EntityUserInfo account)
     : IDisposable {
     private readonly CancellationTokenSource _cts = new();
 

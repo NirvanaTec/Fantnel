@@ -16,29 +16,19 @@
       <table class="game-launch-table">
         <thead>
           <tr>
-            <th>游戏名称</th>
             <th>角色名称</th>
-            <th>游戏ID</th>
+            <th>游戏名称</th>
             <th>用户ID</th>
-            <th>客户端类型</th>
-            <th>游戏类型</th>
             <th>游戏版本</th>
-            <th>服务器地址</th>
-            <th>最大内存</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(game) in gameLaunchList" :key="game.id">
-            <td>{{ game.game_name }}</td>
             <td>{{ game.role_name }}</td>
-            <td>{{ game.game_id }}</td>
-            <td>{{ game.user_id }}</td>
-            <td>{{ game.client_type === 1 ? 'PC' : '移动端' }}</td>
-            <td>{{ game.game_type === 2 ? 'MOD' : '原版' }}</td>
+            <td>{{ game.game_name }}</td>
+            <td>{{ game.account.userId }}</td>
             <td>{{ game.game_version }}</td>
-            <td>{{ game.server_ip }}:{{ game.server_port }}</td>
-            <td>{{ game.max_game_memory }} MB</td>
             <td>
               <div class="action-buttons">
                 <button class="close-btn" @click="showCloseSingleConfirm(game.id)">

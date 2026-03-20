@@ -26,9 +26,9 @@ public class EntityLaunchGame {
 
     [JsonPropertyName("game_version")]
     public string GameVersion { get; init; } = string.Empty;
-    
-    [JsonIgnore]
-    public required EntityAccount Account;
+
+    [JsonPropertyName("account")]
+    public required EntityUserInfo Account { get; init; }
 
     [JsonPropertyName("server_ip")]
     public string ServerIp { get; init; } = string.Empty;

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using NirvanaAPI.Entities.Login;
 using OpenSDK.Entities.Yggdrasil;
 using OpenSDK.Yggdrasil;
@@ -10,7 +11,7 @@ public static class NetEaseConnection {
     
     public static async Task CreateAuthenticatorAsync(string serverId, string gameId, string gameVersion,
         string modInfo, int userId, string userToken, Action handleSuccess)
-    {
+        {
         Log.Warning("认证中: {0}", serverId);
         var pair = Md5Mapping.GetMd5FromGameVersion(gameVersion);
         var success = await StandardYggdrasil.JoinServerAsync(new GameProfile {

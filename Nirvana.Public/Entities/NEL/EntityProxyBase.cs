@@ -7,15 +7,12 @@ public abstract class EntityProxyBase {
     
     [JsonPropertyName("id")]
     public int Id { get; init; }
-    
-    [JsonPropertyName("serverId")]
-    public string? ServerId { get; init; }
-    
+
     [JsonIgnore]
-    public string? UserId;
-    
+    public string? ServerId;
+
     [JsonIgnore]
-    public string? UserToken;
+    public required EntityUserInfo? Account;
 
     /**
      * 清理 相同/过期 的代理
@@ -39,7 +36,7 @@ public abstract class EntityProxyBase {
      */
     private bool Equals(string? userId, string? serverId, string? nickname)
     {
-        return userId == UserId && serverId == ServerId && nickname == GetNickName();
+        return userId == Account?.UserId && serverId == ServerId && nickname == GetNickName();
     }
 
     /**
@@ -51,7 +48,7 @@ public abstract class EntityProxyBase {
      */
     private bool Equals(EntityAccount? gameUser)
     {
-        return gameUser?.UserId == UserId && gameUser?.Token != UserToken;
+        return gameUser?.UserId == Account?.UserId && gameUser?.Token != Account?.Token;
     }
 
     /**
