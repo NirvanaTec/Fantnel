@@ -1,16 +1,16 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using Codexus.Development.SDK.Manager;
+using Codexus.Game.Launcher.Managers;
+using Codexus.Game.Launcher.Services.Java.RPC.Events;
+using Codexus.Game.Launcher.Utils;
 using Nirvana.Game.Launcher.Entities;
-using Nirvana.Game.Launcher.Managers;
-using Nirvana.Game.Launcher.Services.Java.RPC.Events;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Launch.RPC;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Launch.Skin;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Minecraft;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
-using NirvanaAPI.Utils;
 using OpenSDK.Cipher.Nirvana;
 using Serilog;
 
@@ -21,19 +21,23 @@ public class GameRpcService(
     EntityLaunchGame launchGame,
     EnumGameVersion gameVersion) {
     private readonly HttpClient _httpClient = new();
-    private readonly Lock _lockObj = new();
+
     private readonly SocketCallback _mSocketCallbackFuc = new();
+
     private readonly List<byte[]> _sendCache = [];
+
     private readonly Skip32Cipher _skip32Cipher = new("SaintSteve"u8.ToArray());
 
-    private TcpClient? _client;
-
     private string _dirSkinPath = string.Empty;
+
     private bool _mIsLaunchIdxReady;
+
     private bool _mIsNormalExit;
+
     private TcpListener? _mMcControlListener;
+
     private BinaryReader? _reader;
-    private NetworkStream? _stream;
+
     private BinaryWriter? _writer;
 
     public void Connect(string skinPath)
@@ -55,92 +59,59 @@ public class GameRpcService(
         try {
             _mMcControlListener = new TcpListener(IPAddress.Loopback, port);
             _mMcControlListener.Start();
-            _= Task.Run (ListenControlConnect);
+            _ = Task.Run(ListenControlConnect);
             Console.WriteLine();
             Log.Information("[RPC] Control connection started on port {0}", port);
-        } catch (Exception ex) {
-            if (tryTimes > 0)
+        } catch (Exception exception) {
+            if (tryTimes > 0) {
                 StartControlConnection(tryTimes - 1);
-            else
+            } else {
                 CloseControlConnection();
+            }
+
             Console.WriteLine();
-            Log.Error(ex, "[RPC] Failed to start control connection after retries");
+            Log.Error(exception, "[RPC] Failed to start control connection after retries");
         }
     }
 
     public void CloseControlConnection()
     {
         _mIsNormalExit = true;
-
-        // 关闭监听器
-        try {
-            _mMcControlListener?.Stop();
-        } catch {
-            // ignored
-        }
-
+        _mMcControlListener?.Stop();
         _mMcControlListener = null;
-
-        // 清理连接资源
-        lock (_lockObj) {
-            try {
-                _reader?.Dispose();
-            } catch {
-                // ignored
-            }
-
-            try {
-                _writer?.Dispose();
-            } catch {
-                // ignored
-            }
-
-            try {
-                _stream?.Dispose();
-            } catch {
-                // ignored
-            }
-
-            try {
-                _client?.Close();
-            } catch {
-                // ignored
-            }
-
-            _reader = null;
-            _writer = null;
-            _stream = null;
-            _client = null;
-        }
-
         CloseGameCleaning();
         Log.Information("[RPC] Control connection closed");
     }
 
     private void HandleAuthenticationNewVersion(byte[] data)
     {
-        if (gameVersion <= EnumGameVersion.V_1_18) return;
-        var array = SimplePack.Pack((ushort)1799, launchGame.ServerIp, launchGame.ServerPort, launchGame.RoleName);
-        if (array != null) SendControlData(array);
-        Log.Information(
-            "[RPC] Sent new-version authentication to {0}:{1} | User: {2} | Role: {3} | Protocol: {4}",
-            launchGame.ServerIp, launchGame.ServerPort, launchGame.Account.GetUserId(), launchGame.RoleName, gameVersion);
+        if (gameVersion > EnumGameVersion.V_1_18) {
+            var array = SimplePack.Pack((ushort)1799, launchGame.ServerIp, launchGame.ServerPort, launchGame.RoleName);
+            if (array != null) {
+                SendControlData(array);
+            }
+
+            Log.Information("[RPC] Sent new-version authentication to {0}:{1} | User: {2} | Role: {3} | Protocol: {4}", launchGame.ServerIp, launchGame.ServerPort, launchGame.Account.UserId, launchGame.RoleName, gameVersion);
+        }
     }
 
     private void HandleAuthentication(byte[] data)
     {
-        var array = SimplePack.Pack((ushort)1031, launchGame.ServerIp, launchGame.ServerPort, launchGame.RoleName,
-            false);
-        if (array != null) SendControlData(array);
-        Log.Information(
-            "[RPC] Sent authentication to {0}:{1} | User: {2} | Role: {3} | Protocol: {4}",
-            launchGame.ServerIp, launchGame.ServerPort, launchGame.Account.GetUserId(), launchGame.RoleName, gameVersion);
+        var array = SimplePack.Pack((ushort)1031, launchGame.ServerIp, launchGame.ServerPort, launchGame.RoleName, false);
+        if (array != null) {
+            SendControlData(array);
+        }
+
+        Log.Information("[RPC] Sent authentication to {0}:{1} | User: {2} | Role: {3} | Protocol: {4}", launchGame.ServerIp, launchGame.ServerPort, launchGame.Account.UserId, launchGame.RoleName, gameVersion);
     }
 
     private void OnHeartBeat(byte[] data)
     {
         var array = SimplePack.Pack((ushort)512, "i'am wpflauncher");
-        if (array != null) SendControlData(array);
+        if (array != null) {
+            SendControlData(array);
+        }
+
         Log.Information("[RPC] Heartbeat {0} sent", "i'am wpflauncher");
     }
 
@@ -159,11 +130,10 @@ public class GameRpcService(
 
     private async Task ProcessPlayerSkin(EntityOtherEnterWorldMsg msg)
     {
-        var list = await NPFLauncher.GetSkinListInGameAsync(launchGame.Account.GetUserId(), launchGame.Account.GetToken(),
-            new EntityUserGameTextureRequest {
-                UserId = _skip32Cipher.ComputeUserIdFromUuid(msg.Uuid).ToString(),
-                ClientType = EnumGameClientType.Java
-            });
+        var list = await NPFLauncher.GetSkinListInGameAsync(launchGame.Account.GetUserId(), launchGame.Account.GetToken(), new EntityUserGameTextureRequest {
+            UserId = _skip32Cipher.ComputeUserIdFromUuid(msg.Uuid).ToString(),
+            ClientType = EnumGameClientType.Java
+        });
         var filePath = string.Empty;
         var skinMode = EnumSkinMode.Default;
         foreach (var item in list.Where(s => s.SkinId.Length > 5)) {
@@ -179,26 +149,25 @@ public class GameRpcService(
                 if (entityAvailableUser == null) {
                     continue;
                 }
+
                 var entity = await NPFLauncher.GetNetGameComponentDownloadListAsync(launchGame.Account.GetUserId(), launchGame.Account.GetToken(), item.SkinId);
                 var text = entity.SubEntities.Select(sub => sub.ResUrl).FirstOrDefault();
-                if (text == null) {
-                    continue;
+                if (text != null) {
+                    Directory.CreateDirectory(_dirSkinPath);
+                    await FileUtil.WriteFileSafelyAsync(tempPath, await _httpClient.GetByteArrayAsync(text));
+                    if (File.Exists(tempPath) && FileUtil.IsFileReadable(tempPath)) {
+                        filePath = tempPath;
+                        break;
+                    }
                 }
-                Directory.CreateDirectory(_dirSkinPath);
-                await FileUtil.WriteFileSafelyAsync(tempPath, await _httpClient.GetByteArrayAsync(text));
-                if (!File.Exists(tempPath) || !FileUtil.IsFileReadable(tempPath)) {
-                    continue;
-                }
-                filePath = tempPath;
-                break;
-            } catch (Exception ex) {
-                Log.Error(ex, "[RPC] Failed to handle skin for player {0}", msg.Name);
+            } catch (Exception exception) {
+                Log.Error(exception, "[RPC] Failed to handle skin for player {Name}", msg.Name);
                 try {
                     if (File.Exists(tempPath)) {
                         File.Delete(tempPath);
                     }
                 } catch {
-                    Log.Error(ex, "[RPC] Failed to delete temp file {0}", filePath);
+                    Log.Error(exception, "[RPC] Failed to delete temp file {0}", filePath);
                 }
             }
         }
@@ -218,7 +187,10 @@ public class GameRpcService(
     private void HandleMsgFilterCheck(byte[] data)
     {
         var array = SimplePack.Pack((ushort)1298, false, 0L, 0L);
-        if (array != null) SendControlData(array);
+        if (array != null) {
+            SendControlData(array);
+        }
+
         Log.Information("[RPC] Event received -> {0}", "Filter Message Check");
     }
 
@@ -228,11 +200,12 @@ public class GameRpcService(
         new SimpleUnpack(data).Unpack(ref content);
         if (content != null) {
             var array = SimplePack.Pack((ushort)18, content.Length, content.Message);
-            if (array != null) SendControlData(array);
+            if (array != null) {
+                SendControlData(array);
+            }
         }
 
-        Log.Information("[RPC] Event received -> {0} with data {Message}", "Player Message Check",
-            content?.Message);
+        Log.Information("[RPC] Event received -> {0} with data {1}", "Player Message Check", content?.Message);
     }
 
     private void ListenControlConnect()
@@ -240,162 +213,65 @@ public class GameRpcService(
         try {
             while (!_mIsNormalExit) {
                 var tcpClient = _mMcControlListener?.AcceptTcpClient();
-                if (tcpClient == null) continue;
-
-                // 验证连接来源
-                var remoteEndPoint = tcpClient.Client.RemoteEndPoint as IPEndPoint;
-                if (remoteEndPoint?.Address.ToString() != IPAddress.Loopback.ToString()) {
-                    try {
-                        tcpClient.Close();
-                    } catch {
-                        // ignored
-                    }
-
+                if (tcpClient == null) {
                     continue;
                 }
 
-                Log.Information("[RPC] Accepted control connection from {0}", remoteEndPoint);
-
-                // 清理旧连接并保存新连接
-                lock (_lockObj) {
-                    // 关闭旧连接
-                    try {
-                        _reader?.Dispose();
-                    } catch {
-                        // ignored
-                    }
-
-                    try {
-                        _writer?.Dispose();
-                    } catch {
-                        // ignored
-                    }
-
-                    try {
-                        _stream?.Dispose();
-                    } catch {
-                        // ignored
-                    }
-
-                    try {
-                        _client?.Close();
-                    } catch {
-                        // ignored
-                    }
-
-                    // 保存新连接
-                    _client = tcpClient;
-                    _stream = tcpClient.GetStream();
-                    _reader = new BinaryReader(_stream);
-                    _writer = new BinaryWriter(_stream);
-                }
-
-                // 发送缓存数据
+                var stream = tcpClient.GetStream();
+                _reader = new BinaryReader(stream);
+                _writer = new BinaryWriter(stream);
                 SendCacheControlData();
-
-                // 接收数据
-                _= Task.Run(OnRecvControlData);
+                _ = Task.Run(OnRecvControlData);
+                Log.Information("[RPC] Accepted control connection from {0}", tcpClient.Client.RemoteEndPoint?.ToString());
             }
-        } catch (Exception ex) {
-            if (!_mIsNormalExit) // 忽略正常退出时的异常
-            {
-                Log.Error(ex, "[RPC] Failed to listen control connection");
-                CloseControlConnection();
-            }
+        } catch {
+            Log.Error("[RPC] Failed to listen control connection");
         }
     }
 
     private void SendControlData(byte[] message)
     {
-        lock (_lockObj) {
-            if (_writer == null) {
-                _sendCache.Add(message);
-                return;
-            }
+        if (_writer == null) {
+            _sendCache.Add(message);
+            return;
+        }
 
-            try {
-                var buffer = BitConverter.GetBytes((ushort)message.Length).Concat(message).ToArray();
-                _writer.Write(buffer);
-                _writer.Flush();
-            } catch (Exception ex) {
-                Log.Error(ex, "[RPC] Failed to send control data");
-                // 连接可能已关闭，清理资源
-                try {
-                    _reader?.Dispose();
-                } catch {
-                    // ignored
-                }
-
-                try {
-                    _writer?.Dispose();
-                } catch {
-                    // ignored
-                }
-
-                try {
-                    _stream?.Dispose();
-                } catch {
-                    // ignored
-                }
-
-                try {
-                    _client?.Close();
-                } catch {
-                    // ignored
-                }
-
-                _reader = null;
-                _writer = null;
-                _stream = null;
-                _client = null;
-
-                // 将消息添加到缓存，等待重新连接
-                _sendCache.Add(message);
-            }
+        var buffer = BitConverter.GetBytes((ushort)message.Length).Concat(message).ToArray();
+        try {
+            _writer?.Write(buffer);
+            _writer?.Flush();
+        } catch (Exception exception) {
+            Log.Error(exception, "[RPC] Failed to send control data");
         }
     }
 
     private void OnRecvControlData()
     {
-        while (!_mIsNormalExit)
+        while (!_mIsNormalExit) {
             try {
-                BinaryReader? currentReader;
-                lock (_lockObj) {
-                    currentReader = _reader;
+                if (_reader != null) {
+                    var count = _reader.ReadUInt16();
+                    var message = _reader.ReadBytes(count);
+                    HandleMcControlMessage(message);
                 }
-
-                if (currentReader == null) {
-                    Thread.Sleep(100); // 避免忙等待
-                    continue;
-                }
-
-                // 读取数据（注意：不要在锁内执行阻塞操作）
-                var count = currentReader.ReadUInt16();
-                var message = currentReader.ReadBytes(count);
-
-                // 处理消息
-                HandleMcControlMessage(message);
             } catch (EndOfStreamException) {
-                Log.Information("[RPC] Connection closed by remote host");
                 break;
             } catch (IOException) {
-                Log.Information("[RPC] Network error occurred");
                 break;
-            } catch (ObjectDisposedException) {
-                Log.Information("[RPC] Connection disposed");
-                break;
-            } catch (Exception ex) {
-                Log.Error(ex, "[RPC] Error receiving control data");
+            } catch (Exception exception) {
+                Log.Error(exception, "[RPC] Error receiving control data");
                 if (!_mIsNormalExit) {
-                    CloseControlConnection();
+                    CloseGameCleaning();
                 }
+
                 break;
             }
+        }
     }
 
     private void HandleMcControlMessage(byte[] message)
     {
-        var num = BitConverter.ToUInt16(message);
+        var num = BitConverter.ToUInt16(message, 0);
         var parameters = message.Skip(2).ToArray();
         if (!_mIsLaunchIdxReady && num == 261) {
             _mIsLaunchIdxReady = true;
@@ -413,27 +289,10 @@ public class GameRpcService(
 
     private void SendCacheControlData()
     {
-        if (_sendCache.Count == 0) return;
-
-        lock (_lockObj) {
-            if (_writer == null) return;
-
-            foreach (var item in _sendCache)
-                try {
-                    var buffer = BitConverter.GetBytes((ushort)item.Length).Concat(item).ToArray();
-                    _writer.Write(buffer);
-                } catch (Exception ex) {
-                    Log.Error(ex, "[RPC] Failed to send cached control data");
-                    break;
-                }
-
-            try {
-                _writer.Flush();
-            } catch {
-                // ignored
-            }
-
-            _sendCache.Clear();
+        foreach (var item in _sendCache) {
+            SendControlData(item);
         }
+
+        _sendCache.Clear();
     }
 }

@@ -39,6 +39,8 @@ public static class InstallerService {
 
         await ProcessPackage(versionResult.CoreLibUrl, libZip, PathUtil.CachePath, libMd5File, versionResult.CoreLibMd5,
             versionName + " libraries");
+        
+        InstallCoreLibs(Path.Combine(PathUtil.CachePath, versionName + "_libs"), gameVersion);
     }
 
     private static async Task ProcessPackage(string url, string zipPath, string extractTo, string md5Path, string md5,
@@ -189,11 +191,13 @@ public static class InstallerService {
             var archive = Path.Combine(corePath, entityComponentDownloadInfoResponse2.SubEntities[0].ResName);
             var extractDir = Path.Combine(corePath, fileNameWithoutExtension);
             // 创建目录
-            if (!Directory.Exists(extractDir))
+            if (!Directory.Exists(extractDir)) {
                 Directory.CreateDirectory(extractDir);
-            if (File.Exists(jar) && FileUtil.ComputeMd5FromFile(jar)
-                    .Equals(entityComponentDownloadInfoResponse2.SubEntities[0].JarMd5,
-                        StringComparison.OrdinalIgnoreCase)) continue;
+            }
+            if (File.Exists(jar) && FileUtil.ComputeMd5FromFile(jar).Equals(entityComponentDownloadInfoResponse2.SubEntities[0].JarMd5,
+                    StringComparison.OrdinalIgnoreCase)) {
+                continue;
+            }
             await DownloadUtil.DownloadAsync(entityComponentDownloadInfoResponse2.SubEntities[0].ResUrl, archive,
                 dp => {
                     uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
@@ -358,9 +362,8 @@ public static class InstallerService {
             );
             Directory.CreateDirectory(text2);
             if (!File.Exists(text)) {
-                throw new Exception("未找到验证库: " + text);
+                throw new Exception("Native dll not found: " + text);
             }
-
             var destPath = Path.Combine(text2, "api-ms-win-crt-utility-l1-1-1.dll");
             FileUtil.CopyFileSafe(text, destPath);
         } catch (Exception ex) {

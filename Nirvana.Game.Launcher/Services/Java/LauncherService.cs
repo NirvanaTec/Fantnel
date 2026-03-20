@@ -143,9 +143,11 @@ public sealed class LauncherService : IDisposable {
     private static void RemoveCoreModFiles(string modsPath)
     {
         var array = FileUtil.EnumerateFiles(modsPath, "jar");
-        foreach (var text in array)
-            if (text.Contains("@3"))
+        foreach (var text in array) {
+            if (text.Contains("@3")) {
                 FileUtil.DeleteFileSafe(text);
+            }
+        }
     }
 
     private (CommandService commandService, int rpcPort) InitializeLauncher(EnumGameVersion enumVersion,
@@ -186,7 +188,7 @@ public sealed class LauncherService : IDisposable {
         if (process != null) {
             await HandleSuccessfulLaunch(process);
         } else{
-                HandleFailedLaunch();
+            HandleFailedLaunch();
         }
     }
 
