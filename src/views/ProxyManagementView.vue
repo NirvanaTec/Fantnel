@@ -15,7 +15,7 @@
 
         <!-- 代理实例 -->
         <div class="space-y-4" v-if="proxiesData.proxies.length > 0">
-          <div v-for="proxy in proxiesData.proxies" :key="proxy.Id" class="bg-gray-700 rounded-lg p-4">
+          <div v-for="proxy in proxiesData.proxies" :key="proxy.id" class="bg-gray-700 rounded-lg p-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <span class="text-gray-400">服务器名称:</span>
@@ -39,7 +39,7 @@
               </div>
               <div>
                 <span class="text-gray-400">用户ID:</span>
-                <span class="ml-2">{{ proxy.UserId }}</span>
+                <span class="ml-2">{{ proxy.Interceptor.CurrentConfig.user_id }}</span>
               </div>
             </div>
             <div class="mt-4 flex gap-2">
@@ -47,7 +47,7 @@
                 class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors">
                 复制代理信息
               </button>
-              <button @click="closeProxy(proxy.Id)"
+              <button @click="closeProxy(proxy.id)"
                 class="px-4 py-2 bg-red-500 hover:bg-red-600 rounded transition-colors">
                 关闭代理
               </button>

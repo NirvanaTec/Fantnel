@@ -8,7 +8,6 @@
         <thead>
           <tr class="border-b border-gray-700">
             <th class="py-3 px-4 text-left">游戏名称</th>
-            <th class="py-3 px-4 text-left">服务器ID</th>
             <th class="py-3 px-4 text-left">角色名称</th>
             <th class="py-3 px-4 text-left">用户ID</th>
             <th class="py-3 px-4 text-left">游戏版本</th>
@@ -18,9 +17,8 @@
         <tbody>
           <tr v-for="game in games" :key="game.game_id" class="border-b border-gray-700 hover:bg-gray-750">
             <td class="py-3 px-4">{{ game.game_name }}</td>
-            <td class="py-3 px-4">{{ game.game_id }}</td>
             <td class="py-3 px-4">{{ game.role_name }}</td>
-            <td class="py-3 px-4">{{ game.user_id }}</td>
+            <td class="py-3 px-4">{{ game.account.userId }}</td>
             <td class="py-3 px-4">{{ game.game_version }}</td>
             <td class="py-3 px-4">
               <button @click="closeGame(game.id)" class="text-red-400 hover:text-red-300">
