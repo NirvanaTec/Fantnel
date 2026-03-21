@@ -102,20 +102,20 @@ public class CommandService {
         }
 
         BuildCommand(cfg, _version, socketPort);
+        // 修复 natives
         InstallNatives().Wait();
-
+        
         // 保存到文件，方便调试
         var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "command" + PathUtil.ScriptSuffix);
         Tools.SaveShellScript(scriptPath, GetJavaCommand()).Wait();
     }
-
+    
     private async Task InstallNatives()
     {
-        // windows 使用盒子资源
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+        if (_minecraft.Count == 0) {
             return;
         }
-
+        
         // 删除 linux/mac 下的 natives[win库]
         var nativesPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", _version, "natives");
         foreach (var native in Directory.GetFiles(nativesPath)) {
@@ -124,11 +124,11 @@ public class CommandService {
             }
         }
 
-        foreach (var javaFile in _minecraft.Where(javaFile => javaFile.IsNative).Where(javaFile => javaFile.DownloadAuto())) {
-            await CompressionUtil.ExtractAsync(javaFile.GetPath(), nativesPath);
+        foreach (var item in _minecraft.Where(item => item.IsNative && item.DownloadAuto())) {
+            await CompressionUtil.ExtractAsync(item.GetPath(), nativesPath);
         }
     }
-
+    
     // 生成启动参数 【独立运行】
     private string GetJavaCommand()
     {
@@ -153,6 +153,41 @@ public class CommandService {
     }
 
 
+    private static bool CheckRules(JsonElement item)
+    {
+        // rules
+        if (item.TryGetProperty("rules", out var rulesElement)) {
+            foreach (var ruleItem in rulesElement.EnumerateArray()) {
+                if (!ruleItem.TryGetProperty("action", out var actionElement)) {
+                    continue;
+                }
+
+                if (!ruleItem.TryGetProperty("os", out var osElement)) {
+                    continue;
+                }
+
+                if (!osElement.TryGetProperty("name", out var nameElement)) {
+                    continue;
+                }
+
+                var action = actionElement.GetString();
+                var name = nameElement.GetString(); // 系统名称
+                
+                switch (action) {
+                    // name != os
+                    // osx != osx
+                    case "allow" when GetRunOs().Any(name1 => name1.Equals(name)):
+                        return true;
+                    // name == os
+                    // osx == osx
+                    case "disallow" when GetRunOs().Any(name1 => name1.Equals(name)):
+                        return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private static List<EntityJavaFile> BuildJarListBase(Dictionary<string, JsonElement> cfg)
     {
         // path, url
@@ -162,50 +197,12 @@ public class CommandService {
             throw new Exception("libraries not found");
         }
 
-        foreach (var item in libElement.EnumerateArray()) {
-            var isUse = true;
-
-            // rules
-            if (item.TryGetProperty("rules", out var rulesElement)) {
-                foreach (var ruleItem in rulesElement.EnumerateArray()) {
-                    if (!ruleItem.TryGetProperty("action", out var actionElement)) {
-                        continue;
-                    }
-
-                    if (!ruleItem.TryGetProperty("os", out var osElement)) {
-                        continue;
-                    }
-
-                    if (!osElement.TryGetProperty("name", out var nameElement)) {
-                        continue;
-                    }
-
-                    var action = actionElement.GetString();
-                    var name = nameElement.GetString();
-                    if ("allow".Equals(action)) {
-                        // name != os
-                        // osx != osx
-                        if (GetRunOs().Any(name1 => !name1.Equals(name))) {
-                            isUse = false;
-                            break;
-                        }
-                    } else if ("disallow".Equals(action)) {
-                        // name == os
-                        // osx == osx
-                        if (GetRunOs().Any(name1 => name1.Equals(name))) {
-                            isUse = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!isUse) {
+        foreach (var item in libElement.EnumerateArray().Where(CheckRules)) {
+            
+            // downloads
+            if (!item.TryGetProperty("downloads", out var downElement)) {
                 continue;
             }
-
-            // downloads
-            if (!item.TryGetProperty("downloads", out var downElement)) continue;
 
             // artifact
             if (downElement.TryGetProperty("artifact", out var artiElement)) {
@@ -213,10 +210,7 @@ public class CommandService {
                     var path = pathElement.GetString();
                     if (path != null) {
                         path = Path.Combine("libraries", path);
-                        jarList = AddJarList(jarList, path,
-                            artiElement.TryGetProperty("url", out var urlElement)
-                                ? urlElement.GetString()
-                                : string.Empty);
+                        jarList = AddJarList(jarList, path, artiElement.TryGetProperty("url", out var urlElement) ? urlElement.GetString() : string.Empty);
                     }
                 }
             }
@@ -226,11 +220,11 @@ public class CommandService {
                 if (item.TryGetProperty("natives", out var natives)) {
                     foreach (var osName1 in GetRunOs()) {
                         if (natives.TryGetProperty(osName1, out var nativeElement)) {
-                            var osName = nativeElement.GetString();
+                            // "windows": "natives-windows"
+                            var osName = nativeElement.GetString(); // natives-windows
                             if (string.IsNullOrEmpty(osName)) {
                                 continue;
                             }
-
                             var runArch = GetRunArch();
                             foreach (var archName in runArch) {
                                 var osNameArch = osName.Replace("${arch}", archName);
@@ -259,21 +253,11 @@ public class CommandService {
     private static string[] GetRunArch()
     {
         return RuntimeInformation.ProcessArchitecture switch {
-            Architecture.Arm64 => ["aarch_64", "arm64", "64"],
-            Architecture.Arm => ["32"],
-            Architecture.Armv6 => ["32"],
-            Architecture.X86 => ["x86", "32"],
-            _ => ["64", "x86_64"]
-        };
-    }
-
-    // 已被禁用的架构
-    private static string[] GetRunArchD()
-    {
-        return RuntimeInformation.ProcessArchitecture switch {
-            Architecture.Arm64 => ["x86", "32", "x86_64"],
-            Architecture.Arm or Architecture.Armv6 or Architecture.X86 => ["64", "x86_64", "aarch_64", "arm64", "x86"],
-            _ => ["32", "aarch_64", "arm64", "x86"]
+            // Architecture.Arm64 => ["aarch_64", "arm64"],
+            // Architecture.Arm => ["32"],
+            // Architecture.Armv6 => ["32"],
+            Architecture.X86 => ["32", ""],
+            _ => ["64", ""]
         };
     }
 
@@ -303,42 +287,10 @@ public class CommandService {
         return jarList;
     }
 
-    private static List<string> BuildJarListsByName(Dictionary<string, JsonElement> cfg)
-    {
-        var jarList = new List<string>();
-        if (cfg.TryGetValue("libraries", out var value)) {
-            foreach (var item in value.EnumerateArray()) {
-                if (!item.TryGetProperty("name", out var value2)) {
-                    continue;
-                }
-
-                var array = value2.GetString()?.Split(':');
-                if (array is not { Length: >= 3 } || array[1].Contains("platform")) {
-                    continue;
-                }
-
-                var path = array[0].Replace('.', Path.DirectorySeparatorChar);
-                var path2 = array[1] + "-" + array[2] + ".jar";
-                jarList.Add(Path.Combine("libraries", path, array[1], array[2], path2));
-            }
-        }
-
-        return jarList;
-    }
-
     private static List<EntityJavaFile> BuildJarLists(Dictionary<string, JsonElement> cfg, string version)
     {
         // path, url
         var jarList = BuildJarListBase(cfg);
-
-        foreach (var jar in BuildJarListsByName(cfg)
-                     .Select(jar => new {
-                         jar, isAdd = jarList.All(item => !item.Equals(jar))
-                     })
-                     .Where(t => t.isAdd)
-                     .Select(t => t.jar)) {
-            jarList.Add(new EntityJavaFile(jar));
-        }
 
         // \versions\1.8.9\1.8.9.jar
         var verValue = Path.Combine("versions", version, version + ".jar");
@@ -350,17 +302,13 @@ public class CommandService {
 
     private static string[] GetRunOs()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-            return ["osx", "macos"];
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            return ["windows"];
         }
-
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ["windows"] : ["linux"];
-    }
-
-    // 所有操作系统
-    private static string[] GetRunOsAll()
-    {
-        return ["windows", "osx", "macos", "linux"];
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+            return ["osx"];
+        }
+        return ["linux"];
     }
 
     private void BuildCommand(Dictionary<string, JsonElement> cfg, string version, int socketPort)
@@ -384,7 +332,7 @@ public class CommandService {
             //     jvmArguments = DeleteArguments("cp", jvmArguments);
             // }
             jvmArguments = ReplaceLib("cp", jvmArguments);
-
+            
             // 而外 lib 路径
             var classPath1 = GetArguments("cp", jvmArguments);
             var classPathList = classPath1.Split(PathUtil.PathSeparator);
@@ -483,38 +431,15 @@ public class CommandService {
         _cmd = AddArguments(jvmArguments, minecraftArguments);
     }
 
-    private static List<EntityJavaFile> FilterFile(List<EntityJavaFile> classPaths)
+    private List<EntityJavaFile> FilterFile(List<EntityJavaFile> classPaths)
     {
-        var list = new List<EntityJavaFile>();
-        var runArchList = GetRunArchD();
-        var osNameList = GetRunOsAll();
-        var osNameList1 = GetRunOs();
-        foreach (var classPath in classPaths) {
-            var isAdd = true;
-            foreach (var osName in osNameList) {
-                // -natives-windows.jar
-                if (classPath.EndsWith("-natives-" + osName + ".jar")) {
-                    // windows 不禁用 windows
-                    if (osNameList1.All(osName1 => osName1 != osName)) {
-                        isAdd = false;
-                        break;
-                    }
-                }
-
-                // -natives-windows-x86.jar
-                if (runArchList.Select(arch => "-natives-" + osName + "-" + arch)
-                    .Any(osNameArch => classPath.EndsWith(osNameArch + ".jar"))) {
-                    isAdd = false;
-                    break;
-                }
+        // 是 natives 文件，不用添加
+        return classPaths.Where(classPath => {
+            if (_minecraft.Count <= 0) {
+                return true;
             }
-
-            if (isAdd) {
-                list.Add(classPath);
-            }
-        }
-
-        return list;
+            return !classPath.Contains("-natives-");
+        }).ToList();
     }
 
     private static string AddArguments(string text, string tex1)
@@ -607,59 +532,38 @@ public class CommandService {
         var source = sourceText.Item2.Split(';');
         var combinedPaths = new StringBuilder();
         foreach (var pathSegment in source) {
-            var fullPath = EntityJavaFile.FixPath(pathSegment);
-            fullPath = fullPath.Replace(";", "");
+            var fullPath = pathSegment.Replace(";", "");
             fullPath = fullPath.Replace(":", "");
-            var fullPath1 = fullPath;
-            fullPath += PathUtil.PathSeparator; // 修复 linux/mac 引用出错
-            fullPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", fullPath);
+            fullPath = EntityJavaFile.FixPath(fullPath); // 有分割符
+
+            var filePath = fullPath; // 不完整路径
+            
+            var fullPath1 = filePath; // 无分割符
             fullPath1 = Path.Combine(PathUtil.GameBasePath, ".minecraft", fullPath1);
 
+            fullPath = fullPath1 + PathUtil.PathSeparator;  // 修复 linux/mac 引用出错
+            
             if (!File.Exists(fullPath1)) {
                 Log.Error("File not found: {0}", fullPath1);
                 continue;
             }
-
-            // 修复 lwjgl
-            if (!fullPath.Contains("lwjgl-") || _minecraft.Count == 0) {
-                combinedPaths.Append(fullPath);
+            
+            // 是 lwjgl 文件，不用添加
+            if (_minecraft.Count > 0 && filePath.Contains(EntityJavaFile.FixPath("org/lwjgl/"))) {
                 continue;
-            }
-
-            // lwjgl-jemalloc-3.2.2.jar | lwjgl-3.2.2.jar
-            // jemalloc-3.2.2 | 3.2.2
-            var clasName = Tools.GetBetweenStrings(fullPath, "lwjgl-", ".jar");
-
-            // "jemalloc-3.2.2" || ""
-            clasName = clasName.Contains('-') ? clasName[(clasName.IndexOf('-') + 1)..] : "";
-            // "jemalloc" || ""
-            clasName = clasName.Contains('-') ? clasName[..clasName.IndexOf('-')] : "";
-
-            var lwjglName = "lwjgl-" + clasName;
-
-            // path, url
-            var (file, index) = (null as EntityJavaFile, -1);
-            foreach (var item in _minecraft) {
-                if (item.Contains(lwjglName)) {
-                    var index1 = item.GetPath().Length - lwjglName.Length;
-                    if (index > index1 || index == -1) {
-                        file = item;
-                        index = index1;
-                    }
-                }
-            }
-
-            if (file == null) {
-                Log.Error("File not found: {0}", lwjglName);
-                continue;
-            }
-
-            // Log.Warning("{fullPath1} > {fullPath2}",fullPath1, file.GetPath());
-            file.DownloadAuto();
-            fullPath = file.GetPath();
-            combinedPaths.Append(fullPath + PathUtil.PathSeparator);
+            } 
+            combinedPaths.Append(fullPath);
         }
 
+        if (_minecraft.Count == 0) {
+            return text.Replace(sourceText.Item1, " -" + name + " \"" + combinedPaths + "\"");
+        }
+        
+        // 修复 lwjgl
+        foreach (var item in _minecraft.Where(item => item.StartsWith("org/lwjgl/") && item.DownloadAuto())) {
+            combinedPaths.Append(item.GetPathSeparator());
+        }
+        
         return text.Replace(sourceText.Item1, " -" + name + " \"" + combinedPaths + "\"");
     }
 
