@@ -286,12 +286,40 @@ public class CommandService {
         });
         return jarList;
     }
+    
+    private static List<string> BuildJarListsByName(Dictionary<string, JsonElement> cfg)
+    {
+        var jarList = new List<string>();
+        if (cfg.TryGetValue("libraries", out var value)) {
+            foreach (var item in value.EnumerateArray()) {
+                if (!item.TryGetProperty("name", out var value2)) {
+                    continue;
+                }
+
+                var array = value2.GetString()?.Split(':');
+                if (array is not { Length: >= 3 } || array[1].Contains("platform")) {
+                    continue;
+                }
+
+                var path = array[0].Replace('.', Path.DirectorySeparatorChar);
+                var path2 = array[1] + "-" + array[2] + ".jar";
+                jarList.Add(Path.Combine("libraries", path, array[1], array[2], path2));
+            }
+        }
+
+        return jarList;
+    }
 
     private static List<EntityJavaFile> BuildJarLists(Dictionary<string, JsonElement> cfg, string version)
     {
         // path, url
         var jarList = BuildJarListBase(cfg);
 
+        // 修复 1.8.9 奇葩 libraries
+        foreach (var jar in BuildJarListsByName(cfg).Where(jar => jarList.All(item => !item.Equals(jar)))) {
+            jarList.Add(new EntityJavaFile(jar));
+        }
+        
         // \versions\1.8.9\1.8.9.jar
         var verValue = Path.Combine("versions", version, version + ".jar");
         jarList.Add(new EntityJavaFile(verValue));
