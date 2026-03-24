@@ -31,3 +31,11 @@ export const generateRandomGameName = () => {
 
   return result
 }
+
+// 发送消息到后端的辅助函数
+export const sendMessage = (action) => {
+  const message = JSON.stringify({ action: action });
+  if (window.external && window.external.sendMessage) {
+    window.external.sendMessage(message);
+  }
+}

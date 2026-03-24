@@ -114,7 +114,7 @@
     <StatusModal :visible="showGameModal" title="启动游戏" :message="gameMessage" @close="showGameModal = false" />
 
     <!-- 状态弹窗 -->
-    <StatusModal :visible="showModal" :title="'提示'" :message="modalMessage" @close="handleModalClose" />
+    <StatusModal :visible="showModal" :message="modalMessage" @close="handleModalClose" />
 
     <!-- 错误提示框 -->
     <StatusModal :visible="showErrorModal" :title="'错误'" :message="errorMessage" @close="showErrorModal = false" />

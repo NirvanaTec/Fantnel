@@ -50,7 +50,7 @@
       </div>
 
       <!-- 安装确认弹窗 -->
-      <StatusModal1 :visible="showInstallModal" :title="'提示'" :message="confirmMessage" @close="showInstallModal = false"
+      <StatusModal1 :visible="showInstallModal" :message="confirmMessage" @close="showInstallModal = false"
         @confirm="installPlugin" />
 
       <!-- 安装错误弹窗 -->

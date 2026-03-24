@@ -1,16 +1,7 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-gray-900 text-white">
+  <div class="flex h-screen overflow-hidden bg-gray-900 text-white" ref="dragZone">
     <!-- 窗口控制按钮 -->
-    <div v-if="showWindowControls" class="fixed top-4 right-4 z-50 flex gap-2">
-      <button @click="minimizeWindow"
-        class="w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors flex items-center justify-center">
-        <span class="opacity-0 hover:opacity-100 text-white font-bold text-xs">-</span>
-      </button>
-      <button @click="closeWindow"
-        class="w-4 h-4 rounded-full bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center">
-        <span class="opacity-0 hover:opacity-100 text-white font-bold text-xs">×</span>
-      </button>
-    </div>
+    <WindowControls :showWindowControls="showWindowControls" />
 
     <!-- 侧边导航栏 -->
     <aside class="w-64 border-r border-gray-800 bg-gray-900 flex flex-col">
@@ -123,6 +114,7 @@
               </button> -->
             </div>
           </li>
+
         </ul>
       </nav>
     </aside>
@@ -139,7 +131,7 @@
     <!-- 登录模态框 -->
     <div v-if="showLoginModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
       <div class="bg-gray-800 rounded-lg p-6 w-96">
-        <h2 class="text-xl font-bold mb-4">登录涅槃账号</h2>
+        <h2 class="text-xl font-bold mb-4">登录涅槃账号 | {{ loginTitle }}</h2>
         <div class="space-y-4">
           <div>
             <label class="block text-sm text-gray-400 mb-1">账号</label>
@@ -156,21 +148,34 @@
               class="flex-1 bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors">
               登录
             </button>
-            <button @click="showLoginModal = false"
+            <button v-if="showLoginCancel" @click="showLoginModal = false"
               class="flex-1 bg-gray-700 hover:bg-gray-600 rounded px-4 py-2 transition-colors">
               取消
             </button>
+            <a :href="homeInfo.shopUrl" target="_blank"
+              class="flex-1 bg-gray-700 hover:bg-gray-600 rounded px-4 py-2 transition-colors text-center">
+              购买账号
+            </a>
           </div>
         </div>
       </div>
     </div>
+
   </div>
+
+  <!-- 登录状态提示 -->
+  <StatusModal :visible="showModal" :message="modalMessage" @close="showModal = false"
+    :show-window-controls="showWindowControls" />
+
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getNirvanaAccountInfo, loginNirvanaAccount, getTheme, setTheme as apiSetTheme } from './services/api'
+import { getNirvanaAccountInfo, loginNirvanaAccount, getTheme, setTheme as apiSetTheme, getHomeInfo } from './services/api'
+import StatusModal from './components/StatusModal.vue'
+import WindowControls from './components/WindowControls.vue'
+import { sendMessage } from './tools'
 
 const router = useRouter()
 const nirvanaAccount = ref(null)
@@ -178,21 +183,28 @@ const showLoginModal = ref(false)
 const loginForm = ref({ account: '', password: '' })
 const currentTheme = ref('default')
 const showWindowControls = ref(false)
+const dragZone = ref(null)
+const showLoginCancel = ref(true)
+const showModal = ref(false)
+const modalMessage = ref('')
+const homeInfo = ref({})
+const loginTitle = ref('')
 
 // 初始化
-onMounted(() => {
-  loadNirvanaAccount()
-  loadCurrentTheme()
+onMounted(async () => {
+  await loadNirvanaAccount()
+  await loadCurrentTheme()
   initWindowMode()
   initMessageReceiver()
+  initDragZone()
+  const response = await getHomeInfo()
+  homeInfo.value = response.data
 })
 
 // 初始化窗口模式
 const initWindowMode = () => {
   try {
-    if (window.external && window.external.sendMessage) {
-      window.external.sendMessage(JSON.stringify({ "action": "fantnel:init" }))
-    }
+    sendMessage('fantnel:init')
   } catch (error) {
     console.error('Failed to initialize window mode:', error)
   }
@@ -224,7 +236,7 @@ const handleMessage = (message) => {
     var msg = JSON.parse(message)
     console.log('Received message:', msg)
     if (msg && msg.code == 5) {
-      showWindowControls.value = true
+      initWindow()
     }
     // 在这里处理接收到的消息
     // 例如：根据消息类型执行不同的操作
@@ -233,26 +245,46 @@ const handleMessage = (message) => {
   }
 }
 
-// 最小化窗口
-const minimizeWindow = () => {
+// 窗口初始化
+const initWindow = async () => {
+  showWindowControls.value = true // 窗口控制按钮
+  showLoginCancel.value = false; // 登录取消按钮
+
   try {
-    if (window.external && window.external.sendMessage) {
-      window.external.sendMessage(JSON.stringify({ "action": "window:minimize" }))
+    // 加载涅槃账号信息
+    const response = await getNirvanaAccountInfo()
+    if (response.data.code === 1) {
+      if (response.data.data.days > 1) {
+        showLoginCancel.value = true // 恢复登录取消按钮
+      } else {
+        loginTitle.value = '没有天数，无法登录'
+      }
+    } else {
+      showLoginModal.value = true // 登录模态框显示
     }
   } catch (error) {
-    console.error('Failed to minimize window:', error)
+    console.error('Failed to load nirvana account:', error)
   }
+
 }
 
-// 关闭窗口
-const closeWindow = () => {
-  try {
-    if (window.external && window.external.sendMessage) {
-      window.external.sendMessage(JSON.stringify({ "action": "window:close" }))
-    }
-  } catch (error) {
-    console.error('Failed to close window:', error)
+const initDragZone = () => {
+  if (!dragZone.value) {
+    return
   }
+  dragZone.value.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) {
+      return
+    }
+    const target = e.target
+    if (!(target instanceof HTMLElement)) {
+      return
+    }
+    if (target.tagName != "DIV" && target.tagName != "MAIN") {
+      return
+    }
+    sendMessage('window:drag')
+  })
 }
 
 // 加载涅槃账号信息
@@ -292,12 +324,17 @@ const handleNirvanaAccountClick = () => {
 const handleLogin = async () => {
   try {
     const response = await loginNirvanaAccount(loginForm.value.account, loginForm.value.password)
+    showModal.value = true
+    modalMessage.value = response.data.msg
     if (response.data.code === 1) {
       await loadNirvanaAccount()
       showLoginModal.value = false
+      showLoginCancel.value = true
     }
   } catch (error) {
     console.error('Login failed:', error)
+    showModal.value = true
+    modalMessage.value = error.message
   }
 }
 

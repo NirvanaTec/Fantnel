@@ -40,7 +40,7 @@
     </div>
 
      <!-- 确认删除 -->
-    <StatusModal1 :visible="showPluginsModal" :title="'提示'" :message="'确认删除插件吗？'" @close="showPluginsModal = false" @confirm="deletePlugin" />
+    <StatusModal1 :visible="showPluginsModal" :message="'确认删除插件吗？'" @close="showPluginsModal = false" @confirm="deletePlugin" />
 
   </div>
 

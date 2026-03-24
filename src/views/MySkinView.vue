@@ -61,7 +61,7 @@
     </div>
 
     <!-- 状态弹窗 -->
-    <StatusModal :visible="showModal" :title="'提示'" :message="modalMessage" @close="handleModalClose" />
+    <StatusModal :visible="showModal" :message="modalMessage" @close="handleModalClose" />
 
   </div>
 </template>

@@ -50,7 +50,7 @@
     </div>
 
     <!-- 主题状态 -->
-    <StatusModal :visible="showModal" :title="'提示'" :message="modalMessage" @close="reload()" />
+    <StatusModal :visible="showModal" :message="modalMessage" @close="reload()" />
 
   </div>
 </template>

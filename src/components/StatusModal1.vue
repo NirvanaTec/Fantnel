@@ -1,4 +1,5 @@
 <template>
+  <WindowControls v-if="showWindowControls" />
   <div v-if="visible" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
     <div class="bg-gray-800 rounded-lg p-6 w-96">
       <p class="text-xl font-bold mb-4" v-html="title"></p>
@@ -19,6 +20,7 @@
 
 <script setup>
 import { defineProps, defineEmits } from 'vue'
+import WindowControls from './WindowControls.vue'
 
 const props = defineProps({
   visible: {
@@ -32,6 +34,10 @@ const props = defineProps({
   message: {
     type: String,
     default: ''
+  },
+  showWindowControls: {
+    type: Boolean,
+    default: false
   }
 })
 
