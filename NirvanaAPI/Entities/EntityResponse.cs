@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using NirvanaAPI.Utils;
 
 namespace NirvanaAPI.Entities;
 
@@ -7,6 +8,7 @@ public class EntityResponseBase {
     public int? Code { get; set; }
 
     [JsonPropertyName("msg")]
+    [JsonConverter(typeof(FirstStringConverter))]
     public string? Msg { get; set; }
 }
 
@@ -36,6 +38,9 @@ public class EntityInfo {
 
     [JsonPropertyName("gameVersion")]
     public string? GameVersion { get; init; }
+    
+    [JsonPropertyName("shopUrl")]
+    public string? ShopUrl { get; init; }
 }
 
 public class Advertisement {

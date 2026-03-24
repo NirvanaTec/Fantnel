@@ -45,8 +45,7 @@ public class NirvanaAccountManager {
             return GetInfo1();
         }
 
-        var entity =
-            await X19Extensions.Nirvana.Api<EntityNirvanaInfo>("/api/info?mode=fantnel" + NirvanaConfig.Config);
+        var entity = await X19Extensions.Nirvana.Api<EntityNirvanaInfo>("/api/info?mode=fantnel" + NirvanaConfig.Config);
         if (entity == null) {
             throw new Exception();
         }
