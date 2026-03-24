@@ -202,7 +202,9 @@ public static class Tools {
         };
         Log.Information("正在重启: {0} {1}", fileName, arg);
         var process = Process.Start(startInfo);
-        if (isExit) Environment.Exit(0);
+        if (isExit) {
+            Environment.Exit(0);
+        }
         return process;
     }
 

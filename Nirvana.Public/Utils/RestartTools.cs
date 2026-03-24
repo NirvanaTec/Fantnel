@@ -16,6 +16,10 @@ public static class RestartTools {
         // 初始化日志
         logoInit.Invoke();
 
+        Task.Run(() => {
+            Maintenance(args);
+        });
+        
         var mode = Get("mode", args);
         if ("proxy".Equals(mode)) {
             var id = Get("id", args);
@@ -27,7 +31,7 @@ public static class RestartTools {
             AccountMessage.SwitchAccountToForce(accountId); // 强制切换账号
             InitProgram.NelInit1();
             ProxiesMessage.StartProxyAsyncTo(id, name, port, proxyMode).Wait();
-            Maintenance(args);
+            return false;
         }
 
         return true;
@@ -38,31 +42,19 @@ public static class RestartTools {
      */
     private static void Maintenance(string[] args)
     {
-        var pidString = Get("MainPid", args);
-        var pid = -1;
-        if (!string.IsNullOrEmpty(pidString)) {
-            pid = int.Parse(pidString);
+        var pid = Get("MainPid", args, -1);
+        if (pid == -1) {
+            return;
         }
-
         while (true) {
-            if (pid == -1) {
-                Thread.Sleep(9000);
-                continue;
-            }
-
-            Thread.Sleep(1000);
             try {
                 Process.GetProcessById(pid);
             } catch (ArgumentException) {
                 Log.Error("主进程 {0} 已退出", pid);
-                Log.Error("将于 3秒 后退出！");
-                Thread.Sleep(1000);
-                Log.Error("将于 2秒 后退出！");
-                Thread.Sleep(1000);
-                Log.Error("将于 1秒 后退出！");
-                Thread.Sleep(2000);
-                break;
+                Thread.Sleep(200);
+                Environment.Exit(0);
             }
+            Thread.Sleep(1000);
         }
     }
 
