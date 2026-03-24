@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-gray-900 text-white" ref="dragZone">
+  <div class="flex h-screen overflow-hidden bg-gray-900 text-white">
     <!-- 窗口控制按钮 -->
     <WindowControls :showWindowControls="showWindowControls" />
 
@@ -183,7 +183,6 @@ const showLoginModal = ref(false)
 const loginForm = ref({ account: '', password: '' })
 const currentTheme = ref('default')
 const showWindowControls = ref(false)
-const dragZone = ref(null)
 const showLoginCancel = ref(true)
 const showModal = ref(false)
 const modalMessage = ref('')
@@ -213,18 +212,7 @@ const initWindowMode = () => {
 // 初始化消息接收
 const initMessageReceiver = () => {
   try {
-    // 优先使用 window.chrome.webview.addEventListener
-    if (window.chrome && window.chrome.webview) {
-      window.chrome.webview.addEventListener('message', (event) => {
-        handleMessage(event.data)
-      })
-    }
-    // 备用使用 window.external.receiveMessage
-    else if (window.external && window.external.receiveMessage) {
-      window.external.receiveMessage = (message) => {
-        handleMessage(message)
-      }
-    }
+    window.external.receiveMessage(handleMessage)
   } catch (error) {
     console.error('Failed to initialize message receiver:', error)
   }
@@ -269,22 +257,36 @@ const initWindow = async () => {
 }
 
 const initDragZone = () => {
-  if (!dragZone.value) {
-    return
-  }
-  dragZone.value.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) {
-      return
+  const isDragging = ref(false);
+  const offsetX = ref(0);
+  const offsetY = ref(0);
+
+  document.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.window-controls') || e.target.closest('.content')) {
+      return;
     }
-    const target = e.target
-    if (!(target instanceof HTMLElement)) {
-      return
+    isDragging.value = true;
+    // 记录鼠标在窗口内的偏移
+    offsetX.value = e.screenX;
+    offsetY.value = e.screenY;
+    // 获取当前窗口位置
+    sendMessage('window:drag-start');
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging.value) {
+      return;
     }
-    if (target.tagName != "DIV" && target.tagName != "MAIN") {
-      return
-    }
-    sendMessage('window:drag')
-  })
+    // 发送绝对屏幕坐标，让后端计算
+    sendMessage('window:drag-move', {
+      sx: e.screenX,
+      sy: e.screenY
+    });
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging.value = false;
+  });
 }
 
 // 加载涅槃账号信息
