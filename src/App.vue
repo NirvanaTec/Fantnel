@@ -258,8 +258,6 @@ const initWindow = async () => {
 
 const initDragZone = () => {
   const isDragging = ref(false);
-  const offsetX = ref(0);
-  const offsetY = ref(0);
 
   document.addEventListener('mousedown', (e) => {
     if (e.target.closest('.window-controls') || e.target.closest('.content')) {
@@ -267,8 +265,6 @@ const initDragZone = () => {
     }
     isDragging.value = true;
     // 记录鼠标在窗口内的偏移
-    offsetX.value = e.screenX;
-    offsetY.value = e.screenY;
     // 获取当前窗口位置
     sendMessage('window:drag-start');
   });
