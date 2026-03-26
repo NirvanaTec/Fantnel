@@ -22,8 +22,13 @@ public static class Tools {
 
     public static bool IsReleaseVersion()
     {
+        return !IsDebugVersion();
+    }
+
+    private static bool IsDebugVersion()
+    {
         SetDebugMode();
-        return !_isDebugMode;
+        return _isDebugMode;
     }
 
     public static (T[], string) GetValueOrDefaultList<T>(string fileName)
