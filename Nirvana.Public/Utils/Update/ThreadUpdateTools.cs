@@ -67,28 +67,31 @@ public static class ThreadUpdateTools {
             DownloadWithRetryAsync(url, resourcesPath1, newProgress, entityUpdateConfig1.Name, progress, entityUpdateConfig1.Count()).Wait();
             
         }
-
         if (entityUpdateConfig1.Safe && downloadSize > 0) {
-            Log.Information("正在更新核心资源，这会自动重启[1次]，请稍后...");
-            var scriptPath = PathUtil.ScriptPath;
-            await Tools.SaveShellScript(scriptPath, GenerateUpdateScript());
-            Process.Start(new ProcessStartInfo {
-                FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
-                Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? "/C \"" + scriptPath + "\""
-                    : scriptPath,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            });
-            Environment.Exit(0);
+            await SafeRestart();
         }
+    }
+    
+    private static async Task SafeRestart()
+    {
+        Log.Information("正在更新核心资源，这会自动重启[1次]，请稍后...");
+        var scriptPath = PathUtil.ScriptPath;
+        await Tools.SaveShellScript(scriptPath, GenerateUpdateScript());
+        Process.Start(new ProcessStartInfo {
+            FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
+            Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "/C \"" + scriptPath + "\""
+                : scriptPath,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        });
+        Environment.Exit(0);
     }
 
     private static string GenerateUpdateScript()
     {
         var exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Tools.GetProcessLocation()
-            : Tools.GetProcessArguments();
+            ? Tools.GetProcessLocation() : Tools.GetProcessArguments();
         var updateScript = GenerateUpdateScript(PathUtil.UpdaterPath, AppDomain.CurrentDomain.BaseDirectory, exeName);
         Log.Information("更新脚本: {0}", updateScript);
         return updateScript;

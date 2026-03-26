@@ -802,8 +802,7 @@ return:
 
 
 window.external.sendMessage: 
-// 接收消息优先使用 window.chrome.webview.addEventListener('message', (event)${接收方法})
-// window.external.receiveMessage 作为备用
+window.external.receiveMessage(handleMessage)
 
 初始化窗口模式
 send:
@@ -826,4 +825,20 @@ send:
 send:
 {
   "action": "window:close"
+}
+
+窗口拖动_鼠标开始
+send:
+{
+  "action": "window:drag-start"
+}
+
+窗口拖动_鼠标移动中
+send:
+{
+  "action": "window:drag-move",
+  "data": {
+      sx: ${e.screenX},
+      sy: ${e.screenY}
+    }
 }

@@ -28,7 +28,6 @@ public static class Program {
         var builder = WebApplication.CreateBuilder(args);
 
         // 设置默认编码为UTF-8
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         Console.OutputEncoding = Encoding.UTF8;
 
         // 将服务添加到容器中。

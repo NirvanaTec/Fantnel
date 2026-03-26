@@ -1,12 +1,20 @@
 <script setup>
-import { ref, provide, onMounted } from 'vue'
-import { getThemeName, setThemeName, getNirvanaAccount, initWindowMode, minimizeWindow, closeWindow } from './utils/Tools'
+import { ref, provide, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { getThemeName, setThemeName, getNirvanaAccount, initWindowMode, minimizeWindow, closeWindow, sendMessage } from './utils/Tools'
 
+const route = useRoute()
+const router = useRouter()
 const theme = ref('dark')
 const account = ref('')
 const showCloseIcon = ref(false)
 const showMinimizeIcon = ref(false)
 const showWindowControls = ref(false)
+
+// 计算是否显示导航栏
+const showNavbar = computed(() => {
+  return route.path !== '/login-socket'
+})
 
 // Initialize theme from API
 onMounted(async () => {
@@ -43,18 +51,7 @@ provide('theme', theme)
 // 初始化消息接收
 const initMessageReceiver = () => {
   try {
-    // 优先使用 window.chrome.webview.addEventListener
-    if (window.chrome && window.chrome.webview) {
-      window.chrome.webview.addEventListener('message', (event) => {
-        handleMessage(event.data)
-      })
-    }
-    // 备用使用 window.external.receiveMessage
-    else if (window.external && window.external.receiveMessage) {
-      window.external.receiveMessage = (message) => {
-        handleMessage(message)
-      }
-    }
+    window.external.receiveMessage(handleMessage)
   } catch (error) {
     console.error('Failed to initialize message receiver:', error)
   }
@@ -66,7 +63,7 @@ const handleMessage = (message) => {
     var msg = JSON.parse(message)
     console.log('Received message:', msg)
     if (msg && msg.code == 5) {
-      showWindowControls.value = true
+      initWindow()
     }
     // 在这里处理接收到的消息
     // 例如：根据消息类型执行不同的操作
@@ -75,12 +72,64 @@ const handleMessage = (message) => {
   }
 }
 
+// 窗口初始化
+const initWindow = async () => {
+  initDragZone()
+
+  showWindowControls.value = true // 窗口控制按钮
+
+  try {
+    // 加载涅槃账号信息
+    const response = await getNirvanaAccount()
+    if (response.data.code === 1) {
+      if (response.data.data.days < 1) {
+        // 跳转到登录页面
+        router.push('/login-socket')
+      }
+    } else {
+      router.push('/login-socket')
+    }
+  } catch (error) {
+    console.error('Failed to load nirvana account:', error)
+  }
+
+}
+
+const initDragZone = () => {
+  const isDragging = ref(false);
+
+  document.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.window-controls') || e.target.closest('.content')) {
+      return;
+    }
+    isDragging.value = true;
+    // 记录鼠标在窗口内的偏移
+    // 获取当前窗口位置
+    sendMessage('window:drag-start');
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging.value) {
+      return;
+    }
+    // 发送绝对屏幕坐标，让后端计算
+    sendMessage('window:drag-move', {
+      sx: e.screenX,
+      sy: e.screenY
+    });
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging.value = false;
+  });
+}
+
 </script>
 
 <template>
   <div class="app" :class="theme">
     <!-- 窗口控制按钮 -->
-    <div class="container">
+    <div class="container" :class="{ 'full-width': !showNavbar }">
       <div class="window-controls" v-if="showWindowControls">
         <button class="window-btn minimize-btn" @click="handleMinimize" @mouseenter="showMinimizeIcon = true"
           @mouseleave="showMinimizeIcon = false">
@@ -92,7 +141,7 @@ const handleMessage = (message) => {
         </button>
       </div>
       <!-- 左侧导航栏 -->
-      <nav class="sidebar">
+      <nav class="sidebar" v-if="showNavbar">
         <div class="logo">
           <h2 class="divider">Fantnel</h2>
           <router-link to="/user" v-if="account">{{ account }}</router-link>
@@ -150,7 +199,7 @@ const handleMessage = (message) => {
     </div>
 
     <!-- 页脚 -->
-    <div class="footer">
+    <div class="footer" v-if="showNavbar">
       <div class="footer-content">
         <p>© 涅槃科技 2020/11/2 - 至今. 保留所有权利.</p>
         <!-- <p>备案号: 123456</p> -->
@@ -341,6 +390,11 @@ body {
   position: relative;
   overflow-y: auto;
   height: 100%;
+}
+
+/* 当导航栏隐藏时，容器占满宽度 */
+.container.full-width .main-content {
+  width: 100%;
 }
 
 /* 页脚 */

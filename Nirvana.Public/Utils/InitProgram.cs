@@ -165,7 +165,6 @@ public static class InitProgram {
         }
     }
 
-    // 将FantnelInit定义为类的静态方法
     private static async Task FantnelInit()
     {
         for (var i = 0; i < 3; i++) {
@@ -178,13 +177,10 @@ public static class InitProgram {
             } catch (Exception e) {
                 Log.Error("连接服务器失败! 错误信息: {0}", e.Message);
             }
-
-            if (i == 2) {
-                Log.Error("连接服务器失败!");
-                Thread.Sleep(6000);
-                Environment.Exit(1);
-            }
         }
+        Log.Error("连接服务器失败!");
+        Thread.Sleep(6000);
+        Environment.Exit(1);
     }
 
     // 创建服务

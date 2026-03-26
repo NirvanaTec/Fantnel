@@ -350,3 +350,11 @@ export async function closeWindow() {
 export async function getLogs() {
     return axios.get("/api/logs").then(res => res.data);
 }
+
+// 发送消息到后端的辅助函数
+export const sendMessage = (action, data = "") => {
+  const message = JSON.stringify({ action, data });
+  if (window.external && window.external.sendMessage) {
+    window.external.sendMessage(message);
+  }
+}

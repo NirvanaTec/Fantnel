@@ -91,6 +91,11 @@ const routes = [
     name: 'Logs',
     component: () => import('../views/others/Logs.vue')
   },
+  {
+    path: '/login-socket',
+    name: 'LoginSocket',
+    component: () => import('../views/nirvana/NirvanaLoginSocket.vue')
+  }
 ]
 
 const router = createRouter({
