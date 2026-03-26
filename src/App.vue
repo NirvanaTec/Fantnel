@@ -195,7 +195,6 @@ onMounted(async () => {
   await loadCurrentTheme()
   initWindowMode()
   initMessageReceiver()
-  initDragZone()
   const response = await getHomeInfo()
   homeInfo.value = response.data
 })
@@ -235,6 +234,8 @@ const handleMessage = (message) => {
 
 // 窗口初始化
 const initWindow = async () => {
+  initDragZone()
+
   showWindowControls.value = true // 窗口控制按钮
   showLoginCancel.value = false; // 登录取消按钮
 
@@ -260,7 +261,7 @@ const initDragZone = () => {
   const isDragging = ref(false);
 
   document.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.window-controls') || e.target.closest('.content')) {
+    if (e.target.nodeName !== 'DIV' && e.target.nodeName !== 'MAIN' && e.target.nodeName !== 'NAV') {
       return;
     }
     isDragging.value = true;
