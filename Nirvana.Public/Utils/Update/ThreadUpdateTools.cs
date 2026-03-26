@@ -90,18 +90,17 @@ public static class ThreadUpdateTools {
 
     private static string GenerateUpdateScript()
     {
-        var exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Tools.GetProcessLocation() : Tools.GetProcessArguments();
-        var updateScript = GenerateUpdateScript(PathUtil.UpdaterPath, AppDomain.CurrentDomain.BaseDirectory, exeName);
+        var updateScript = GenerateUpdateScript(PathUtil.UpdaterPath, AppDomain.CurrentDomain.BaseDirectory);
+        updateScript = Environment.GetCommandLineArgs().Aggregate(updateScript, (current, command) => current + command + " ");
         Log.Information("更新脚本: {0}", updateScript);
         return updateScript;
     }
 
-    private static string GenerateUpdateScript(string tempDir, string targetDir, string exeName)
+    private static string GenerateUpdateScript(string tempDir, string targetDir)
     {
         return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? $"timeout /t 1 /nobreak\r\nxcopy /e /y /i \"{tempDir}\\*\" \"{targetDir}\"\r\nstart \"\" \"{exeName}\""
-            : $"sleep 1\ncp -r \"{tempDir}/.\" \"{targetDir}\"\ndotnet \"{exeName}\"";
+            ? $"timeout /t 1 /nobreak\r\nxcopy /e /y /i \"{tempDir}\\*\" \"{targetDir}\"\r\n"
+            : $"sleep 1\ncp -r \"{tempDir}/.\" \"{targetDir}\"\n";
     }
 
     private static async Task DownloadWithRetryAsync(string url, string filePath, IntPtrReference progressRef,
