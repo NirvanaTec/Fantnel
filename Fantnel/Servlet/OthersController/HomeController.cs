@@ -24,7 +24,7 @@ public class HomeController : ControllerBase {
     public IActionResult GetTheme()
     {
         // 从配置中获取主题
-        var theme = ConfigUtil.GetConfig()["theme"] ?? "default";
+        var theme = ConfigUtil.GetConfig("theme", "default");
         return Ok(Code.ToJson(ErrorCode.Success, theme));
     }
 
