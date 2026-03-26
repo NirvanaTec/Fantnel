@@ -23,7 +23,8 @@ public static class ThreadUpdateTools {
     {
         var restart = false;
         var progress = new List<IntPtrReference>();
-
+        var pathList = new List<string>();
+        
         foreach (var item in entityUpdateConfig1.Array) {
             // 下载进度
             var newProgress = new IntPtrReference();
@@ -64,10 +65,17 @@ public static class ThreadUpdateTools {
                 restart = true;
             }
 
+            pathList.Add(resourcesPath1);
             DownloadWithRetryAsync(url, resourcesPath1, newProgress, entityUpdateConfig1.Name, progress, entityUpdateConfig1.Count()).Wait();
-            
         }
+        
         if (entityUpdateConfig1.Safe && restart) {
+            foreach (var path in Directory.GetFiles(PathUtil.UpdaterPath)) {
+                if (pathList.Contains(path)) {
+                    continue;
+                }
+                File.Delete(path);
+            }
             await SafeRestart();
         }
     }
