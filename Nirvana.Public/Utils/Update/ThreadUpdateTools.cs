@@ -21,7 +21,7 @@ public static class ThreadUpdateTools {
      */
     public static async Task CheckUpdate(EntityUpdateConfig1 entityUpdateConfig1)
     {
-        var downloadSize = 0;
+        var restart = false;
         var progress = new List<IntPtrReference>();
 
         foreach (var item in entityUpdateConfig1.Array) {
@@ -60,14 +60,14 @@ public static class ThreadUpdateTools {
             // 83 - 15 = 68ms
             Thread.Sleep(68);
             newProgress.Value = 0;
-            if (pathValue.EndsWith(".dll")) {
-                downloadSize++;
+            if (pathValue.EndsWith(".dll") || pathValue.EndsWith(".exe")) {
+                restart = true;
             }
 
             DownloadWithRetryAsync(url, resourcesPath1, newProgress, entityUpdateConfig1.Name, progress, entityUpdateConfig1.Count()).Wait();
             
         }
-        if (entityUpdateConfig1.Safe && downloadSize > 0) {
+        if (entityUpdateConfig1.Safe && restart) {
             await SafeRestart();
         }
     }
@@ -82,8 +82,6 @@ public static class ThreadUpdateTools {
             Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? "/C \"" + scriptPath + "\""
                 : scriptPath,
-            UseShellExecute = false,
-            CreateNoWindow = true
         });
         Environment.Exit(0);
     }
@@ -91,8 +89,9 @@ public static class ThreadUpdateTools {
     private static string GenerateUpdateScript()
     {
         var updateScript = GenerateUpdateScript(PathUtil.UpdaterPath, AppDomain.CurrentDomain.BaseDirectory);
-        updateScript = Environment.GetCommandLineArgs().Aggregate(updateScript, (current, command) => current + command + " ");
-        Log.Information("更新脚本: {0}", updateScript);
+        updateScript += "dotnet ";
+        updateScript = Environment.GetCommandLineArgs().Aggregate(updateScript, (current, arg) => current + arg + " ");
+        Log.Information("更新脚本: \n{0}", updateScript);
         return updateScript;
     }
 
