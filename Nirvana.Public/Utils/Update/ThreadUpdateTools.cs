@@ -98,7 +98,17 @@ public static class ThreadUpdateTools {
     {
         var updateScript = GenerateUpdateScript(PathUtil.UpdaterPath, AppDomain.CurrentDomain.BaseDirectory);
         updateScript += "dotnet ";
-        updateScript = Environment.GetCommandLineArgs().Aggregate(updateScript, (current, arg) => current + arg + " ");
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+            // Mac 终端结束后，启动进程, 无法显示进程窗口，因为 "进程已完成" 终端被关闭
+            // Saving session...
+            // ...copying shared history...
+            // ...saving history...truncating history files...
+            // ...completed.
+            // [进程已完成]
+            updateScript = Environment.GetCommandLineArgs().Aggregate(updateScript, (current, arg) => current + arg + " ");
+        }
+        
         Log.Information("更新脚本: \n{0}", updateScript);
         return updateScript;
     }

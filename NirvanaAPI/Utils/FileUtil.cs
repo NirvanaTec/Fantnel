@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using Mono.Unix;
 using Serilog;
 
 namespace NirvanaAPI.Utils;
@@ -140,25 +139,13 @@ public static class FileUtil {
      * @param filePath 文件路径
      * @param requiredPermissions 所需权限，默认所有权限
      */
-    public static void SetUnixFilePermissions(string filePath,
-        FileAccessPermissions requiredPermissions = FileAccessPermissions.AllPermissions)
+    public static void SetUnixFilePermissions(string filePath)
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
-
-        try {
-            var fileInfo = new UnixFileInfo(filePath);
-            if ((fileInfo.FileAccessPermissions & requiredPermissions) == requiredPermissions) return; // 权限已满足
-            fileInfo.FileAccessPermissions |= requiredPermissions;
-            Log.Debug("已通过 Mono.Posix 设置 {FilePath} 的权限", filePath); // 可选的日志
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             return;
-        } catch (UnauthorizedAccessException e) {
-            Log.Warning("警告：无权修改 {0} 的权限: {1}", filePath, e.Message);
-        } catch (Exception e) {
-            Log.Warning("警告：使用 Mono.Posix 设置 {0} 权限时出错: {1}", filePath, e.Message);
         }
-
         try {
-            var processStartInfo = new ProcessStartInfo("chmod", $"755 \"{filePath}\"") { UseShellExecute = false };
+            var processStartInfo = new ProcessStartInfo("chmod", $"755 \"{filePath}\"");
             var process = Process.Start(processStartInfo);
             process?.WaitForExit();
         } catch (Exception e) {
