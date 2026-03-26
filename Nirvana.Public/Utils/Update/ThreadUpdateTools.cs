@@ -101,7 +101,7 @@ public static class ThreadUpdateTools {
     {
         return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? $"timeout /t 1 /nobreak\r\nxcopy /e /y /i \"{tempDir}\\*\" \"{targetDir}\"\r\nstart \"\" \"{exeName}\""
-            : $"sleep 1\ncp -r \"{tempDir}/.\" \"{targetDir}\"\ndotnet \"{exeName}\" & rm -rf \"{tempDir}\"";
+            : $"sleep 1\ncp -r \"{tempDir}/.\" \"{targetDir}\"\ndotnet \"{exeName}\"";
     }
 
     private static async Task DownloadWithRetryAsync(string url, string filePath, IntPtrReference progressRef,
