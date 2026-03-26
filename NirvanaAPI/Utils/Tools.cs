@@ -193,14 +193,13 @@ public static class Tools {
      */
     public static Process? Restart(bool isExit = true, List<string>? arguments = null)
     {
-        var fileName = GetProcessLocation();
         var arg = GetProcessArguments(arguments);
         var startInfo = new ProcessStartInfo {
-            FileName = fileName,
+            FileName = Environment.ProcessPath,
             Arguments = arg,
             UseShellExecute = true
         };
-        Log.Information("正在重启: {0} {1}", fileName, arg);
+        Log.Information("正在重启: {0} {1}", Environment.ProcessPath, arg);
         var process = Process.Start(startInfo);
         if (isExit) {
             Environment.Exit(0);
@@ -212,29 +211,15 @@ public static class Tools {
      * 前/尾 不包含空格
      * @return 当前进程的附加参数
      */
-    public static string GetProcessArguments(List<string>? arguments = null)
+    private static string GetProcessArguments(List<string>? arguments = null)
     {
         var arg = Environment.GetCommandLineArgs().Aggregate("", (current, lineArg) => current + lineArg + " ");
-        if (arguments != null) arg = arguments.Aggregate(arg, (current, argument) => current + argument + " ");
+        if (arguments != null) {
+            arg = arguments.Aggregate(arg, (current, argument) => current + argument + " ");
+        }
         // 移除最后一个空格
         // "a " > "a"
         return arg.Length >= 2 ? arg[..^1] : arg;
-    }
-
-    /**
-     * @return 当前进程的路径
-     */
-    public static string GetProcessLocation()
-    {
-        var currentProcess = Process.GetCurrentProcess();
-        var mainModule = currentProcess.MainModule;
-        if (mainModule != null) {
-            var fileName1 = mainModule.FileName;
-            if (!string.IsNullOrEmpty(fileName1)) return fileName1;
-        }
-
-        var fileName2 = Environment.ProcessPath;
-        return string.IsNullOrEmpty(fileName2) ? throw new Exception("无法确定自身运行路径，无法重启当前进程。") : fileName2;
     }
 
     /**
