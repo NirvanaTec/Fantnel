@@ -81,8 +81,8 @@ const initWindow = async () => {
   try {
     // 加载涅槃账号信息
     const response = await getNirvanaAccount()
-    if (response.data.code === 1) {
-      if (response.data.data.days < 1) {
+    if (response.code === 1) {
+      if (response.data.days < 1) {
         // 跳转到登录页面
         router.push('/login-socket')
       }
