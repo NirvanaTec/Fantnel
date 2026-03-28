@@ -222,7 +222,7 @@ const handleMessage = (message) => {
   try {
     var msg = JSON.parse(message)
     console.log('Received message:', msg)
-    if (msg && msg.code == 5) {
+    if (msg && msg.code === 5) {
       initWindow()
     }
     // 在这里处理接收到的消息
@@ -246,7 +246,7 @@ const initWindow = async () => {
       if (response.data.data.days > 1) {
         showLoginCancel.value = true // 恢复登录取消按钮
       } else {
-        loginTitle.value = '没有天数，无法登录'
+        loginTitle.value = '账号没有天数，无法登录'
       }
     } else {
       showLoginModal.value = true // 登录模态框显示
