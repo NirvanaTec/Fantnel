@@ -7,7 +7,7 @@ public class ConfigValue {
 
     public required string Name;
     private string? _value;
-    public required string Default;
+    public string Default = string.Empty;
     public string PropertyName = "string";
 
     public void SetValue(string? value)
@@ -23,6 +23,11 @@ public class ConfigValue {
     public bool IsProperty(string propertyName)
     {
         return PropertyName.Equals(propertyName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public bool IsDefault()
+    {
+        return _value == null || Default.Equals(_value);
     }
 
 }
