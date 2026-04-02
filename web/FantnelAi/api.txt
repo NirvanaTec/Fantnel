@@ -665,6 +665,17 @@ Min GameMemory = 1024
   "msg": "成功"
 }
 
+/api/nirvana/add?name=${配置名}&value=${配置值}&property=${配置属性名} : 添加配置选项
+/api/nirvana/set?mode=testint&value=1231&property=int
+/api/nirvana/set?mode=testbool&value=false&property=bool
+/api/nirvana/set?mode=testdouble&value=1231.0&property=double
+/api/nirvana/set?mode=testfloat&value=1231.0&property=float
+/api/nirvana/set?mode=teststring&value=adas&property=string
+{
+  "code": 1,
+  "msg": "成功"
+}
+
 /api/nirvana/logout : 登出涅槃账号
 {
   "code": 1,
