@@ -4,6 +4,7 @@ using Nirvana.Public.Utils.Update;
 using Nirvana.Public.Utils.ViewLogger;
 using Nirvana.WPFLauncher.Http;
 using Nirvana.WPFLauncher.Protocol;
+using NirvanaAPI;
 using NirvanaAPI.Entities;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
@@ -63,7 +64,7 @@ public static class InitProgram {
         Log.Information("------  完成 ------");
 
         // 配置初始化
-        NirvanaAccountManager.Initialization();
+        NirvanaConfig.Initialization();
 
         // 默认登录
         AccountMessage.GetAccountList();
@@ -79,7 +80,7 @@ public static class InitProgram {
         Online();
 
         // 缓存 服务器/租凭服/皮肤 信息/图片
-        _= Task.Run(async () => {
+        _ = Task.Run(async () => {
             try {
                 await Task.Delay(1000);
                 InfoManager.GetToken(); // 是否登录
@@ -88,7 +89,6 @@ public static class InitProgram {
                 // ignored
             }
         });
-        
     }
 
     /**
@@ -178,6 +178,7 @@ public static class InitProgram {
                 Log.Error("连接服务器失败! 错误信息: {0}", e.Message);
             }
         }
+
         Log.Error("连接服务器失败!");
         Thread.Sleep(6000);
         Environment.Exit(1);

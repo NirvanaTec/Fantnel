@@ -1,116 +1,164 @@
 ﻿using System.Text;
 using System.Text.Json;
-using NirvanaAPI.Entities.EntitiesNirvana;
+using System.Text.Json.Nodes;
+using NirvanaAPI.Entities;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
 
 namespace NirvanaAPI;
 
 public class NirvanaConfig {
-    public static EntityNirvanaConfig Config = new();
-
     private static readonly string FilePath = Path.Combine(PathUtil.ResourcePath, "nirvanaAccount.json");
-    private static DateTime _lastApiCallTime = DateTime.MinValue;
 
-    // 保存账号
-    public static void SaveConfig()
+    private static List<ConfigValue> ConfigValues { get; } = [
+        new() {
+            Name = "hideAccount", Default = "true", PropertyName = "bool"
+        }, // 隐藏账号
+        new() {
+            Name = "chatEnable", Default = "true", PropertyName = "bool"
+        }, // 聊天功能
+        new() {
+            Name = "gameMemory", Default = "4096", PropertyName = "int"
+        }, // 游戏内存
+        new() {
+            Name = "jvmArgs", Default = "-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Djdk.lang.Process.allowAmbiguousCommands=true -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true"
+        }, // 虚拟机参数
+        new() {
+            Name = "gameArgs", Default = ""
+        }, // 游戏参数
+        new() {
+            Name = "autoLoginGame", Default = "true", PropertyName = "bool"
+        }, // 主动登录游戏
+        new() {
+            Name = "autoLoginGame163Email", Default = "false", PropertyName = "bool"
+        }, // 主动登录 163Email
+        new() {
+            Name = "autoLoginGameCookie", Default = "true", PropertyName = "bool"
+        }, // 主动登录 Cookie
+        new() {
+            Name = "useJavaW", Default = "true", PropertyName = "bool"
+        }, // 使用 javaw.exe
+        new() {
+            Name = "autoUpdatePlugin", Default = "true", PropertyName = "bool"
+        }, // 自动更新插件
+        new() {
+            Name = "account", Default = ""
+        }, // 涅槃账号
+        new() {
+            Name = "token", Default = ""
+        } // 涅槃在线密钥
+    ];
+
+    // [JsonPropertyName("days")]
+    // public double Days { get; set; } // 剩余天数
+
+    // 初始化
+    public static void Initialization()
     {
         lock (FilePath) {
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(Config), Encoding.UTF8);
+            var entity = Tools.GetValueOrDefault<Dictionary<string, string>>("nirvanaAccount.json").Item1;
+            if (entity == null) {
+                return;
+            }
+
+            foreach (var configValue in entity) {
+                SetValue(configValue.Key, configValue.Value);
+            }
+        }
+    }
+
+    public static bool GetBool(string name)
+    {
+        return bool.Parse(GetString(name));
+    }
+
+    public static string GetString(string name)
+    {
+        var configValue = GetValueTo(name);
+        return configValue == null ? throw new Exception($"Config {name} not found") : configValue.GetValue();
+    }
+
+    private static ConfigValue? GetValueTo(string name)
+    {
+        return ConfigValues.FirstOrDefault(configValue => configValue.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static void SetValue(string name, string? value)
+    {
+        var configValue = GetValueTo(name);
+        if (configValue == null) {
+            return;
+        }
+
+        configValue.SetValue(value);
+        SaveConfig();
+    }
+
+    private static string GetString()
+    {
+        return JsonSerializer.Serialize(GetJsonObject());
+    }
+
+    public static JsonObject GetJsonObject()
+    {
+        var jsonObj = new JsonObject();
+        foreach (var configValue in ConfigValues) {
+            var value = configValue.GetValue();
+            if (configValue.IsProperty("bool")) {
+                jsonObj.Add(configValue.Name, bool.Parse(value));
+            } else if (configValue.IsProperty("int")) {
+                jsonObj.Add(configValue.Name, int.Parse(value));
+            } else {
+                jsonObj.Add(configValue.Name, value);
+            }
+        }
+        return jsonObj;
+    }
+
+    // 保存账号
+    private static void SaveConfig()
+    {
+        lock (FilePath) {
+            File.WriteAllText(FilePath, GetString(), Encoding.UTF8);
         }
     }
 
     // 退出登录
     public static void Logout()
     {
-        Config.Logout();
+        SetValue("account", "");
+        SetValue("token", "");
         SaveConfig();
     }
 
     // 登录检测
-    public static bool IsLogin(bool useCache = true)
+    public static void IsLogin()
     {
-        if (string.IsNullOrEmpty(Config.Account) || string.IsNullOrEmpty(Config.Token)) {
+        var account = GetString("account");
+        var token = GetString("token");
+        if (string.IsNullOrEmpty(account) || string.IsNullOrEmpty(token)) {
             throw new ErrorCodeException(ErrorCode.LogInNot);
         }
-
-        return !useCache || IsUseCache();
     }
 
-    // 是否使用缓存
-    private static bool IsUseCache(int time = 5)
+    public static void SetGameMemory(string? value)
     {
-        var now = DateTime.UtcNow;
-        if ((now - _lastApiCallTime).TotalSeconds < time) {
-            return true;
+        if (string.IsNullOrEmpty(value)) {
+            throw new ErrorCodeException(ErrorCode.MemoryError);
         }
 
-        _lastApiCallTime = now;
-        return false;
-    }
-
-    public static void SetHideAccount(string value)
-    {
-        Config.HideAccount = bool.Parse(value);
-        SaveConfig();
-    }
-
-    public static void SetChatEnable(string value)
-    {
-        Config.ChatEnable = bool.Parse(value);
-        SaveConfig();
-    }
-
-    public static void SetUseJavaW(string value)
-    {
-        Config.UseJavaW = bool.Parse(value);
-        SaveConfig();
-    }
-
-    public static void SetAutoUpdatePlugin(string value)
-    {
-        Config.AutoUpdatePlugin = bool.Parse(value);
-        SaveConfig();
-    }
-
-    public static void SetGameMemory(string value)
-    {
         var gameMemory = int.Parse(value);
         if (gameMemory < 1024) {
             throw new ErrorCodeException(ErrorCode.MemoryError);
         }
 
-        Config.GameMemory = gameMemory;
-        SaveConfig();
+        SetValue("gameMemory", gameMemory.ToString());
     }
 
-    public static void SetJvmArgs(string value)
+    public static string GetLoginT()
     {
-        Config.JvmArgs = value;
-        SaveConfig();
-    }
-
-    public static void SetGameArgs(string value)
-    {
-        Config.GameArgs = value;
-        SaveConfig();
-    }
-
-    public static void SetAutoLoginGame(string value)
-    {
-        Config.AutoLoginGame = bool.Parse(value);
-        SaveConfig();
-    }
-
-    public static void SetAutoLoginGame163Email(string value)
-    {
-        Config.AutoLoginGame163Email = bool.Parse(value);
-        SaveConfig();
-    }
-
-    public static void SetAutoLoginGameCookie(string value)
-    {
-        Config.AutoLoginGameCookie = bool.Parse(value);
-        SaveConfig();
+        var account = GetString("account");
+        var token = GetString("token");
+        return $"account={account}&online={token}";
     }
 }

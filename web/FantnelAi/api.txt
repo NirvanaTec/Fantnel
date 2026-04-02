@@ -583,8 +583,7 @@ games: 优先账号 的 角色信息 [切换优先账号，会导致games改变]
   "data": {
     "days": 34,
     "hideAccount": false,
-    "account": "fengheng1314",
-    "token": "e15e33f22550a4b414a0790c99e8f846d353f9dd5a1667c65cea70486acae57e"
+    "account": "fengheng1314"
   },
   "msg": "成功"
 }

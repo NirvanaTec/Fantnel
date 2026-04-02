@@ -56,7 +56,7 @@ const toLogin = async () => {
           // 登录成功后跳转至用户首页
           window.location.href = '/user'
         }else{
-          Message.warning(accountData.msg || '账号已过期')
+          Message.warning('账号没有天数，无法登录')
         }
       } else {
         Message.warning(accountData.msg || '获取账号信息失败')

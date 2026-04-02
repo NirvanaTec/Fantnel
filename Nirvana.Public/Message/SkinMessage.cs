@@ -17,7 +17,7 @@ public static class SkinMessage {
         while (true) {
             // 缓存图片下载
             CacheManager.DownloadCacheImage();
-            
+
             // ServerList 有 就用缓存
             // 分页
             if (SkinList.Count >= count) {

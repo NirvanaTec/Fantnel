@@ -9,21 +9,20 @@ using Nirvana.Development.Packet.IPacket;
 namespace Nirvana.Chat;
 
 public static class ChatPluginMain {
+    private static readonly List<APacket> Packets = [
+        new C01PacketChatMessage(),
+        // 1122
+        new CPacketChatMessage(),
+        // 1180
+        new ServerboundChatPacket(),
+        // 1200
+        new ServerboundChatCommandPacket(),
+        // 1206
+        new Packet.V1206.Chat.ServerboundChatCommandPacket()
+    ];
+
     public static void Initialize()
     {
-        var packets = new List<APacket> {
-            // 108X
-            new C01PacketChatMessage(),
-            // 1122
-            new CPacketChatMessage(),
-            // 1180
-            new ServerboundChatPacket(),
-            // 1200
-            new ServerboundChatCommandPacket(),
-            // 1206
-            new Packet.V1206.Chat.ServerboundChatCommandPacket()
-        };
-        NPacketManager.RegisterPacketFromList("Nirvana.Chat", packets.ToArray());
-        ChatManager.Register();
+        NPacketManager.RegisterPacketFromList("Nirvana.Chat", Packets, ChatManager.Register);
     }
 }

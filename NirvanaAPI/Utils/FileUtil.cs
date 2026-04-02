@@ -94,6 +94,7 @@ public static class FileUtil {
             if (!File.Exists(path)) {
                 return true;
             }
+
             File.Delete(path);
             return true;
         } catch (Exception) {
@@ -129,6 +130,7 @@ public static class FileUtil {
             if (File.Exists(tempFile)) {
                 File.Delete(tempFile);
             }
+
             throw;
         }
     }
@@ -144,6 +146,7 @@ public static class FileUtil {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             return;
         }
+
         try {
             var processStartInfo = new ProcessStartInfo("chmod", $"755 \"{filePath}\"");
             var process = Process.Start(processStartInfo);

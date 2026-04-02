@@ -49,8 +49,17 @@ public class EntityAccount : EntityUserInfo {
 
     public bool IsConfig()
     {
-        return NirvanaConfig.Config.AutoLoginGame && (
-            ("163Email".Equals(Type) && NirvanaConfig.Config.AutoLoginGame163Email) ||
-            ("cookie".Equals(Type) && NirvanaConfig.Config.AutoLoginGameCookie));
+        // 主动登录游戏
+        if (!NirvanaConfig.GetBool("autoLoginGame")) {
+            return false;
+        }
+
+        // 主动登录 163Email
+        if ("163Email".Equals(Type, StringComparison.OrdinalIgnoreCase)) {
+            return NirvanaConfig.GetBool("autoLoginGame163Email");
+        }
+
+        // 主动登录 Cookie
+        return "cookie".Equals(Type) && NirvanaConfig.GetBool("autoLoginGameCookie");
     }
 }

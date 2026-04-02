@@ -38,7 +38,7 @@ public class EntityInfo {
 
     [JsonPropertyName("gameVersion")]
     public string? GameVersion { get; init; }
-    
+
     [JsonPropertyName("shopUrl")]
     public string? ShopUrl { get; init; }
 }

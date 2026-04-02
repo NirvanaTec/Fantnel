@@ -114,9 +114,7 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
                 await ReadExactAsync(stream, serverIdBuf, 0, serverIdLen, token).ConfigureAwait(false);
                 var serverId = Encoding.UTF8.GetString(serverIdBuf);
 
-                await NetEaseConnection.CreateAuthenticatorAsync(serverId, gameId, version, modList, int.Parse(userId), account.GetToken(), () => {
-                    responseCode = 0u;
-                }).ConfigureAwait(false);
+                await NetEaseConnection.CreateAuthenticatorAsync(serverId, gameId, version, modList, int.Parse(userId), account.GetToken(), () => { responseCode = 0u; }).ConfigureAwait(false);
             } catch (Exception ex) {
                 Log.Warning("Client handling error: {0}", ex.Message);
             } finally {

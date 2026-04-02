@@ -84,7 +84,7 @@ public static class PlugInstoreMessage {
         // 清理相同ID的插件
         PluginMessage.CleanSameIdPlugin();
 
-        if (!NirvanaConfig.Config.AutoUpdatePlugin) {
+        if (!NirvanaConfig.GetBool("autoUpdatePlugin")) {
             return;
         }
 

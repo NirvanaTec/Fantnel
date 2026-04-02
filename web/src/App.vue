@@ -20,7 +20,6 @@ const showNavbar = computed(() => {
 onMounted(async () => {
   initDragZone();
 
-
   const themeName = await getThemeName().then(res => res.data);
   theme.value = themeName === 'default' ? 'dark' : themeName
   // 获取涅槃账号信息
@@ -105,7 +104,7 @@ const initDragZone = () => {
   const isDragging = ref(false);
 
   document.addEventListener('mousedown', (e) => {
-    if (e.target.nodeName != 'DIV' && e.target.nodeName != 'MAIN' && e.target.nodeName != 'NAV') {
+    if (e.target.nodeName !== 'DIV' && e.target.nodeName !== 'MAIN' && e.target.nodeName !== 'NAV') {
       return;
     }
     isDragging.value = true;

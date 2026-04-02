@@ -27,7 +27,7 @@ public static class ServersGameMessage {
         while (true) {
             // 缓存图片下载
             CacheManager.DownloadCacheImage();
-            
+
             // ServerList 有 就用缓存
             // 分页
             if (ServerList.Count >= count) {

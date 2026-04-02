@@ -55,7 +55,8 @@ public class EntityLaunchGame {
             if (Equals(gameAccount.UserId, serverId, nickname)) {
                 return true;
             }
-        } 
+        }
+
         return Equals(gameAccount);
     }
 

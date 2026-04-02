@@ -4,15 +4,14 @@ using NirvanaAPI.Entities.Login;
 namespace Nirvana.Public.Entities.NEL;
 
 public abstract class EntityProxyBase {
-    
-    [JsonPropertyName("id")]
-    public int Id { get; init; }
+    [JsonIgnore]
+    public required EntityUserInfo? Account;
 
     [JsonIgnore]
     public string? ServerId;
 
-    [JsonIgnore]
-    public required EntityUserInfo? Account;
+    [JsonPropertyName("id")]
+    public int Id { get; init; }
 
     /**
      * 清理 相同/过期 的代理

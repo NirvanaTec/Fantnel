@@ -2,7 +2,6 @@
 using Nirvana.Game.Launcher.Services.Java;
 using Nirvana.Game.Launcher.Utils;
 using Nirvana.Public.Manager;
-using Nirvana.Public.Utils.Update;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Minecraft;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 using Nirvana.WPFLauncher.Http;
@@ -144,11 +143,13 @@ public static class LaunchMessage {
             javaName = "jre8";
             javaPath = PathUtil.Jre8Path;
         }
+
         var id = PublicProgram.Mode + "." + PublicProgram.Arch + "." + javaName + ".java";
         var response = await X19Extensions.Nirvana.Api<EntityResponse<EntityMd5AndUrl>>("/api/fantnel/resource/md5?id=" + id);
         if (response?.Data == null) {
             throw new ErrorCodeException(ErrorCode.NotFound);
         }
+
         var md5File = Path.Combine(PathUtil.JavaPath, javaName + ".md5");
         if (File.Exists(md5File)) {
             var fileMd5 = await File.ReadAllTextAsync(md5File);
@@ -157,6 +158,7 @@ public static class LaunchMessage {
                 return;
             }
         }
+
         var filePath = Path.Combine(javaPath, javaName + ".zip");
         await DownloadUtil.DownloadAsync(response.Data.Url, filePath, javaName);
         await CompressionUtil.ExtractAsync(filePath, javaPath, javaName);

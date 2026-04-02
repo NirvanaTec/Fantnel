@@ -3,7 +3,7 @@
 public class NThread {
     public static void Start(Action action, Action<Exception>? onError = null, Action? onSuccess = null)
     {
-        _= Task.Run(() => {
+        _ = Task.Run(() => {
             var thread1 = new Thread(() => {
                 try {
                     action.Invoke();

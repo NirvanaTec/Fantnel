@@ -3,11 +3,12 @@ using Nirvana.Public.Entities.Nirvana;
 using Nirvana.WPFLauncher.Http;
 using NirvanaAPI;
 using NirvanaAPI.Entities.EntitiesNirvana;
-using NirvanaAPI.Utils;
 
 namespace Nirvana.Public.Manager;
 
-public class NirvanaAccountManager {
+public static class NirvanaAccountManager {
+    private static double? _days;
+
     // 登录账号
     public static async Task Login(string account, string password)
     {
@@ -21,48 +22,32 @@ public class NirvanaAccountManager {
             throw new Exception(entity.Msg);
         }
 
-        NirvanaConfig.Config.Account = account;
-        NirvanaConfig.Config.Token = entity.Token;
-        NirvanaConfig.SaveConfig();
+        _days = null;
+        NirvanaConfig.SetValue("account", account);
+        NirvanaConfig.SetValue("token", entity.Token);
         await ChatMessage.AuthenticateAsync();
     }
 
-    // 初始化
-    public static void Initialization()
-    {
-        var entity = Tools.GetValueOrDefault<EntityNirvanaConfig>("nirvanaAccount.json").Item1;
-        if (entity == null) {
-            return;
-        }
-
-        NirvanaConfig.Config = entity;
-    }
-
     // 获取信息
-    public static async Task<EntityNirvanaConfig> GetInfo()
+    public static async Task<EntityAccountNirvanaConfig> GetLoginInfo()
     {
-        if (NirvanaConfig.IsLogin()) {
-            return GetInfo1();
+        NirvanaConfig.IsLogin(); // 检查是否登录
+
+        if (_days == null) {
+            var entity = await X19Extensions.Nirvana.Api<EntityNirvanaInfo>("/api/info?mode=fantnel&" + NirvanaConfig.GetLoginT());
+            if (entity == null) {
+                throw new Exception();
+            }
+
+            _days = entity.Days;
         }
 
-        var entity = await X19Extensions.Nirvana.Api<EntityNirvanaInfo>("/api/info?mode=fantnel" + NirvanaConfig.Config);
-        if (entity == null) {
-            throw new Exception();
-        }
-
-        NirvanaConfig.Config.Days = entity.Days;
-        return GetInfo1();
-    }
-
-    // 获取信息
-    private static EntityNirvanaConfig GetInfo1()
-    {
-        var config = new EntityNirvanaConfig {
-            Account = NirvanaConfig.Config.Account,
-            Days = NirvanaConfig.Config.Days,
-            HideAccount = NirvanaConfig.Config.HideAccount,
-            Token = NirvanaConfig.Config.Token
+        var config = new EntityAccountNirvanaConfig {
+            Account = NirvanaConfig.GetString("account"),
+            Days = _days.Value,
+            HideAccount = NirvanaConfig.GetBool("hideAccount")
         };
+
         if (config.HideAccount) {
             config.Account = MaskAccount(config.Account);
         }
@@ -92,10 +77,10 @@ public class NirvanaAccountManager {
         };
     }
 
-    public static void SetChatEnable(string value)
+    public static void SetChatEnable(string? value)
     {
-        NirvanaConfig.SetChatEnable(value);
-        if ("true".Equals(value, StringComparison.OrdinalIgnoreCase)) {
+        NirvanaConfig.SetValue("chatEnable", value);
+        if (NirvanaConfig.GetBool("chatEnable")) {
             _ = ChatMessage.StartAsync();
         } else {
             ChatMessage.Shutdown();

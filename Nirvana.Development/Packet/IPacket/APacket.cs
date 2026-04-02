@@ -12,7 +12,6 @@ public abstract class APacket {
     public readonly EnumConnectionState State;
     public readonly EnumProtocolVersion[] Versions;
 
-    // ReSharper disable once UnusedMember.Global
     protected APacket(EnumConnectionState state, EnumPacketDirection direction, int[] packetIds, EnumProtocolVersion[] versions, bool skip = false)
     {
         State = state;

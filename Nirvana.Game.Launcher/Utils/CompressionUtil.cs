@@ -47,7 +47,7 @@ public static class CompressionUtil {
     {
         if (Is7ZipFormat(archivePath)) {
             await Extract7ZAsync(archivePath, outPath, progress);
-        } else{
+        } else {
             await ExtractZipAsync(archivePath, outPath, progress);
         }
     }
@@ -61,8 +61,9 @@ public static class CompressionUtil {
             var progressBar = new SyncProgressBarUtil.ProgressBar();
             // 解压 进度条 回调
             uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => progressBar.Update(update.Percent, update.Message));
-        } 
-        await ExtractAsync(archivePath, outPath, dp => { 
+        }
+
+        await ExtractAsync(archivePath, outPath, dp => {
             uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
                 Percent = dp,
                 Message = $"Extracting: {name}"

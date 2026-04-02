@@ -13,6 +13,7 @@ public static class InstallerService {
             if (IsMinecraftInstalledAsync(paths).GetAwaiter().GetResult()) {
                 return true;
             }
+
             FileUtil.CleanDirectorySafe(paths.BasePath);
             using var progressBar = new SyncProgressBarUtil.ProgressBar();
             var progress = CreateProgressReporter(progressBar);
@@ -23,6 +24,7 @@ public static class InstallerService {
             if (!await ValidateDownloadedPackage(paths.ArchivePath, progress)) {
                 return false;
             }
+
             await ExtractMinecraftPackage(paths.ArchivePath, paths.BasePath, progress);
             await SavePackageHash(paths.ArchivePath, paths.HashPath);
             await CleanupTemporaryFiles(paths.ArchivePath, progress);
@@ -48,6 +50,7 @@ public static class InstallerService {
         if (!File.Exists(paths.ExecutablePath) || !File.Exists(paths.HashPath)) {
             return false;
         }
+
         try {
             return string.Equals(Convert.ToHexStringLower(await File.ReadAllBytesAsync(paths.HashPath)),
                 "50ac5016023c295222b979565b9c707b", StringComparison.OrdinalIgnoreCase);
@@ -127,9 +130,11 @@ public static class InstallerService {
         if (string.IsNullOrWhiteSpace(expectedMd5)) {
             throw new ArgumentException("Expected MD5 hash cannot be null or empty", nameof(expectedMd5));
         }
+
         if (!File.Exists(filePath)) {
             throw new FileNotFoundException("File not found: " + filePath, filePath);
         }
+
         return string.Equals(Convert.ToHexStringLower(MD5.HashData(await File.ReadAllBytesAsync(filePath))), expectedMd5, StringComparison.OrdinalIgnoreCase);
     }
 }

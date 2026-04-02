@@ -104,18 +104,18 @@ public class CommandService {
         BuildCommand(cfg, _version, socketPort);
         // 修复 natives
         InstallNatives().Wait();
-        
+
         // 保存到文件，方便调试
         var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "command" + PathUtil.ScriptSuffix);
         Tools.SaveShellScript(scriptPath, GetJavaCommand()).Wait();
     }
-    
+
     private async Task InstallNatives()
     {
         if (_minecraft.Count == 0) {
             return;
         }
-        
+
         // 删除 linux/mac 下的 natives[win库]
         var nativesPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", _version, "natives");
         foreach (var native in Directory.GetFiles(nativesPath)) {
@@ -128,7 +128,7 @@ public class CommandService {
             await CompressionUtil.ExtractAsync(item.GetPath(), nativesPath);
         }
     }
-    
+
     // 生成启动参数 【独立运行】
     private string GetJavaCommand()
     {
@@ -172,7 +172,7 @@ public class CommandService {
 
                 var action = actionElement.GetString();
                 var name = nameElement.GetString(); // 系统名称
-                
+
                 switch (action) {
                     // name != os
                     // osx != osx
@@ -185,6 +185,7 @@ public class CommandService {
                 }
             }
         }
+
         return true;
     }
 
@@ -198,7 +199,6 @@ public class CommandService {
         }
 
         foreach (var item in libElement.EnumerateArray().Where(CheckRules)) {
-            
             // downloads
             if (!item.TryGetProperty("downloads", out var downElement)) {
                 continue;
@@ -225,6 +225,7 @@ public class CommandService {
                             if (string.IsNullOrEmpty(osName)) {
                                 continue;
                             }
+
                             var runArch = GetRunArch();
                             foreach (var archName in runArch) {
                                 var osNameArch = osName.Replace("${arch}", archName);
@@ -286,7 +287,7 @@ public class CommandService {
         });
         return jarList;
     }
-    
+
     private static List<string> BuildJarListsByName(Dictionary<string, JsonElement> cfg)
     {
         var jarList = new List<string>();
@@ -319,7 +320,7 @@ public class CommandService {
         foreach (var jar in BuildJarListsByName(cfg).Where(jar => jarList.All(item => !item.Equals(jar)))) {
             jarList.Add(new EntityJavaFile(jar));
         }
-        
+
         // \versions\1.8.9\1.8.9.jar
         var verValue = Path.Combine("versions", version, version + ".jar");
         jarList.Add(new EntityJavaFile(verValue));
@@ -333,9 +334,11 @@ public class CommandService {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             return ["windows"];
         }
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
             return ["osx"];
         }
+
         return ["linux"];
     }
 
@@ -360,7 +363,7 @@ public class CommandService {
             //     jvmArguments = DeleteArguments("cp", jvmArguments);
             // }
             jvmArguments = ReplaceLib("cp", jvmArguments);
-            
+
             // 而外 lib 路径
             var classPath1 = GetArguments("cp", jvmArguments);
             var classPathList = classPath1.Split(PathUtil.PathSeparator);
@@ -406,8 +409,8 @@ public class CommandService {
         }
 
         // 添加 验证信息
-        var stringBuilder = new StringBuilder().Append(" -Xmx").Append(NirvanaConfig.Config.GameMemory).Append("M ")
-            .Append(NirvanaConfig.Config.JvmArgs)
+        var stringBuilder = new StringBuilder().Append(" -Xmx").Append(NirvanaConfig.GetString("gameMemory")).Append("M ")
+            .Append(NirvanaConfig.GetString("jvmArgs"))
             .Append($" -DlauncherControlPort={socketPort}")
             .Append($" -DlauncherGameId={_launcherGame.GameId}")
             .Append($" -DuserId={_launcherGame.Account.GetUserId()}")
@@ -466,6 +469,7 @@ public class CommandService {
             if (_minecraft.Count <= 0) {
                 return true;
             }
+
             return !classPath.Contains("-natives-");
         }).ToList();
     }
@@ -565,33 +569,34 @@ public class CommandService {
             fullPath = EntityJavaFile.FixPath(fullPath); // 有分割符
 
             var filePath = fullPath; // 不完整路径
-            
+
             var fullPath1 = filePath; // 无分割符
             fullPath1 = Path.Combine(PathUtil.GameBasePath, ".minecraft", fullPath1);
 
-            fullPath = fullPath1 + PathUtil.PathSeparator;  // 修复 linux/mac 引用出错
-            
+            fullPath = fullPath1 + PathUtil.PathSeparator; // 修复 linux/mac 引用出错
+
             if (!File.Exists(fullPath1)) {
                 Log.Error("File not found: {0}", fullPath1);
                 continue;
             }
-            
+
             // 是 lwjgl 文件，不用添加
             if (_minecraft.Count > 0 && filePath.Contains(EntityJavaFile.FixPath("org/lwjgl/"))) {
                 continue;
-            } 
+            }
+
             combinedPaths.Append(fullPath);
         }
 
         if (_minecraft.Count == 0) {
             return text.Replace(sourceText.Item1, " -" + name + " \"" + combinedPaths + "\"");
         }
-        
+
         // 修复 lwjgl
         foreach (var item in _minecraft.Where(item => item.StartsWith("org/lwjgl/") && item.DownloadAuto())) {
             combinedPaths.Append(item.GetPathSeparator());
         }
-        
+
         return text.Replace(sourceText.Item1, " -" + name + " \"" + combinedPaths + "\"");
     }
 
@@ -619,6 +624,7 @@ public class CommandService {
             if (Directory.Exists(linkPath)) {
                 Directory.Delete(linkPath, false);
             }
+
             Directory.CreateSymbolicLink(linkPath, targetPath);
             natives = linkPath;
         }

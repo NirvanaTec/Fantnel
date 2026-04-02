@@ -24,7 +24,7 @@ public static class ThreadUpdateTools {
         var restart = false;
         var progress = new List<IntPtrReference>();
         var pathList = new List<string>();
-        
+
         foreach (var item in entityUpdateConfig1.Array) {
             // 下载进度
             var newProgress = new IntPtrReference();
@@ -68,18 +68,20 @@ public static class ThreadUpdateTools {
             pathList.Add(resourcesPath1);
             DownloadWithRetryAsync(url, resourcesPath1, newProgress, entityUpdateConfig1.Name, progress, entityUpdateConfig1.Count()).Wait();
         }
-        
+
         if (entityUpdateConfig1.Safe && restart) {
             foreach (var path in Directory.GetFiles(PathUtil.UpdaterPath)) {
                 if (pathList.Contains(path)) {
                     continue;
                 }
+
                 File.Delete(path);
             }
+
             await SafeRestart();
         }
     }
-    
+
     private static async Task SafeRestart()
     {
         Log.Information("正在更新核心资源，这会自动重启[1次]，请稍后...");
@@ -89,7 +91,7 @@ public static class ThreadUpdateTools {
             FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash",
             Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? "/C \"" + scriptPath + "\""
-                : scriptPath,
+                : scriptPath
         });
         Environment.Exit(0);
     }
@@ -98,7 +100,7 @@ public static class ThreadUpdateTools {
     {
         var updateScript = GenerateUpdateScript(PathUtil.UpdaterPath, AppDomain.CurrentDomain.BaseDirectory);
         updateScript += "dotnet ";
-        
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
             // Mac 终端结束后，启动进程, 无法显示进程窗口，因为 "进程已完成" 终端被关闭
             // Saving session...
@@ -108,7 +110,7 @@ public static class ThreadUpdateTools {
             // [进程已完成]
             updateScript = Environment.GetCommandLineArgs().Aggregate(updateScript, (current, arg) => current + arg + " ");
         }
-        
+
         Log.Information("更新脚本: \n{0}", updateScript);
         return updateScript;
     }
@@ -123,9 +125,7 @@ public static class ThreadUpdateTools {
     private static async Task DownloadWithRetryAsync(string url, string filePath, IntPtrReference progressRef,
         string name, List<IntPtrReference> allProgress, int totalCount)
     {
-        await DownloadUtil.DownloadAsync(url, filePath, progressValue => {
-            progressRef.Value = progressValue;
-        });
+        await DownloadUtil.DownloadAsync(url, filePath, progressValue => { progressRef.Value = progressValue; });
         UpdateProgress(allProgress, totalCount, name);
     }
 

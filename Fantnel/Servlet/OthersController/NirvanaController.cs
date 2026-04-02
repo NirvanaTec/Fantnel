@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Nirvana.Public.Manager;
 using NirvanaAPI;
-using NirvanaAPI.Entities.EntitiesNirvana;
 using NirvanaAPI.Utils.CodeTools;
 
 namespace Fantnel.Servlet.OthersController;
@@ -29,7 +28,7 @@ public class NirvanaController : ControllerBase {
     [HttpGet("/api/nirvana/account/get")]
     public IActionResult GetAccount()
     {
-        var entity = NirvanaAccountManager.GetInfo().Result;
+        var entity = NirvanaAccountManager.GetLoginInfo().Result;
         return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 
@@ -37,37 +36,12 @@ public class NirvanaController : ControllerBase {
     [HttpGet("/api/nirvana/set")]
     public IActionResult SetAccount(string mode, string? value)
     {
-        switch (mode) {
-            case "hideAccount":
-                NirvanaConfig.SetHideAccount(value ?? new EntityNirvanaConfig().HideAccount.ToString());
-                break;
-            case "chatEnable":
-                NirvanaAccountManager.SetChatEnable(value ?? new EntityNirvanaConfig().ChatEnable.ToString());
-                break;
-            case "gameMemory":
-                NirvanaConfig.SetGameMemory(value ?? new EntityNirvanaConfig().GameMemory.ToString());
-                break;
-            case "jvmArgs":
-                NirvanaConfig.SetJvmArgs(value ?? new EntityNirvanaConfig().JvmArgs);
-                break;
-            case "gameArgs":
-                NirvanaConfig.SetGameArgs(value ?? new EntityNirvanaConfig().GameArgs);
-                break;
-            case "autoLoginGame":
-                NirvanaConfig.SetAutoLoginGame(value ?? new EntityNirvanaConfig().AutoLoginGame.ToString());
-                break;
-            case "autoLoginGame163Email":
-                NirvanaConfig.SetAutoLoginGame163Email(value ?? new EntityNirvanaConfig().AutoLoginGame163Email.ToString());
-                break;
-            case "autoLoginGameCookie":
-                NirvanaConfig.SetAutoLoginGameCookie(value ?? new EntityNirvanaConfig().AutoLoginGameCookie.ToString());
-                break;
-            case "useJavaW":
-                NirvanaConfig.SetUseJavaW(value ?? new EntityNirvanaConfig().UseJavaW.ToString());
-                break;
-            case "autoUpdatePlugin":
-                NirvanaConfig.SetAutoUpdatePlugin(value ?? new EntityNirvanaConfig().AutoUpdatePlugin.ToString());
-                break;
+        if ("gameMemory".Equals(mode, StringComparison.OrdinalIgnoreCase)) {
+            NirvanaConfig.SetGameMemory(value);
+        } else if ("chatEnable".Equals(mode, StringComparison.OrdinalIgnoreCase)) {
+            NirvanaAccountManager.SetChatEnable(value);
+        } else {
+            NirvanaConfig.SetValue(mode, value);
         }
 
         return Ok(Code.ToJson(ErrorCode.Success));
@@ -77,7 +51,7 @@ public class NirvanaController : ControllerBase {
     [HttpGet("/api/nirvana/get")]
     public IActionResult SetAccount()
     {
-        var config = NirvanaConfig.Config;
+        var config = NirvanaConfig.GetJsonObject();
         return Ok(Code.ToJson(ErrorCode.Success, config));
     }
 }

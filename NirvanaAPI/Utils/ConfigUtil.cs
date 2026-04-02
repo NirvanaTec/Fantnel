@@ -4,19 +4,18 @@ using System.Text.Json.Nodes;
 namespace NirvanaAPI.Utils;
 
 public static class ConfigUtil {
-    
     // 获取配置
     private static T GetConfig<T>(string name, string defaultValue = "")
     {
         return GetConfigNode(name, defaultValue).GetValue<T>();
     }
-    
+
     // 获取配置
     public static string GetConfig(string name, string defaultValue = "")
     {
         return GetConfig<string>(name, defaultValue);
     }
-    
+
     // 获取配置
     private static JsonNode GetConfigNode(string name, string defaultValue = "")
     {
@@ -30,6 +29,7 @@ public static class ConfigUtil {
         if (!File.Exists(resourcesPath)) {
             return new JsonObject();
         }
+
         return JsonSerializer.Deserialize<JsonObject>(File.ReadAllText(resourcesPath)) ?? new JsonObject();
     }
 

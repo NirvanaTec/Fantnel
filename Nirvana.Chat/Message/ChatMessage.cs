@@ -18,11 +18,6 @@ public static class ChatMessage {
 
     private static readonly List<GameConnection> GameConnections = [];
 
-    public static void Start(GameConnection gameConnection)
-    {
-        _ = StartAsync(gameConnection);
-    }
-
     public static async Task StartAsync()
     {
         foreach (var gameConnection in GameConnections) {
@@ -59,16 +54,17 @@ public static class ChatMessage {
         await SendAsync(entity);
     }
 
-    private static async Task StartAsync(GameConnection gameConnection)
+    public static async Task StartAsync(GameConnection gameConnection)
     {
         if (_webSocket.State != WebSocketState.Open) {
             await _webSocket.ConnectAsync(Url, CancellationToken.None);
             Log.Information("[IRC] 连接成功!");
 
-            if (NirvanaConfig.Config.IsNullOrEmpty()) {
-                await RefreshChatConfigAsync();
-            } else {
-                await AuthenticateAsync();
+            try {
+                NirvanaConfig.IsLogin(); // 检查是否登录
+                await AuthenticateAsync(); // 认证
+            } catch (Exception) {
+                await RefreshChatConfigAsync(); // 刷新配置
             }
 
             _ = Task.Run(() => Initialize(gameConnection));
@@ -85,7 +81,7 @@ public static class ChatMessage {
     private static void OnHeartbeat(object? state)
     {
         try {
-            if (_config.Heartbeats.Count == 0 || !NirvanaConfig.Config.ChatEnable) {
+            if (_config.Heartbeats.Count == 0 || !NirvanaConfig.GetBool("chatEnable")) {
                 return;
             }
 
@@ -145,7 +141,7 @@ public static class ChatMessage {
                 if (result.MessageType == WebSocketMessageType.Close) {
                     Log.Error("[IRC] 服务器要求关闭连接。");
                     Shutdown();
-                    Start(gameConnection);
+                    _ = StartAsync(gameConnection);
                     return;
                 }
 
@@ -175,7 +171,7 @@ public static class ChatMessage {
 
     private static void ProcessAuth(string message)
     {
-        NirvanaConfig.Config.Logout();
+        NirvanaConfig.Logout();
         var messageObj = JsonSerializer.Deserialize<EntityMessage>(message);
         if (messageObj == null) {
             Log.Error("[IRC] 登录失败");
@@ -194,19 +190,17 @@ public static class ChatMessage {
             return;
         }
 
-        if (NirvanaConfig.Config.IsNullOrEmpty()) {
-            return;
-        }
+        var account = NirvanaConfig.GetString("account");
 
         var authMessage = new {
             mode = "auth",
-            account = NirvanaConfig.Config.Account,
-            token = NirvanaConfig.Config.Token
+            account,
+            token = NirvanaConfig.GetString("token")
         };
 
         await SendAsync(authMessage);
 
-        Log.Information("已发送认证请求。账户: {0}", NirvanaConfig.Config.Account);
+        Log.Information("已发送认证请求。账户: {0}", account);
     }
 
     private static async Task RefreshChatConfigAsync()

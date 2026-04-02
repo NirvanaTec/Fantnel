@@ -21,7 +21,7 @@ public class CacheManager {
 
     public static void CacheServer()
     {
-         _= Task.Run(() => {
+        _ = Task.Run(() => {
             lock (CacheServerLock) {
                 var threads = new List<Thread> {
                     new(() => {
@@ -63,8 +63,8 @@ public class CacheManager {
                 foreach (var thread in threads) {
                     thread.Join();
                 }
-            } 
-         });
+            }
+        });
     }
 
     // 缓存图片
@@ -111,9 +111,11 @@ public class CacheManager {
                 item.TitleImageUrl = "/image/skin/" + item.EntityId + ".png";
                 return;
             }
+
             if (CacheSkin.Any(cache => cache.EntityId == item.EntityId)) {
                 return;
             }
+
             CacheSkin.Add(item);
         }
     }
@@ -181,19 +183,19 @@ public class CacheManager {
     // 清理缓存图片
     public static void ClearCacheImage(EntityQueryNetGameDetailItem item)
     {
-        _= Task.Run(() => ClearCacheImageA(item));
+        _ = Task.Run(() => ClearCacheImageA(item));
     }
 
     // 清理缓存图片
     public static void ClearCacheImage(EntityRentalGameDetails item)
     {
-        _= Task.Run(() => ClearCacheImageA(item));
+        _ = Task.Run(() => ClearCacheImageA(item));
     }
 
     // 清理缓存图片
     public static void ClearCacheImage(EntityQueryNetSkinItem item)
     {
-        _= Task.Run(() => ClearCacheImageA(item));
+        _ = Task.Run(() => ClearCacheImageA(item));
     }
 
     // 获取缓存图片路径
@@ -205,7 +207,7 @@ public class CacheManager {
     // 缓存图片下载
     public static void DownloadCacheImage()
     {
-        _=  Task.Run(() => {
+        _ = Task.Run(() => {
             lock (CacheImageLock) {
                 try {
                     foreach (var item in CacheNet.ToArray()) {

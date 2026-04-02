@@ -16,10 +16,8 @@ public static class RestartTools {
         // 初始化日志
         logoInit.Invoke();
 
-        Task.Run(() => {
-            Maintenance(args);
-        });
-        
+        Task.Run(() => { Maintenance(args); });
+
         var mode = Get("mode", args);
         if ("proxy".Equals(mode)) {
             var id = Get("id", args);
@@ -46,6 +44,7 @@ public static class RestartTools {
         if (pid == -1) {
             return;
         }
+
         while (true) {
             try {
                 Process.GetProcessById(pid);
@@ -54,6 +53,7 @@ public static class RestartTools {
                 Thread.Sleep(200);
                 Environment.Exit(0);
             }
+
             Thread.Sleep(1000);
         }
     }

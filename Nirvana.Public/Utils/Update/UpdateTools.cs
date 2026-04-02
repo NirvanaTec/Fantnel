@@ -48,7 +48,7 @@ public static class UpdateTools {
         }
 
         threads.Add(CheckUpdateThread(new EntityUpdateConfig {
-            Mode = "ui." + ConfigUtil.GetConfig("themeValue", RestartTools.Get("default_skin_id", args,"nirvana")),
+            Mode = "ui." + ConfigUtil.GetConfig("themeValue", RestartTools.Get("default_skin_id", args, "nirvana")),
             OnSuccess = array => {
                 updateConfigs.Add(new EntityUpdateConfig1 {
                     Array = array

@@ -14,7 +14,9 @@ public class CommandBase : APacket {
 
     private byte[]? _rawBytes;
 
-    protected CommandBase(EnumConnectionState state, EnumPacketDirection direction, int packetId, EnumProtocolVersion version, bool skip = false) : base(state, direction, packetId, version, skip) { }
+    protected CommandBase(EnumConnectionState state, EnumPacketDirection direction, int packetId, EnumProtocolVersion version, bool skip = false) : base(state, direction, packetId, version, skip)
+    {
+    }
 
     public override void ReadFromBuffer(IByteBuffer buffer)
     {
@@ -27,7 +29,7 @@ public class CommandBase : APacket {
 
     public override void WriteToBuffer(IByteBuffer buffer)
     {
-        if (_isCommand && NirvanaConfig.Config.ChatEnable) {
+        if (_isCommand && NirvanaConfig.GetBool("chatEnable")) {
             return;
         }
 
@@ -38,7 +40,7 @@ public class CommandBase : APacket {
 
     public override bool HandlePacket(GameConnection connection)
     {
-        if (!_isCommand || !NirvanaConfig.Config.ChatEnable) {
+        if (!_isCommand || !NirvanaConfig.GetBool("chatEnable")) {
             return false;
         }
 
@@ -51,7 +53,9 @@ public class CommandBase : APacket {
             return true;
         }
 
-        if (NirvanaConfig.Config.IsNullOrEmpty()) {
+        try {
+            NirvanaConfig.IsLogin(); // 检查是否登录
+        } catch (Exception) {
             PacketTools.SendGameMessage("§e[IRC]: 请先登录账号", connection);
             return true;
         }
@@ -62,17 +66,32 @@ public class CommandBase : APacket {
 
     private static bool IsIrc(string command)
     {
-        // 1.20.1
-        if (command.StartsWith("irc ", StringComparison.OrdinalIgnoreCase)) {
-            return true;
+        var commandsPrefix = new List<string> {
+            "irc", "chat"
+        };
+
+        foreach (var prefix in commandsPrefix) {
+            // 1.20.1
+            if (command.StartsWith($"{prefix} ", StringComparison.OrdinalIgnoreCase)) {
+                return true;
+            }
+
+            // 1.20.1
+            if (command.Equals($"{prefix}", StringComparison.OrdinalIgnoreCase)) {
+                return true;
+            }
+
+            // 1.18.1 | 1.12.2
+            if (command.StartsWith($"/{prefix} ", StringComparison.OrdinalIgnoreCase)) {
+                return true;
+            }
+
+            // 1.18.1 | 1.12.2
+            if (command.Equals($"/{prefix}", StringComparison.OrdinalIgnoreCase)) {
+                return true;
+            }
         }
 
-        if (command.Equals("irc", StringComparison.OrdinalIgnoreCase)) {
-            return true;
-        }
-
-        // 1.18.1 | 1.12.2
-        return command.StartsWith("/irc ", StringComparison.OrdinalIgnoreCase) ||
-               command.Equals("/irc", StringComparison.OrdinalIgnoreCase);
+        return false;
     }
 }

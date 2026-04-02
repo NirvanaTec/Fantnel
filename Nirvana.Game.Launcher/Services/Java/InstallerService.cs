@@ -39,7 +39,7 @@ public static class InstallerService {
 
         await ProcessPackage(versionResult.CoreLibUrl, libZip, PathUtil.CachePath, libMd5File, versionResult.CoreLibMd5,
             versionName + " libraries");
-        
+
         InstallCoreLibs(Path.Combine(PathUtil.CachePath, versionName + "_libs"), gameVersion);
     }
 
@@ -50,6 +50,7 @@ public static class InstallerService {
         if (File.Exists(md5Path) && await File.ReadAllTextAsync(md5Path) == md5) {
             return;
         }
+
         var progress = new SyncProgressBarUtil.ProgressBar();
         var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => { progress.Update(update.Percent, update.Message); });
         await DownloadUtil.DownloadAsync(url, zipPath, label, uiProgress);
@@ -69,6 +70,7 @@ public static class InstallerService {
         if (!Directory.Exists(libPath)) {
             return;
         }
+
         var files = Directory.GetFiles(libPath, "*", SearchOption.AllDirectories);
         foreach (var text6 in files) {
             var fileName = Path.GetFileName(text6);
@@ -82,6 +84,7 @@ public static class InstallerService {
                 } else if (File.Exists(text8)) {
                     File.Delete(text8);
                 }
+
                 File.Copy(text6, text8, true);
             } else if (fileName.StartsWith(text2)) {
                 text2 = Path.GetFileNameWithoutExtension(text6);
@@ -94,6 +97,7 @@ public static class InstallerService {
                 } else if (File.Exists(text10)) {
                     File.Delete(text10);
                 }
+
                 File.Copy(text6, text10, true);
             } else if (fileName.StartsWith(text3)) {
                 text3 = Path.GetFileNameWithoutExtension(text6);
@@ -106,6 +110,7 @@ public static class InstallerService {
                 } else if (File.Exists(text12)) {
                     File.Delete(text12);
                 }
+
                 File.Copy(text6, text12, true);
             } else if (fileName.Equals(text4)) {
                 var destFileName = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", gameVersionFromEnum,
@@ -133,6 +138,7 @@ public static class InstallerService {
                 if (!Directory.Exists(directory) && directory != null) {
                     Directory.CreateDirectory(directory);
                 }
+
                 File.Copy(text6, destFileName4, true);
             } else if (fileName.StartsWith("modlauncher-") && fileName.Contains("10.2.1")) {
                 var destFileName5 = Path.Combine(new[] {
@@ -194,10 +200,12 @@ public static class InstallerService {
             if (!Directory.Exists(extractDir)) {
                 Directory.CreateDirectory(extractDir);
             }
+
             if (File.Exists(jar) && FileUtil.ComputeMd5FromFile(jar).Equals(entityComponentDownloadInfoResponse2.SubEntities[0].JarMd5,
                     StringComparison.OrdinalIgnoreCase)) {
                 continue;
             }
+
             await DownloadUtil.DownloadAsync(entityComponentDownloadInfoResponse2.SubEntities[0].ResUrl, archive,
                 dp => {
                     uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
@@ -325,6 +333,7 @@ public static class InstallerService {
         if (Directory.Exists(linkPath)) {
             Directory.Delete(linkPath, false);
         }
+
         Directory.CreateSymbolicLink(linkPath, targetPath + Path.DirectorySeparatorChar);
         return text;
     }
@@ -335,6 +344,7 @@ public static class InstallerService {
         if (!Directory.Exists(text)) {
             return;
         }
+
         Directory.CreateDirectory(targetModsPath);
         var array = FileUtil.EnumerateFiles(text);
         foreach (var text2 in array) {
@@ -343,6 +353,7 @@ public static class InstallerService {
             if (dir == null) {
                 continue;
             }
+
             Directory.CreateDirectory(dir);
             FileUtil.CopyFileSafe(text2, text3);
         }
@@ -364,6 +375,7 @@ public static class InstallerService {
             if (!File.Exists(text)) {
                 throw new Exception("Native dll not found: " + text);
             }
+
             var destPath = Path.Combine(text2, "api-ms-win-crt-utility-l1-1-1.dll");
             FileUtil.CopyFileSafe(text, destPath);
         } catch (Exception ex) {

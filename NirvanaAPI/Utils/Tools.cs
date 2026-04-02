@@ -44,7 +44,6 @@ public static class Tools {
         return (listNotNull, path);
     }
 
-
     public static (T?, string) GetValueOrDefault<T>(string fileName)
     {
         var path = Path.Combine(PathUtil.ResourcePath, fileName);
@@ -209,6 +208,7 @@ public static class Tools {
         if (isExit) {
             Environment.Exit(0);
         }
+
         return process;
     }
 
@@ -222,6 +222,7 @@ public static class Tools {
         if (arguments != null) {
             arg = arguments.Aggregate(arg, (current, argument) => current + argument + " ");
         }
+
         // 移除最后一个空格
         // "a " > "a"
         return arg.Length >= 2 ? arg[..^1] : arg;

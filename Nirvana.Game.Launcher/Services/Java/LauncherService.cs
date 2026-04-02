@@ -187,12 +187,12 @@ public sealed class LauncherService : IDisposable {
         var process = commandService.StartGame();
         if (process != null) {
             await HandleSuccessfulLaunch(process);
-        } else{
+        } else {
             HandleFailedLaunch();
         }
     }
 
-        private Task HandleSuccessfulLaunch(Process process)
+    private Task HandleSuccessfulLaunch(Process process)
     {
         GameProcess = process;
         GameProcess.EnableRaisingEvents = true;

@@ -7,10 +7,22 @@ public class NPacketManager {
     public static readonly NPacketManager Instance = new();
     private readonly Dictionary<string, APacket[]> _packets = new();
 
-    public static void RegisterPacketFromList(string pluginId, APacket[] packets)
+    private static void RegisterPacketFromList(string pluginId, APacket[] packets, Action onInitialize)
     {
-        Instance._packets[pluginId] = packets;
+        if (Instance._packets.Remove(pluginId)) {
+            Instance._packets.Add(pluginId, packets);
+            return;
+        }
+
+        Instance._packets.Add(pluginId, packets);
+        onInitialize.Invoke();
     }
+
+    public static void RegisterPacketFromList(string pluginId, List<APacket> packets, Action onInitialize)
+    {
+        RegisterPacketFromList(pluginId, packets.ToArray(), onInitialize);
+    }
+
 
     public List<APacket> BuildPacket(EnumConnectionState state, EnumPacketDirection direction, EnumProtocolVersion version, int packetId)
     {

@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using Microsoft.Win32;
 
 namespace NirvanaAPI.Utils;
 
@@ -33,20 +32,21 @@ public static class PathUtil {
 
     public static readonly string CacheImagePath = Path.Combine(WebSitePath, "image");
 
-    public static string JavaExePath => GetJavaExePath(); // javaw.exe
-
     public static readonly string JavaPath = Path.Combine(CachePath, "Java");
 
     public static readonly string Jre8Path = Path.Combine(JavaPath, "jre8");
 
     public static readonly string Jre17Path = Path.Combine(JavaPath, "jdk17");
 
+    public static string JavaExePath => GetJavaExePath(); // javaw.exe
+
     private static string GetJavaExePath()
     {
         // Mac / Linux 没有 javaw.exe
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-            return NirvanaConfig.Config.UseJavaW ? "javaw.exe" : "java.exe";
+            return NirvanaConfig.GetBool("useJavaW") ? "javaw.exe" : "java.exe";
         }
+
         return "java";
     }
 
