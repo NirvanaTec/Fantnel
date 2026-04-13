@@ -707,6 +707,7 @@ Min GameMemory = 1024
 
 Post Http :
 /api/gameaccount/save: 添加游戏账号
+type 为 cookie 时，account 必须为 null
 send:
 {
   "name": "qqq",
