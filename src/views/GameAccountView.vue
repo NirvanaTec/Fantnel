@@ -55,13 +55,14 @@
             <input type="text" v-model="accountForm.name"
               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
           </div>
-          <div>
+          <div v-if="accountForm.type != 'cookie'">
             <label class="block text-sm text-gray-400 mb-1">账号</label>
             <input type="text" v-model="accountForm.account"
               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-1">密码</label>
+            <label class="block text-sm text-gray-400 mb-1" v-if="accountForm.type === 'cookie'">Cookie/Auth</label>
+            <label class="block text-sm text-gray-400 mb-1" v-else>密码</label>
             <input type="text" v-model="accountForm.password"
               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
           </div>
@@ -69,8 +70,8 @@
             <label class="block text-sm text-gray-400 mb-1">类型</label>
             <select v-model="accountForm.type"
               class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-400">
-              <option value="4399">4399</option>
-              <option value="4399com">4399Com</option>
+              <option value="4399">4399 [Old]</option>
+              <option value="4399com">4399 [Com]</option>
               <option value="163Email">163Email</option>
               <option value="cookie">Cookie/Auth</option>
             </select>
@@ -155,7 +156,7 @@ const isEditing = ref(false)
 const accountForm = ref({
   name: '',
   account: '',
-  type: '4399',
+  type: '4399com',
   password: ''
 })
 
@@ -209,6 +210,9 @@ const saveAccount = async () => {
     if (isEditing.value) {
       response = await updateGameAccount(accountForm.value)
     } else {
+      if (accountForm.value.type === 'cookie') {
+        accountForm.value.account = null
+      }
       response = await saveGameAccount(accountForm.value)
     }
     if (response.data.code === 1) {
