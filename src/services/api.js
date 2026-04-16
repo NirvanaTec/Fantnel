@@ -19,6 +19,7 @@ export const getCurrentGameAccount = () => apiClient.get('/api/gameaccount/curre
 export const deleteGameAccount = (id) => apiClient.get(`/api/gameaccount/delete?id=${id}`)
 export const saveGameAccount = (data) => apiClient.post('/api/gameaccount/save', data)
 export const updateGameAccount = (data) => apiClient.post('/api/gameaccount/update', data)
+export const randomGameAccount = (data) => apiClient.post('/api/gameaccount/random', data)
 
 export const getCaptcha4399 = () => apiClient.get('/api/gameaccount/captcha4399', { responseType: 'blob' })
 export const getCaptcha4399Content = () => apiClient.get('/api/gameaccount/captcha4399/content')

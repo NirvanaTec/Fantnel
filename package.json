@@ -19,7 +19,8 @@
     "tailwindcss": "^4.2.0",
     "vue": "^3.5.25",
     "vue-clipboard3": "^2.0.0",
-    "vue-router": "^5.0.3"
+    "vue-router": "^5.0.3",
+    "vue3-geetest": "^1.0.21"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.2",

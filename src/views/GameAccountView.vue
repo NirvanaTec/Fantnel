@@ -40,6 +40,11 @@
       </table>
     </div>
 
+    <button @click="showCaptcha"
+      class="fixed bottom-6 right-32 bg-green-500 hover:bg-green-600 rounded px-4 py-2 transition-colors shadow-lg z-40">
+      随机登录
+    </button>
+
     <button @click="showAddModal = true"
       class="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 transition-colors shadow-lg z-40">
       添加账号
@@ -134,10 +139,21 @@
       </div>
     </div>
   </div>
+
+  <GeetestCaptcha :config="{ captchaId: 'fefebb64747ce99237ecdf1830f0ae63', product: 'bind' }"
+    @initialized="onCaptchaInitialized" />
+
+    <StatusModal
+      :visible="visible"
+      :message="message"
+      @close="visible = false"
+    />
+
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { GeetestCaptcha } from 'vue3-geetest'
 import {
   deleteGameAccount,
   getCaptcha4399,
@@ -146,8 +162,10 @@ import {
   saveGameAccount,
   selectGameAccount,
   updateGameAccount,
-  verifyCaptcha4399
+  verifyCaptcha4399,
+  randomGameAccount
 } from '../services/api'
+import StatusModal from '../components/StatusModal.vue'
 
 const gameAccounts = ref([])
 const showAddModal = ref(false)
@@ -160,12 +178,42 @@ const accountForm = ref({
   password: ''
 })
 
+let captchaObj = null;
+
+const showCaptcha = function () {
+  if (captchaObj) {
+    captchaObj.showCaptcha();
+  }
+};
+
+const onCaptchaInitialized = (obj) => {
+  captchaObj = obj;
+  captchaObj.onSuccess(() => {
+    message.value = '正在获取账号...'
+    visible.value = true
+    randomGameAccount(captchaObj.getValidate()).then(response => {
+      loadGameAccounts()
+      if (response.data.code != 1) {
+        message.value = response.data.msg
+        visible.value = true
+        return
+      }else{
+        visible.value = false
+      }
+    })
+    captchaObj.reset()
+  });
+};
+
 // 登录相关状态
 const currentAccount = ref(null)
 const loginStatus = ref('')
 const captchaImage = ref('')
 const captchaCode = ref('')
 const errorMessage = ref('')
+
+const visible = ref(false)
+const message = ref('')
 
 // 初始化
 onMounted(() => {
