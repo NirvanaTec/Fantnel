@@ -58,6 +58,9 @@ public static class Code {
             ErrorCode.GamePlugin => "该游戏可能不支持插件",
             ErrorCode.MemoryError => "内存不应该这样设置",
             ErrorCode.ParamError => "参数错误",
+            ErrorCode.VerifyFailed => "验证失败",
+            ErrorCode.OnlineStatusExpired => "在线状态已过期",
+            ErrorCode.NoTimes => "没有可用次数",
             _ => "未知错误"
         };
     }

@@ -5,13 +5,13 @@ namespace NirvanaAPI.Entities.Login;
 public class EntityAccount : EntityUserInfo {
     // 基础信息
     [JsonPropertyName("name")]
-    public string? Name { get; init; }
+    public string? Name { get; set; }
 
     [JsonPropertyName("account")]
     public string? Account { get; set; }
 
     [JsonPropertyName("type")]
-    public string? Type { get; init; }
+    public string? Type { get; set; }
 
     [JsonPropertyName("password")]
     public string? Password { get; set; }

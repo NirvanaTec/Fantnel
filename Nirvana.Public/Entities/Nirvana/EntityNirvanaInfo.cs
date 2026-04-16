@@ -2,10 +2,11 @@
 
 namespace Nirvana.Public.Entities.Nirvana;
 
-public class EntityNirvanaInfo {
+public class EntityNirvanaInfo{
+    [JsonPropertyName("code")]
+    public int? Code { get; set; }
+    
     [JsonPropertyName("days")]
     public required double Days { get; set; }
 
-    [JsonPropertyName("msg")]
-    public required string Msg { get; set; }
 }

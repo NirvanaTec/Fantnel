@@ -15,6 +15,8 @@ axios
 
 vueuse/head
 
+vue3-geetest
+
 创建一个 vite.vue3 的 Fantnel 前端项目
 
 server: {

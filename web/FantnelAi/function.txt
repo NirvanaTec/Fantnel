@@ -54,6 +54,8 @@ show userId
 登录账号A()
 api.删除指定游戏账号() // 增加确认框 确认删除账号
 api.更新游戏账号()
+
+随机登录游戏账号A()
 api.添加游戏账号()
 
 补充:{
@@ -65,6 +67,14 @@ api.添加游戏账号()
     <option value="cookie">Cookie/Auth</option>
     </select>
 }
+---
+
+随机登录游戏账号A:
+使用 geetest4 进行验证
+captcha_id: fefebb64747ce99237ecdf1830f0ae63
+
+验证成功 > api.随机登录游戏账号(captchaObj.getValidate())
+
 ---
 
 网络服:

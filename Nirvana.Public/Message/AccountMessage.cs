@@ -2,9 +2,12 @@
 using System.Text.Json;
 using Codexus.Cipher.Entities.MPay;
 using Codexus.Cipher.Protocol;
+using Nirvana.Public.Entities.Nirvana;
 using Nirvana.Public.Manager;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.Login;
+using Nirvana.WPFLauncher.Http;
 using Nirvana.WPFLauncher.Protocol;
+using NirvanaAPI;
 using NirvanaAPI.Entities;
 using NirvanaAPI.Entities.Login;
 using NirvanaAPI.Manager;
@@ -28,6 +31,7 @@ public static class AccountMessage {
     private static string? _session4399Id; // 验证ID
     public static string? Captcha4399; // 验证内容
     public static byte[]? Captcha4399Bytes; // 验证码图片
+    private static readonly HttpClient HttpClient = new();
 
     /**
      * Session 4399
@@ -36,8 +40,7 @@ public static class AccountMessage {
     {
         var captchaId = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
         captchaId = captchaId[..8];
-        var http = new HttpClient();
-        var response = http.GetAsync("https://ptlogin.4399.com/ptlogin/captcha.do?captchaId=" + captchaId).Result;
+        var response = HttpClient.GetAsync("https://ptlogin.4399.com/ptlogin/captcha.do?captchaId=" + captchaId).Result;
         _session4399Id = captchaId;
         Captcha4399Bytes = response.Content.ReadAsByteArrayAsync().Result;
     }
@@ -248,7 +251,7 @@ public static class AccountMessage {
             // cookie 默认 假账号
             if (account.Account == null && account.Type == "cookie") {
                 // 10 位时间戳
-                account.Account = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                account.Account = GetSuffix("Co");
             }
 
             // 增加账号
@@ -399,10 +402,63 @@ public static class AccountMessage {
             throw new ErrorCodeException(ErrorCode.Failure);
         }
 
-        var httpClient = new HttpClient();
-        var response = await httpClient.PostAsync("http://110.42.70.32:13423/api/fantnel/captcha", new ByteArrayContent(Captcha4399Bytes));
+        var response = await HttpClient.PostAsync("http://110.42.70.32:13423/api/fantnel/captcha", new ByteArrayContent(Captcha4399Bytes));
         var resultJson = await response.Content.ReadAsStringAsync();
         var captcha = JsonSerializer.Deserialize<EntityResponse<string>>(resultJson);
         return captcha?.Data ?? throw new ErrorCodeException(ErrorCode.Failure);
     }
+
+    public static async Task RandomAccount(EntityGeeTest captcha)
+    {
+        var randomAccount = await X19Extensions.Nirvana.Api<string>("/api/nac4399?mode=get&" + NirvanaConfig.GetLoginT() + "&" + captcha.Get());
+        if (randomAccount == null) {
+            throw new ErrorCodeException(ErrorCode.Failure);
+        }
+        var entityResponse = JsonSerializer.Deserialize<EntityResponseBase>(randomAccount);
+        if (entityResponse == null) {
+            throw new ErrorCodeException(ErrorCode.Failure);
+        }
+
+        switch (entityResponse.Code) {
+            // 账号过期
+            case 22:
+                NirvanaConfig.Logout();
+                throw new ErrorCodeException(ErrorCode.OnlineStatusExpired);
+            // 没有次数
+            case 42:
+                throw new ErrorCodeException(ErrorCode.NoTimes);
+        }
+        
+        if (entityResponse.Code != 1) {
+            throw new ErrorCodeException(ErrorCode.Failure, entityResponse.Msg);
+        }
+
+        var account = JsonSerializer.Deserialize<EntityAccount>(randomAccount);
+        if (account == null) {
+            throw new ErrorCodeException(ErrorCode.Failure);
+        }
+        
+        account.Type = "4399com";
+        account.Name = GetSuffix("Nac");
+        SaveAccount(account);
+        
+        AutoLogin1(account);
+        
+    }
+
+    private static string GetSuffix(string prefix)
+    {
+        var date = DateTimeOffset.Now;
+        var md = date.ToString("MMdd");
+        var accountList = GetAccountList();
+        for (var i = 0; i < 1024; i++) {
+            var context = prefix + md + "x" + i;
+            if (accountList.Any(entityAccount => context.Equals(entityAccount.Name))) {
+                continue;
+            }
+            return context;
+        }
+        return date.ToUnixTimeSeconds().ToString();
+    }
+    
 }

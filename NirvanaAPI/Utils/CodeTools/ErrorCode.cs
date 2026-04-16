@@ -30,5 +30,8 @@ public enum ErrorCode {
     RestartFailed = 26,
     GamePlugin = 27,
     MemoryError = 28,
-    ParamError = 29
+    ParamError = 29,
+    VerifyFailed = 30,
+    OnlineStatusExpired = 31,
+    NoTimes = 32,
 }

@@ -80,9 +80,9 @@ public static class InitProgram {
         Online();
 
         // 缓存 服务器/租凭服/皮肤 信息/图片
-        _ = Task.Run(async () => {
+        _ = Task.Run(() => {
             try {
-                await Task.Delay(1000);
+                Thread.Sleep(1000);
                 InfoManager.GetToken(); // 是否登录
                 CacheManager.CacheServer();
             } catch (Exception) {
@@ -149,7 +149,9 @@ public static class InitProgram {
             while (true)
                 try {
                     // 60 * 3 = 180 秒 (3分钟)
-                    for (var i = 0; i < 180; i++) await Task.Delay(1000);
+                    for (var i = 0; i < 180; i++) {
+                        await Task.Delay(1000);
+                    }
                     await X19Extensions.Nirvana.Api<EntityResponse<string>>("/api/tick?mode=fantnel",
                         new Dictionary<string, string> {
                             { "system", PublicProgram.Mode },

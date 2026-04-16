@@ -3,6 +3,7 @@ using Nirvana.Public.Entities.Nirvana;
 using Nirvana.WPFLauncher.Http;
 using NirvanaAPI;
 using NirvanaAPI.Entities.EntitiesNirvana;
+using NirvanaAPI.Utils.CodeTools;
 
 namespace Nirvana.Public.Manager;
 
@@ -38,7 +39,10 @@ public static class NirvanaAccountManager {
             if (entity == null) {
                 throw new Exception();
             }
-
+            if (entity.Code == 22) {
+                NirvanaConfig.Logout();
+                throw new ErrorCodeException(ErrorCode.OnlineStatusExpired);
+            }
             _days = entity.Days;
         }
 

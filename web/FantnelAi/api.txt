@@ -811,6 +811,15 @@ return:
   "msg": "成功"
 }
 
+/api/gameaccount/random: 随机登录游戏账号
+send:
+captchaObj.getValidate()
+return:
+{
+  "code": 1,
+  "msg": "成功"
+}
+
 
 window.external.sendMessage: 
 window.external.receiveMessage(handleMessage)

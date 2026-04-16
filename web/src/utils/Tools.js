@@ -18,102 +18,102 @@ export async function getAvailableAccounts() {
 
 // 添加账号
 export async function addAccount(formData) {
-    return axios.post("/api/gameaccount/save", formData).then(res => res.data);
+    return await axios.post("/api/gameaccount/save", formData).then(res => res.data);
 }
 
 // 登录账号
 export async function selectAccount(id) {
-    return axios.get(`/api/gameaccount/select?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gameaccount/select?id=${id}`).then(res => res.data);
 }
 
 // 切换账号
 export async function switchAccount(id) {
-    return axios.get(`/api/gameaccount/switch?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gameaccount/switch?id=${id}`).then(res => res.data);
 }
 
 // 获取当前选择账号信息
 export async function getGameAccount() {
-    return axios.get(`/api/gameaccount/current`).then(res => res.data);
+    return await axios.get(`/api/gameaccount/current`).then(res => res.data);
 }
 
 // 删除账号
 export async function deleteAccount(id) {
-    return axios.get(`/api/gameaccount/delete?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gameaccount/delete?id=${id}`).then(res => res.data);
 }
 
 // 更新账号
 export async function updateAccount(formData) {
-    return axios.post("/api/gameaccount/update", formData).then(res => res.data);
+    return await axios.post("/api/gameaccount/update", formData).then(res => res.data);
 }
 
 // 获取服务器列表
 export async function getServerList(offset = 0, pageSize = 10) {
-    return axios.get(`/api/gameserver/get?offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
+    return await axios.get(`/api/gameserver/get?offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
 }
 
 // 获取服务器详情
 export async function selectServer(id) {
-    return axios.get(`/api/gameserver/id?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gameserver/id?id=${id}`).then(res => res.data);
 }
 
 // 获取服务器 账号/角色
 export async function getServerInfo(id) {
-    return axios.get(`/api/gameserver/getlaunch?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gameserver/getlaunch?id=${id}`).then(res => res.data);
 }
 
 // 添加游戏名称
 export async function addServerRole(id, name) {
-    return axios.post("/api/gameserver/createname", { id, name }).then(res => res.data);
+    return await axios.post("/api/gameserver/createname", { id, name }).then(res => res.data);
 }
 
 // 启动游戏代理
 export async function launchProxy(id, name, mode = "net") {
-    return axios.get(`/api/gameserver/launch?id=${id}&name=${name}&mode=${mode}`).then(res => res.data);
+    return await axios.get(`/api/gameserver/launch?id=${id}&name=${name}&mode=${mode}`).then(res => res.data);
 }
 
 // 启动游戏白端
 export async function launchGame(id, name, mode = "net") {
-    return axios.get(`/api/gamelaunch/launch?id=${id}&name=${name}&mode=${mode}`).then(res => res.data);
+    return await axios.get(`/api/gamelaunch/launch?id=${id}&name=${name}&mode=${mode}`).then(res => res.data);
 }
 
 // 获取插件列表
 export async function getPlugins() {
-    return axios.get("/api/plugins/get").then(res => res.data);
+    return await axios.get("/api/plugins/get").then(res => res.data);
 }
 
 // 切换插件状态
 export async function togglePluginStatus(id) {
-    return axios.get(`/api/plugins/toggle?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/plugins/toggle?id=${id}`).then(res => res.data);
 }
 
 // 删除插件
 export async function deletePlugin(id) {
-    return axios.get(`/api/plugins/delete?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/plugins/delete?id=${id}`).then(res => res.data);
 }
 
 // 获取所有插件 - 插件商城
 export async function getPluginList() {
-    return axios.get("/api/pluginstore/get").then(res => res.data);
+    return await axios.get("/api/pluginstore/get").then(res => res.data);
 }
 
 // 获取插件详情
 export async function getPluginDetail(id) {
-    return axios.get(`/api/pluginstore/detail?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/pluginstore/detail?id=${id}`).then(res => res.data);
 }
 
 // 安装插件
 export async function installPlugin(id) {
-    return axios.get(`/api/pluginstore/install?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/pluginstore/install?id=${id}`).then(res => res.data);
 }
 
 // 获取主题名
 export async function getThemeName() {
-    return axios.get(`/api/theme`).then(res => res.data);
+    return await axios.get(`/api/theme`).then(res => res.data);
 }
 
 // 切换主题
 export async function setThemeName(name) {
-    return axios.get(`/api/theme/set?name=${name}`).then(res => res.data);
+    return await axios.get(`/api/theme/set?name=${name}`).then(res => res.data);
 }
 
 // 获取 4399验证码 图片URL
@@ -123,42 +123,42 @@ export async function getCaptcha4399Url() {
 
 // 验证 4399验证码
 export async function verifyCaptcha4399(text) {
-    return axios.post("/api/gameaccount/captcha4399/verify", text).then(res => res.data);
+    return await axios.post("/api/gameaccount/captcha4399/verify", text).then(res => res.data);
 }
 
 // 获取 4399 验证码内容
 export async function getCaptcha4399Content() {
-    return axios.get(`/api/gameaccount/captcha4399/content`).then(res => res.data);
+    return await axios.get(`/api/gameaccount/captcha4399/content`).then(res => res.data);
 }
 
 // 获取白端游戏信息
 export async function getGameLaunchInfo() {
-    return axios.get(`/api/gamelaunch/get`).then(res => res.data);
+    return await axios.get(`/api/gamelaunch/get`).then(res => res.data);
 }
 
 // 关闭白端游戏
 export async function closeGameLaunch(id) {
-    return axios.get(`/api/gamelaunch/close?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gamelaunch/close?id=${id}`).then(res => res.data);
 }
 
 // 获取代理服务器信息
 export async function getProxyServerInfo() {
-    return axios.get(`/api/server/get`).then(res => res.data);
+    return await axios.get(`/api/server/get`).then(res => res.data);
 }
 
 // 关闭代理服务器
 export async function closeProxyServer(id) {
-    return axios.get(`/api/server/close?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/server/close?id=${id}`).then(res => res.data);
 }
 
 // 获取游戏皮肤列表
 export async function getGameSkinList(offset = 0, pageSize = 10) {
-    return axios.get(`/api/gameskin/get?offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
+    return await axios.get(`/api/gameskin/get?offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
 }
 
 // 获取游戏皮肤详情
 export async function getGameSkinDetail(id) {
-    return axios.get(`/api/gameskin/detail?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gameskin/detail?id=${id}`).then(res => res.data);
 }
 
 // 获取版本
@@ -211,117 +211,117 @@ export async function isVersionSafe(id, throwError = true) {
 
 // 设置游戏皮肤
 export async function setGameSkin(id) {
-    return axios.get(`/api/gameskin/set?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gameskin/set?id=${id}`).then(res => res.data);
 }
 
 // 获取皮肤 - 根据名称
 export async function getGameSkinListByName(name, offset = 0, pageSize = 10) {
-    return axios.get(`/api/gameskin/get?name=${name}&offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
+    return await axios.get(`/api/gameskin/get?name=${name}&offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
 }
 
 // 获取租赁服列表
 export async function getRentalServerList(offset = 0, pageSize = 10) {
-    return axios.get(`/api/gamerental/get?offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
+    return await axios.get(`/api/gamerental/get?offset=${offset}&pageSize=${pageSize}`).then(res => res.data);
 }
 
 // 获取租赁服详情
 export async function getRentalServerDetail(id) {
-    return axios.get(`/api/gamerental/id?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gamerental/id?id=${id}`).then(res => res.data);
 }
 
 // 租赁服排序
 export async function sortRentalServer() {
-    return axios.get(`/api/gamerental/sort`);
+    return await axios.get(`/api/gamerental/sort`);
 }
 
 // 添加租赁服角色
 export async function addRentalRole(id, name) {
-    return axios.post(`/api/gamerental/createname`, { id, name }).then(res => res.data);
+    return await axios.post(`/api/gamerental/createname`, { id, name }).then(res => res.data);
 }
 
 // 获取租赁服 账号/角色
 export async function getRentalInfo(id) {
-    return axios.get(`/api/gamerental/getlaunch?id=${id}`).then(res => res.data);
+    return await axios.get(`/api/gamerental/getlaunch?id=${id}`).then(res => res.data);
 }
 
 // 获取服务器的依赖插件
 export async function getServerPlugins(id = "", version = "") {
-    return axios.get(`/api/plugins/dependence?id=${id}&version=${version}`).then(res => res.data);
+    return await axios.get(`/api/plugins/dependence?id=${id}&version=${version}`).then(res => res.data);
 }
 
 // 登录涅槃账号
 export async function loginNirvana(account, password) {
-    return axios.get(`/api/nirvana/login?account=${account}&password=${password}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/login?account=${account}&password=${password}`).then(res => res.data);
 }
 
 // 退出涅槃账号
 export async function logoutNirvana() {
-    return axios.get(`/api/nirvana/logout`).then(res => res.data);
+    return await axios.get(`/api/nirvana/logout`).then(res => res.data);
 }
 
 // 获取涅槃账号信息
 export async function getNirvanaAccount() {
-    return axios.get(`/api/nirvana/account/get`).then(res => res.data);
+    return await axios.get(`/api/nirvana/account/get`).then(res => res.data);
 }
 
 // 隐藏账号
 export async function hideNirvanaAccount(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=hideAccount&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=hideAccount&value=${value}`).then(res => res.data);
 }
 
 // 聊天启用
 export async function chatEnable(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=chatEnable&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=chatEnable&value=${value}`).then(res => res.data);
 }
 
 // 游戏内存
 export async function gameMemory(value = "4096") {
-    return axios.get(`/api/nirvana/set?mode=gameMemory&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=gameMemory&value=${value}`).then(res => res.data);
 }
 
 // JVM参数
 export async function jvmArgs(value) {
-    return axios.get(`/api/nirvana/set?mode=jvmArgs&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=jvmArgs&value=${value}`).then(res => res.data);
 }
 
 // 游戏参数
 export async function gameArgs(value) {
-    return axios.get(`/api/nirvana/set?mode=gameArgs&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=gameArgs&value=${value}`).then(res => res.data);
 }
 
 // 获取设置配置
 export async function getSettings() {
-    return axios.get(`/api/nirvana/get`).then(res => res.data);
+    return await axios.get(`/api/nirvana/get`).then(res => res.data);
 }
 
 // 自动登录游戏
 export async function autoLoginGame(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=autoLoginGame&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=autoLoginGame&value=${value}`).then(res => res.data);
 }
 
 // 自动登录游戏163Email
 export async function autoLoginGame163Email(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=autoLoginGame163Email&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=autoLoginGame163Email&value=${value}`).then(res => res.data);
 }
 
 // 自动登录游戏Cookie
 export async function autoLoginGameCookie(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=autoLoginGameCookie&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=autoLoginGameCookie&value=${value}`).then(res => res.data);
 }
 
 // 使用JavaW
 export async function setUseJavaW(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=useJavaW&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=useJavaW&value=${value}`).then(res => res.data);
 }
 
 // 切换主题
 export async function setThemeSwitch(theme) {
-    return axios.post(`/api/theme/switch`, theme).then(res => res.data);
+    return await axios.post(`/api/theme/switch`, theme).then(res => res.data);
 }
 
 // 自动更新插件
 export async function autoUpdatePlugin(value = "true") {
-    return axios.get(`/api/nirvana/set?mode=autoUpdatePlugin&value=${value}`).then(res => res.data);
+    return await axios.get(`/api/nirvana/set?mode=autoUpdatePlugin&value=${value}`).then(res => res.data);
 }
 
 // 初始化窗口模式
@@ -348,7 +348,7 @@ export async function closeWindow() {
 
 // 获取日志信息
 export async function getLogs() {
-    return axios.get("/api/logs").then(res => res.data);
+    return await axios.get("/api/logs").then(res => res.data);
 }
 
 // 发送消息到后端的辅助函数
@@ -357,4 +357,8 @@ export const sendMessage = (action, data = "") => {
   if (window.external && window.external.sendMessage) {
     window.external.sendMessage(message);
   }
+}
+
+export async function randomGameAccount (data){
+    return await axios.post('/api/gameaccount/random', data).then(res => res.data);
 }

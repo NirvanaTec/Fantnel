@@ -122,6 +122,7 @@
       </div>
     </div>
 
+    <button @click="showCaptcha" class="add-random-btn">随机登录</button>
     <button @click="showAddModal = true" class="add-btn">添加账号</button>
 
     <!-- 错误信息显示 -->
@@ -173,11 +174,25 @@
     </div>
   </div>
 
+  <GeetestCaptcha :config="{ captchaId: 'fefebb64747ce99237ecdf1830f0ae63', product: 'bind' }"
+    @initialized="onCaptchaInitialized" />
+
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { getAccounts, addAccount, selectAccount, deleteAccount, updateAccount, getCaptcha4399Url, verifyCaptcha4399, getCaptcha4399Content } from '../../utils/Tools'
+import { GeetestCaptcha } from 'vue3-geetest'
+import {
+  getAccounts,
+  addAccount,
+  selectAccount,
+  deleteAccount,
+  updateAccount,
+  getCaptcha4399Url,
+  verifyCaptcha4399,
+  getCaptcha4399Content,
+  randomGameAccount
+} from '../../utils/Tools'
 
 const accounts = ref([])
 const loading = ref(false)
@@ -186,6 +201,25 @@ const error = ref('')
 // 删除确认对话框相关状态
 const showDeleteConfirm = ref(false)
 const accountToDelete = ref(null)
+
+var captchaObj = null
+
+const showCaptcha = function () {
+  if (captchaObj) {
+    captchaObj.showCaptcha();
+  }
+};
+
+const onCaptchaInitialized = (obj) => {
+  captchaObj = obj;
+  captchaObj.onSuccess(() => {
+    error.value = '正在获取账号...'
+    randomGameAccount(captchaObj.getValidate()).then(() => {
+      location.reload()
+    })
+    captchaObj.reset()
+  });
+};
 
 getAccounts().then(data => {
   accounts.value = data.data || []
@@ -492,6 +526,21 @@ tr:hover {
 .delete-btn {
   background-color: #f44336;
   color: white;
+}
+
+.add-random-btn {
+  position: fixed;
+  right: 130px;
+  bottom: 50px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 5;
 }
 
 .add-btn {

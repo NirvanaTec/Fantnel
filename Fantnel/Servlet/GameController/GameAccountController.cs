@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Nirvana.Public.Entities.Login;
+using Nirvana.Public.Entities.Nirvana;
 using Nirvana.Public.Message;
 using NirvanaAPI.Entities.Login;
 using NirvanaAPI.Manager;
@@ -119,4 +120,12 @@ public class GameAccountController : ControllerBase {
     {
         return Ok(Code.ToJson(ErrorCode.Success, InfoManager.GetGameAccount()));
     }
+    
+    [HttpPost("/api/gameaccount/random")]
+    public IActionResult RandomAccountHttp([FromBody] EntityGeeTest captcha)
+    {
+        AccountMessage.RandomAccount(captcha).Wait();
+        return Ok(Code.ToJson(ErrorCode.Success));
+    }
+    
 }

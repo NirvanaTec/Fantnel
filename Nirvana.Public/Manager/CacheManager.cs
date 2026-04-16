@@ -125,11 +125,7 @@ public class CacheManager {
     {
         try {
             lock (CacheImageLock) {
-                var path = GetCacheImagePath(item.EntityId, "net");
-                if (File.Exists(path)) {
-                    File.Delete(path);
-                }
-
+                File.Delete(GetCacheImagePath(item.EntityId, "net"));
                 foreach (var server in ServersGameMessage.ServerList.Where(server => server.EntityId == item.EntityId)) {
                     server.TitleImageUrl = item.BriefImageUrls[0];
                     break;
@@ -145,11 +141,7 @@ public class CacheManager {
     {
         try {
             lock (CacheImageLock) {
-                var path = GetCacheImagePath(item.EntityId, "rental");
-                if (File.Exists(path)) {
-                    File.Delete(path);
-                }
-
+                File.Delete(GetCacheImagePath(item.EntityId, "rental"));
                 foreach (var rental in RentalGameMessage.ServerList.Where(rental => rental.Value.EntityId == item.EntityId)) {
                     rental.Value.ImageUrl = item.ImageUrl;
                     break;
@@ -165,11 +157,7 @@ public class CacheManager {
     {
         try {
             lock (CacheImageLock) {
-                var path = GetCacheImagePath(item.EntityId, "skin");
-                if (File.Exists(path)) {
-                    File.Delete(path);
-                }
-
+                File.Delete(GetCacheImagePath(item.EntityId, "skin"));
                 foreach (var skin in SkinMessage.SkinList.Where(skin => skin.EntityId == item.EntityId)) {
                     skin.TitleImageUrl = item.TitleImageUrl;
                     break;
