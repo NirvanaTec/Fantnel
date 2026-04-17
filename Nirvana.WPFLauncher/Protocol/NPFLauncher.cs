@@ -189,21 +189,16 @@ public static class NPFLauncher {
     private static async Task<EntityAuthenticationOtp> LoginWithCookieAsync(
         EntityX19CookieRequest cookie)
     {
-        var entity = JsonSerializer.Deserialize<EntityX19Cookie>(cookie.Json);
-        if (entity == null) {
-            throw new ErrorCodeException(ErrorCode.LoginError);
-        }
 
         Log.Information("Login with Cookie...");
-        var otp = await LoginOtpAsync(entity);
+        var otp = await LoginOtpAsync(cookie);
         if (otp == null) {
             throw new ErrorCodeException(ErrorCode.LoginError);
         }
-
-        var user = await AuthenticationOtpAsync(cookie, otp);
+        
         // await InterConn.LoginStart();
         // await Task.Run((Func<Task>) (async () => await Http.GetAsync($"https://service.codexus.today/interconnection/report?id={user.EntityId}&token={user.Token}&version={this.MPay.GameVersion}")));
-        return user ?? throw new ErrorCodeException(ErrorCode.LoginError);
+        return await AuthenticationOtpAsync(cookie, otp);
     }
 
     /**
@@ -211,7 +206,7 @@ public static class NPFLauncher {
      * @param cookieRequest Cookie数据
      * @return 登录OTP
      */
-    private static async Task<EntityLoginOtp?> LoginOtpAsync(EntityX19Cookie cookieRequest)
+    private static async Task<EntityLoginOtp?> LoginOtpAsync(EntityX19CookieRequest cookieRequest)
     {
         var entity = await X19Extensions.Core.Api<EntityWPFLauncher<EntityLoginOtp>>("/login-otp", cookieRequest);
         if (entity == null) {
@@ -226,7 +221,7 @@ public static class NPFLauncher {
      * @param otp 登录OTP
      * @return 登录成功后的用户信息
      */
-    private static async Task<EntityAuthenticationOtp?> AuthenticationOtpAsync(
+    private static async Task<EntityAuthenticationOtp> AuthenticationOtpAsync(
         EntityX19CookieRequest cookieRequest,
         EntityLoginOtp otp)
     {
@@ -256,7 +251,7 @@ public static class NPFLauncher {
             throw new ErrorCodeException(ErrorCode.LoginError);
         }
 
-        return entity.Code == 0 ? entity.Data : throw new EntityX19Exception(entity.Message, entity);
+        return entity.Code == 0 ? entity.SafeEntity() : throw new EntityX19Exception(entity.Message, entity);
     }
 
     /**
