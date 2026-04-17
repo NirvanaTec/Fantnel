@@ -195,7 +195,7 @@ public static class NPFLauncher {
         }
 
         Log.Information("Login with Cookie...");
-        var otp = await LoginOtpAsync(cookie);
+        var otp = await LoginOtpAsync(entity);
         if (otp == null) {
             throw new ErrorCodeException(ErrorCode.LoginError);
         }
@@ -211,7 +211,7 @@ public static class NPFLauncher {
      * @param cookieRequest Cookie数据
      * @return 登录OTP
      */
-    private static async Task<EntityLoginOtp?> LoginOtpAsync(EntityX19CookieRequest cookieRequest)
+    private static async Task<EntityLoginOtp?> LoginOtpAsync(EntityX19Cookie cookieRequest)
     {
         var entity = await X19Extensions.Core.Api<EntityWPFLauncher<EntityLoginOtp>>("/login-otp", cookieRequest);
         if (entity == null) {
