@@ -122,7 +122,7 @@
     <!-- 主内容区 -->
     <main class="flex-1 overflow-y-auto bg-gray-900">
       <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
+        <transition name="fade">
           <component :is="Component" />
         </transition>
       </router-view>
