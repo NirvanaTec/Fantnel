@@ -1,12 +1,22 @@
 ﻿using System.Net;
 using System.Text.Json;
-using Nirvana.WPFLauncher.Entities.EntitiesPc4399;
 using Nirvana.WPFLauncher.Entities.EntitiesPc4399.Com4399;
-using QueryBuilder = Nirvana.WPFLauncher.Utils.QueryBuilder;
+using Nirvana.WPFLauncher.Utils;
 
 namespace Nirvana.WPFLauncher.Protocol;
 
 public static class NCom4399 {
+    
+    private static readonly HttpClient Client = new(new HttpClientHandler {
+        UseCookies = true,
+        CookieContainer = new CookieContainer()
+    });
+
+    private static readonly HttpClient Client1 = new(new HttpClientHandler {
+        UseCookies = true,
+        CookieContainer = new CookieContainer()
+    });
+
     public static string LoginWithPasswordAsync(
         string username,
         string password,
@@ -19,17 +29,10 @@ public static class NCom4399 {
         parameters.Add("password", password);
         parameters.Add("captcha_id", captcha);
         parameters.Add("captcha", sessionId);
-
-        var client = new HttpClient(new HttpClientHandler {
-            UseCookies = true,
-            CookieContainer = new CookieContainer()
-        });
-
+        
         // 执行登录请求
-        var loginResponse = client.PostAsync("https://ptlogin.4399.com/oauth2/loginAndAuthorize.do?channel=",
+        var loginResponse = Client.PostAsync("https://ptlogin.4399.com/oauth2/loginAndAuthorize.do?channel=",
             new FormUrlEncodedContent(parameters.GetAll())).Result;
-
-        var aaa = parameters.BuildQueryString();
 
         if (!loginResponse.IsSuccessStatusCode) {
             throw new Exception("登录请求失败");
@@ -59,7 +62,7 @@ public static class NCom4399 {
         }
 
         // 生成SAuth令牌
-        return GenerateSAuth(
+        return N4399.GenerateSAuth(
             "",
             entity4399UserInfoResult.Uid.ToString(),
             entity4399UserInfoResult.State,
@@ -70,16 +73,10 @@ public static class NCom4399 {
 
     private static async Task<string> OAuthDevice()
     {
-        var client = new HttpClient(new HttpClientHandler {
-            UseCookies = true,
-            CookieContainer = new CookieContainer()
-        });
-
         var parameters = BuildAuthDevice();
 
         // 执行登录请求
-        var loginResponse = await client.PostAsync("https://m.4399api.com/openapiv2/oauth.html",
-            new FormUrlEncodedContent(parameters.GetAll()));
+        var loginResponse = await Client1.PostAsync("https://m.4399api.com/openapiv2/oauth.html", new FormUrlEncodedContent(parameters.GetAll()));
 
         var loginText = await loginResponse.Content.ReadAsStringAsync();
         var oauthResponse = JsonSerializer.Deserialize<Entity4399OAuthResponse>(loginText);
@@ -108,31 +105,6 @@ public static class NCom4399 {
         // 提取内容并删除前后空格
         var content = html.Substring(startIndex, endIndex - startIndex);
         return content.Trim();
-    }
-
-    private static string GenerateSAuth(
-        string userId,
-        string sdkUid,
-        string sessionId,
-        string timestamp,
-        string channel,
-        string platform = "ad")
-    {
-        var str = Guid.NewGuid().ToString("N");
-        return JsonSerializer.Serialize(new EntityMgbSdkSAuthJson {
-            AppChannel = channel,
-            ClientLoginSn = str,
-            DeviceId = str,
-            GameId = "x19",
-            LoginChannel = channel,
-            SdkUid = sdkUid,
-            SessionId = sessionId,
-            Timestamp = timestamp,
-            Platform = platform,
-            SourcePlatform = platform,
-            Udid = str,
-            UserId = userId
-        });
     }
 
     private static QueryBuilder BuildLoginParameters()

@@ -25,7 +25,6 @@ namespace Nirvana.WPFLauncher.Protocol;
 
 // ReSharper disable once InconsistentNaming
 public static class NPFLauncher {
-    private static readonly MgbSdk Sdk = new("x19");
 
     public static readonly JsonSerializerOptions DefaultOptions = new() {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
@@ -191,9 +190,8 @@ public static class NPFLauncher {
         EntityX19CookieRequest cookie)
     {
         var entity = JsonSerializer.Deserialize<EntityX19Cookie>(cookie.Json);
-        if (entity == null) throw new ErrorCodeException(ErrorCode.LoginError);
-        if (entity.LoginChannel != "netease") {
-            await Sdk.AuthSession(cookie.Json);
+        if (entity == null) {
+            throw new ErrorCodeException(ErrorCode.LoginError);
         }
 
         Log.Information("Login with Cookie...");
@@ -215,16 +213,11 @@ public static class NPFLauncher {
      */
     private static async Task<EntityLoginOtp?> LoginOtpAsync(EntityX19CookieRequest cookieRequest)
     {
-        var entity = await X19Extensions.Core.Api<EntityWPFLauncher<JsonElement?>>("/login-otp", cookieRequest);
+        var entity = await X19Extensions.Core.Api<EntityWPFLauncher<EntityLoginOtp>>("/login-otp", cookieRequest);
         if (entity == null) {
             throw new Exception("Failed to deserialize: login-otp");
         }
-
-        if (entity.Code != 0 || !entity.Data.HasValue) {
-            throw new Exception("Failed to deserialize: " + entity.Message);
-        }
-
-        return JsonSerializer.Deserialize<EntityLoginOtp>(entity.Data.Value.GetRawText());
+        return entity.Code != 0 ? throw new Exception(entity.Message) : entity.SafeEntity();
     }
 
     /**

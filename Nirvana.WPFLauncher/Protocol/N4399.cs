@@ -118,7 +118,7 @@ public static class N4399 {
         );
     }
 
-    private static string GenerateSAuth(
+    public static string GenerateSAuth(
         string userId,
         string sdkUid,
         string sessionId,
