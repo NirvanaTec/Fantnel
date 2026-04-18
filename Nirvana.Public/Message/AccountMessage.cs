@@ -173,13 +173,13 @@ public static class AccountMessage {
                     throw new ErrorCodeException(ErrorCode.CaptchaNot);
                 case "4399": {
                     var cookie = N4399.LoginWithPasswordAsync(account.Account, account.Password, _session4399Id, Captcha4399);
-                    result = NPFLauncher.LoginWithCookieAsync(cookie).Result;
+                    result = NPFLauncher.LoginWithCookieAsync(cookie.Result).Result;
                     UpdateCaptcha();
                     break;
                 }
                 case "4399com": {
                     var cookie = NCom4399.LoginWithPasswordAsync(account.Account, account.Password, Captcha4399, _session4399Id);
-                    result = NPFLauncher.LoginWithCookieAsync(cookie).Result;
+                    result = NPFLauncher.LoginWithCookieAsync(cookie.Result).Result;
                     UpdateCaptcha();
                     break;
                 }

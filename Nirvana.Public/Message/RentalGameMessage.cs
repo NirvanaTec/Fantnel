@@ -43,7 +43,7 @@ public static class RentalGameMessage {
             } else {
                 var items = await NPFLauncher.GetRentalGameListAsync();
                 AddServerList(items);
-                Thread.Sleep(510);
+                Thread.Sleep(540);
             }
         }
     }

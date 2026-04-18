@@ -7,7 +7,8 @@ using QueryBuilder = Nirvana.WPFLauncher.Utils.QueryBuilder;
 namespace Nirvana.WPFLauncher.Protocol;
 
 public static class N4399 {
-    public static string LoginWithPasswordAsync(
+    
+    public static async Task<string> LoginWithPasswordAsync(
         string username,
         string password,
         string sessionId,
@@ -26,14 +27,10 @@ public static class N4399 {
         });
 
         // 执行登录请求
-        var loginResponse = client.PostAsync("https://ptlogin.4399.com/ptlogin/login.do?v=1",
+        var loginResponse = await client.PostAsync("https://ptlogin.4399.com/ptlogin/login.do?v=1",
             new FormUrlEncodedContent(parameters.GetAll()));
 
-        if (!loginResponse.Result.IsSuccessStatusCode) {
-            throw new Exception("登录请求失败");
-        }
-
-        var loginText = loginResponse.Result.Content.ReadAsStringAsync().Result;
+        var loginText = await loginResponse.Content.ReadAsStringAsync();
 
         // 找到错误信息
         var errText = ExtractErrorTip(loginText);
@@ -41,13 +38,13 @@ public static class N4399 {
             throw new Exception(errText);
         }
 
-        var cookieString = string.Join("; ", loginResponse.Result.Headers.GetValues("Set-Cookie")
+        var cookieString = string.Join("; ", loginResponse.Headers.GetValues("Set-Cookie")
             .Select(cookie => cookie.Split(';')[0].Trim())
             .ToArray());
 
         // 生成SAuth令牌
-        var sAuthToken = GenerateSAuthAsync(client, cookieString);
-        return sAuthToken.Result;
+        var sAuthToken = await GenerateSAuthAsync(client, cookieString);
+        return sAuthToken;
     }
 
     private static string ExtractErrorTip(string html)
@@ -104,43 +101,21 @@ public static class N4399 {
         }
 
         var redirectUri = checkResponse.RequestMessage.RequestUri.ToString();
+        
         var queryParams = QueryBuilder.FromParameters(redirectUri);
 
         // 获取统一认证信息
         var uniAuth = await GetUniAuthAsync(queryParams, client);
 
         // 生成SAuth令牌
-        return GenerateSAuth(
-            uniAuth.Get("username"),
+        return MgbSdk.GenerateSAuth(
             uniAuth.Get("uid"),
             uniAuth.Get("token"),
+            "4399pc",
+            "pc",
+            uniAuth.Get("username"),
             uniAuth.Get("time")
         );
-    }
-
-    public static string GenerateSAuth(
-        string userId,
-        string sdkUid,
-        string sessionId,
-        string timestamp,
-        string channel = "4399pc",
-        string platform = "pc")
-    {
-        var str = Guid.NewGuid().ToString("N");
-        return JsonSerializer.Serialize(new EntityMgbSdkSAuthJson {
-            AppChannel = channel,
-            ClientLoginSn = str,
-            DeviceId = str,
-            GameId = "x19",
-            LoginChannel = channel,
-            SdkUid = sdkUid,
-            SessionId = sessionId,
-            Timestamp = timestamp,
-            Platform = platform,
-            SourcePlatform = platform,
-            Udid = str,
-            UserId = userId
-        });
     }
 
     private static async Task<QueryBuilder> GetUniAuthAsync(QueryBuilder queryParams, HttpClient client)
@@ -163,13 +138,8 @@ public static class N4399 {
 
         var response = await client.GetAsync(sdkUrl.ToString());
 
-        if (!response.IsSuccessStatusCode) {
-            throw new Exception("获取统一认证信息失败");
-        }
-
         var responseText = await response.Content.ReadAsStringAsync();
-        var uniAuthData = JsonSerializer.Deserialize<EntityC4399UniAuth>(responseText) ??
-                          throw new Exception("解析统一认证数据失败");
+        var uniAuthData = JsonSerializer.Deserialize<EntityC4399UniAuth>(responseText) ?? throw new Exception("解析统一认证数据失败");
 
         return new QueryBuilder(uniAuthData.Data.SdkLoginData);
     }

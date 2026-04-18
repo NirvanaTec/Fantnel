@@ -26,6 +26,8 @@ namespace Nirvana.WPFLauncher.Protocol;
 // ReSharper disable once InconsistentNaming
 public static class NPFLauncher {
 
+    private static readonly MgbSdk Sdk = new("x19");
+    
     public static readonly JsonSerializerOptions DefaultOptions = new() {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
@@ -189,7 +191,12 @@ public static class NPFLauncher {
     private static async Task<EntityAuthenticationOtp> LoginWithCookieAsync(
         EntityX19CookieRequest cookie)
     {
-
+        var entity = JsonSerializer.Deserialize<EntityX19Cookie>(cookie.Json);
+        
+        if (entity is not { LoginChannel: "netease" }) {
+            await Sdk.AuthSession(cookie.Json);
+        }
+        
         Log.Information("Login with Cookie...");
         var otp = await LoginOtpAsync(cookie);
         if (otp == null) {
@@ -212,6 +219,9 @@ public static class NPFLauncher {
         if (entity == null) {
             throw new Exception("Failed to deserialize: login-otp");
         }
+        // if (entity is { Code: 32, Message: "服务器维护中，请稍候再试" }) {
+        //     throw new Exception("(N) 登录失败，未知错误, 请更换账号后再试。");
+        // }
         return entity.Code != 0 ? throw new Exception(entity.Message) : entity.SafeEntity();
     }
 
