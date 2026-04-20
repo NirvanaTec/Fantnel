@@ -102,7 +102,7 @@ public class GameArgumentsUtil {
                 }
             }
         }
-        throw new NotImplementedException();
+        throw new ArgumentOutOfRangeException(nameof(mode), mode, "Not Supported Mode");
     }
     
 }
