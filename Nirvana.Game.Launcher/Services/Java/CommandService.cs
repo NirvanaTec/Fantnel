@@ -442,13 +442,8 @@ public class CommandService {
     private List<EntityJavaFile> FilterFile(List<EntityJavaFile> classPaths)
     {
         // 是 natives 文件，不用添加
-        return classPaths.Where(classPath => {
-            if (_minecraft.Count <= 0) {
-                return true;
-            }
-
-            return !classPath.Contains("-natives-");
-        }).ToList();
+        return _minecraft.Count <= 0 ? classPaths :
+            classPaths.Where(classPath => !classPath.Contains("-natives-")).ToList();
     }
 
     // 修复 -cp 路径
