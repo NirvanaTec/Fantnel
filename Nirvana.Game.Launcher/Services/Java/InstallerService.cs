@@ -7,6 +7,7 @@ using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.GameMo
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameLaunch.Texture;
 using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
+using NirvanaAPI.Utils;
 using Serilog;
 using CompressionUtil = Nirvana.Game.Launcher.Utils.CompressionUtil;
 using DownloadUtil = Nirvana.Game.Launcher.Utils.DownloadUtil;
@@ -326,15 +327,11 @@ public static class InstallerService {
             FileUtil.CopyDirectory(Path.Combine(PathUtil.CachePath, "Game", gameId, ".minecraft"), text2, false);
             InstallCustomMods(text3);
         }
-
+        
         var linkPath = Path.Combine(text2, "assets");
         var targetPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "assets");
         // 创建assets目录符号链接
-        if (Directory.Exists(linkPath)) {
-            Directory.Delete(linkPath, false);
-        }
-
-        Directory.CreateSymbolicLink(linkPath, targetPath + Path.DirectorySeparatorChar);
+        Tools.CreateSymbolicLink(linkPath, targetPath);
         return text;
     }
 

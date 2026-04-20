@@ -435,7 +435,7 @@ public static class AccountMessage {
 
         var account = JsonSerializer.Deserialize<EntityAccount>(randomAccount);
         if (account == null) {
-            throw new ErrorCodeException(ErrorCode.Failure);
+            throw new ErrorCodeException(ErrorCode.Failure, entityResponse.Msg);
         }
         
         account.Type = "4399com";

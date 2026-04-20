@@ -61,7 +61,7 @@
           <div class="form-options">
             <div class="remember-me">
               <input v-model="useJavaW" class="form-checkbox" id="useJavaW" type="checkbox">
-              <label class="form-checkbox-label" for="useJavaW">使用JavaW</label>
+              <label class="form-checkbox-label" for="useJavaW">使用 JavaW [Windows Only]</label>
             </div>
           </div>
         </div>

@@ -60,7 +60,7 @@ public static class Code {
             ErrorCode.ParamError => "参数错误",
             ErrorCode.VerifyFailed => "验证失败",
             ErrorCode.OnlineStatusExpired => "在线状态已过期",
-            ErrorCode.NoTimes => "没有可用次数",
+            ErrorCode.NoTimes => "没有获取次数，请前往 \"官网\" 进行购买！",
             _ => "未知错误"
         };
     }

@@ -22,27 +22,6 @@ public class CommandService {
         AllowTrailingCommas = true
     };
 
-    // " -Djava.library.path=123 "
-    private static readonly List<string> StartList = [
-        " --", // 0:--cp="123" | 1:--cp=123 | 2:--cp "123" | 3:--cp 123
-        " -D", // 4: -Dcp="123" | 5: -Dcp=123 | 6: -Dcp "123" | 7: -Dcp 123
-        " -" // 8: -cp="123" | 9: -cp=123 | 10: -cp "123" | 11: -cp 123
-    ];
-
-    private static readonly List<string> BetweenList = [
-        "=\"",
-        "=",
-        " \"",
-        " "
-    ];
-
-    private static readonly List<string> EndList = [
-        "\"",
-        "",
-        "\"",
-        ""
-    ];
-
     private readonly JsonSerializerOptions _options = new() {
         // 关键设置：使用不转义的编码器
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
@@ -141,7 +120,6 @@ public class CommandService {
         FileUtil.SetUnixFilePermissions(javaPath); // 添加 Java 权限
         return Process.Start(new ProcessStartInfo(javaPath, _cmd) {
             UseShellExecute = false,
-            CreateNoWindow = true, // 隐藏窗口
             WorkingDirectory = _workPath
         });
     }
@@ -353,7 +331,7 @@ public class CommandService {
 
         if (!string.IsNullOrEmpty(jvmArguments)) {
             // 修复 linux/mac 冲突
-            jvmArguments = DeleteArguments("java.library.path", jvmArguments);
+            jvmArguments = GameArgumentsUtil.DeleteArguments("java.library.path", jvmArguments, CommandMode.Mode5, CommandMode.Mode6);
             // 修复 模块路径 错误
             jvmArguments = ReplaceLib("p", jvmArguments);
             // // 修复 linux/mac 冲突
@@ -365,7 +343,7 @@ public class CommandService {
             jvmArguments = ReplaceLib("cp", jvmArguments);
 
             // 而外 lib 路径
-            var classPath1 = GetArguments("cp", jvmArguments);
+            var classPath1 = GameArgumentsUtil.GetArguments("cp", jvmArguments, false, CommandMode.Mode12, CommandMode.Mode13);
             var classPathList = classPath1.Split(PathUtil.PathSeparator);
 
             // 过滤 重复路径
@@ -381,29 +359,28 @@ public class CommandService {
             }
 
             classPaths = FilterFile(classPaths);
-            jvmArguments = UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)),
-                jvmArguments, 10);
+            jvmArguments = GameArgumentsUtil.UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)), jvmArguments,  CommandMode.Mode12, CommandMode.Mode13);
         }
 
         if (string.IsNullOrEmpty(jvmArguments)) {
             jvmArguments ??= "";
-            jvmArguments = UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)),
-                jvmArguments, 10);
+            jvmArguments = GameArgumentsUtil.UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)), jvmArguments,  CommandMode.Mode12, CommandMode.Mode13);
         }
 
         if (cfg.TryGetValue("mainClass", out var mainClassElement)) {
             var mainClass = mainClassElement.GetString();
             // mainClass 不是空的 | 参数没有包含 mainClass
             if (!string.IsNullOrEmpty(mainClass) && !jvmArguments.Contains(mainClass)) {
-                jvmArguments = AddArguments(jvmArguments, mainClass); // 添加 修复参数
+                jvmArguments = GameArgumentsUtil.AddArguments(jvmArguments, mainClass); // 添加 修复参数
             }
         }
 
         jvmArguments = jvmArguments.Replace("${library_directory}",
             Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries"));
-        jvmArguments = UpdateArguments("libraryDirectory",
-            Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries"), jvmArguments, 4);
-
+        jvmArguments = GameArgumentsUtil.UpdateArguments("libraryDirectory",
+            Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries"), jvmArguments, CommandMode.Mode5, CommandMode.Mode6);
+        jvmArguments = GameArgumentsUtil.DeleteArguments("Xmx", jvmArguments, CommandMode.Mode14);
+        
         if (_launcherGame == null) {
             throw new Exception("No Launcher Game Found");
         }
@@ -418,7 +395,7 @@ public class CommandService {
             .Append(" -DServer=RELEASE")
             .Append(AddNativePath());
 
-        jvmArguments = AddArguments(stringBuilder.ToString(), jvmArguments); // 添加 修复参数
+        jvmArguments = GameArgumentsUtil.AddArguments(stringBuilder.ToString(), jvmArguments); // 添加 修复参数
 
         // 启动参数
         var minecraftArguments = "";
@@ -435,10 +412,10 @@ public class CommandService {
             throw new ArgumentNullException(minecraftArguments);
         }
 
-        jvmArguments = AddArguments(jvmArguments, BuildCommandExFix()); // 添加 修复参数
+        jvmArguments = GameArgumentsUtil.AddArguments(jvmArguments, BuildCommandExFix()); // 添加 修复参数
 
-        minecraftArguments = UpdateArguments("gameDir", "\"${game_directory}\"", minecraftArguments, 3); // 修复错误内置
-        minecraftArguments = UpdateArguments("assetsDir", "\"${assets_root}\"", minecraftArguments, 3); // 修复错误内置
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("gameDir", "\"${game_directory}\"", minecraftArguments, CommandMode.Mode2, CommandMode.Mode3); // 修复错误内置
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("assetsDir", "\"${assets_root}\"", minecraftArguments, CommandMode.Mode2, CommandMode.Mode3); // 修复错误内置
 
         minecraftArguments = minecraftArguments.Replace("${game_directory}", _workPath);
         minecraftArguments = minecraftArguments.Replace("--userType ${user_type}", string.Empty);
@@ -453,13 +430,13 @@ public class CommandService {
         minecraftArguments = minecraftArguments.Replace("${auth_access_token}",
             _gameVersion >= EnumGameVersion.V_1_18 ? "0" : RandomUtil.GetRandomString(32, "ABCDEF0123456789"));
 
-        minecraftArguments = UpdateArguments("server", _launcherGame.ServerIp, minecraftArguments, 3);
-        minecraftArguments = UpdateArguments("port", _launcherGame.ServerPort.ToString(), minecraftArguments, 3);
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("server", _launcherGame.ServerIp, minecraftArguments, CommandMode.Mode3);
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("port", _launcherGame.ServerPort.ToString(), minecraftArguments, CommandMode.Mode3);
 
-        minecraftArguments = UpdateArguments("userProperties", GetUserProperties(version), minecraftArguments, 3);
-        minecraftArguments = UpdateArguments("userPropertiesEx", GetUserPropertiesEx(), minecraftArguments, 3);
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("userProperties", GetUserProperties(version), minecraftArguments, CommandMode.Mode2, CommandMode.Mode3);
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("userPropertiesEx", GetUserPropertiesEx(), minecraftArguments, CommandMode.Mode2, CommandMode.Mode3);
 
-        _cmd = AddArguments(jvmArguments, minecraftArguments);
+        _cmd = GameArgumentsUtil.AddArguments(jvmArguments, minecraftArguments);
     }
 
     private List<EntityJavaFile> FilterFile(List<EntityJavaFile> classPaths)
@@ -474,89 +451,10 @@ public class CommandService {
         }).ToList();
     }
 
-    private static string AddArguments(string text, string tex1)
-    {
-        string value;
-        // 最后1个字符是空格
-        if (text.EndsWith(' ')) {
-            value = text + tex1;
-        } else {
-            value = text + " " + tex1;
-        }
-
-        // 删除最后1个空格
-        return value.TrimEnd(' ');
-    }
-
-    private static string GenArguments(string name, string value, int mode)
-    {
-        var index = 0;
-        foreach (var start in StartList) {
-            for (var i = 0; i < BetweenList.Count; i++) {
-                if (index++ == mode) {
-                    return start + name + BetweenList[i] + value + EndList[i];
-                }
-            }
-        }
-
-        return "";
-    }
-
-    private static string UpdateArguments(string name, string value, string text, int mode = 0)
-    {
-        var arguments = GetArguments(name, text, true);
-        var genArguments = GenArguments(name, value, mode);
-        // "  -a 1 " > " -a 1"
-        return string.IsNullOrEmpty(arguments)
-            ? (text.TrimEnd(' ') + " " + genArguments).TrimEnd(' ')
-            : text.Replace(arguments, genArguments);
-    }
-
-    private static string DeleteArguments(string name, string text)
-    {
-        return UpdateArguments(name, string.Empty, text, -1);
-    }
-
-    /**
-     * 获取参数值
-     * @param name 参数名 cp
-     * @param text 文本
-     * @param complete 是否返回完整参数 -cp 123
-     * @return 参数值
-     */
-    private static string GetArguments(string name, string text, bool complete = false)
-    {
-        return complete ? GetArguments1(name, text).Item1 : GetArguments1(name, text).Item2;
-    }
-
-    /**
-     * 获取参数值
-     * @param name 参数名 cp
-     * @param text 文本
-     * @return 完整参数 [-cp 123], 参数值 [123]
-     */
-    private static (string, string) GetArguments1(string name, string text)
-    {
-        foreach (var start in StartList) {
-            for (var i = 0; i < BetweenList.Count; i++) {
-                var between = BetweenList[i];
-                var containText = start + name + between;
-                if (!text.Contains(containText)) {
-                    continue;
-                }
-
-                var value = Tools.GetBetweenStrings(text, containText, EndList[i] + " ");
-                return (containText + value + EndList[i], value);
-            }
-        }
-
-        return (string.Empty, string.Empty);
-    }
-
     // 修复 -cp 路径
     private string ReplaceLib(string name, string text)
     {
-        var sourceText = GetArguments1(name, text);
+        var sourceText = GameArgumentsUtil.GetArguments1(name, text, CommandMode.Mode12, CommandMode.Mode13);
         if (string.IsNullOrEmpty(sourceText.Item1)) {
             return text;
         }
@@ -618,14 +516,9 @@ public class CommandService {
 
         // 避免 linux 出现权限问题
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-            var targetPath = natives + "/";
             var linkPath = "/tmp/fantnel-natives-" + _version;
             // 创建 natives 目录符号链。
-            if (Directory.Exists(linkPath)) {
-                Directory.Delete(linkPath, false);
-            }
-
-            Directory.CreateSymbolicLink(linkPath, targetPath);
+            Tools.CreateSymbolicLink(linkPath, natives);
             natives = linkPath;
         }
 

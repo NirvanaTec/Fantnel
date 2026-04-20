@@ -214,8 +214,13 @@ const onCaptchaInitialized = (obj) => {
   captchaObj = obj;
   captchaObj.onSuccess(() => {
     error.value = '正在获取账号...'
-    randomGameAccount(captchaObj.getValidate()).then(() => {
-      location.reload()
+    randomGameAccount(captchaObj.getValidate()).then((data) => {
+      if (data.code === 1) {
+        error.value = data.msg || '获取账号成功'
+        location.reload()
+      } else {
+        error.value = data.msg || '获取账号失败，请稍后重试'
+      }
     })
     captchaObj.reset()
   });
