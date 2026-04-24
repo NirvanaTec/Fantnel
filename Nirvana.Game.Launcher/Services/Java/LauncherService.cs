@@ -1,3 +1,4 @@
+using System.Data;
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
@@ -157,7 +158,7 @@ public sealed class LauncherService : IDisposable {
         var availablePort = Tools.GetUnusedPort(11413);
 
         if (_skip32 == null) {
-            throw new ArgumentNullException(nameof(_skip32));
+            throw new NoNullAllowedException(nameof(_skip32));
         }
 
         commandService.Init(enumVersion, Entity,

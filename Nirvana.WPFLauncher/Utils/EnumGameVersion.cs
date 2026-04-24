@@ -96,5 +96,6 @@ public enum EnumGameVersion : uint {
     V_RTX = 200000000, // 0x0BEBC200
 
     [XmlEnum(Name = "300.0.0")]
+    // ReSharper disable once InconsistentNaming
     V_X64_CPP = 300000000 // 0x11E1A300
 }

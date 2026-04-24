@@ -87,6 +87,11 @@ public class CommandService {
         // 保存到文件，方便调试
         var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "command" + PathUtil.ScriptSuffix);
         Tools.SaveShellScript(scriptPath, GetJavaCommand()).Wait();
+        
+        var optionsPath = Path.Combine(_workPath, "options.txt");
+        if (!File.Exists(optionsPath)) {
+            File.WriteAllText(optionsPath, "guiScale:2\nlang:zh_cn\nmaxFps:120\n");
+        }
     }
 
     private async Task InstallNatives()
@@ -97,11 +102,7 @@ public class CommandService {
 
         // 删除 linux/mac 下的 natives[win库]
         var nativesPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", _version, "natives");
-        foreach (var native in Directory.GetFiles(nativesPath)) {
-            if (native.EndsWith(".dll") || native.EndsWith(".so") || native.EndsWith(".dylib")) {
-                File.Delete(native);
-            }
-        }
+        Directory.Delete(nativesPath, true);
 
         foreach (var item in _minecraft.Where(item => item.IsNative && item.DownloadAuto())) {
             await CompressionUtil.ExtractAsync(item.GetPath(), nativesPath);
@@ -203,7 +204,6 @@ public class CommandService {
                             if (string.IsNullOrEmpty(osName)) {
                                 continue;
                             }
-
                             var runArch = GetRunArch();
                             foreach (var archName in runArch) {
                                 var osNameArch = osName.Replace("${arch}", archName);
@@ -212,10 +212,7 @@ public class CommandService {
                                         var path = path1Element.GetString();
                                         if (path != null) {
                                             path = Path.Combine("libraries", path);
-                                            jarList = AddJarList(jarList, path,
-                                                nativesElement.TryGetProperty("url", out var urlElement)
-                                                    ? urlElement.GetString()
-                                                    : string.Empty, true);
+                                            jarList = AddJarList(jarList, path, nativesElement.TryGetProperty("url", out var urlElement) ? urlElement.GetString() : string.Empty, true);
                                         }
                                     }
                                 }
@@ -232,11 +229,12 @@ public class CommandService {
     private static string[] GetRunArch()
     {
         return RuntimeInformation.ProcessArchitecture switch {
-            // Architecture.Arm64 => ["aarch_64", "arm64"],
-            // Architecture.Arm => ["32"],
-            // Architecture.Armv6 => ["32"],
-            Architecture.X86 => ["32", ""],
-            _ => ["64", ""]
+            // Architecture.Arm64 => ["aarch_64"],
+            // Architecture.Arm => ["aarch_64"],
+            // Architecture.Armv6 => ["aarch_64"],
+            Architecture.X86 => ["32"],
+            Architecture.X64 => ["64"],
+            _ => ["aarch_64"]
         };
     }
 
@@ -314,7 +312,7 @@ public class CommandService {
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-            return ["osx"];
+            return ["osx", "macos"];
         }
 
         return ["linux"];
@@ -414,8 +412,8 @@ public class CommandService {
 
         jvmArguments = GameArgumentsUtil.AddArguments(jvmArguments, BuildCommandExFix()); // 添加 修复参数
 
-        minecraftArguments = GameArgumentsUtil.UpdateArguments("gameDir", "\"${game_directory}\"", minecraftArguments, CommandMode.Mode2, CommandMode.Mode3); // 修复错误内置
-        minecraftArguments = GameArgumentsUtil.UpdateArguments("assetsDir", "\"${assets_root}\"", minecraftArguments, CommandMode.Mode2, CommandMode.Mode3); // 修复错误内置
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("gameDir", "${game_directory}", minecraftArguments, CommandMode.Mode2, CommandMode.Mode3); // 修复错误内置
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("assetsDir", "${assets_root}", minecraftArguments, CommandMode.Mode2, CommandMode.Mode3); // 修复错误内置
 
         minecraftArguments = minecraftArguments.Replace("${game_directory}", _workPath);
         minecraftArguments = minecraftArguments.Replace("--userType ${user_type}", string.Empty);
@@ -498,7 +496,7 @@ public class CommandService {
     {
         var stringBuilder = new StringBuilder();
         if (_gameVersion > EnumGameVersion.V_1_12_2) {
-            // mac 高版本修复
+            // Mac 高版本修复
             stringBuilder.Append("-XstartOnFirstThread ");
         }
 
