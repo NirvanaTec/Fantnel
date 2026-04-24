@@ -430,11 +430,11 @@ public class CommandService {
         minecraftArguments = minecraftArguments.Replace("${auth_access_token}",
             _gameVersion >= EnumGameVersion.V_1_18 ? "0" : RandomUtil.GetRandomString(32, "ABCDEF0123456789"));
 
-        minecraftArguments = GameArgumentsUtil.UpdateArguments("server", _launcherGame.ServerIp, minecraftArguments, CommandMode.Mode3);
-        minecraftArguments = GameArgumentsUtil.UpdateArguments("port", _launcherGame.ServerPort.ToString(), minecraftArguments, CommandMode.Mode3);
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("server", _launcherGame.ServerIp, minecraftArguments, CommandMode.Mode3, CommandMode.Mode13);
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("port", _launcherGame.ServerPort.ToString(), minecraftArguments, CommandMode.Mode3, CommandMode.Mode13);
 
-        minecraftArguments = GameArgumentsUtil.UpdateArguments("userProperties", GetUserProperties(version), minecraftArguments, CommandMode.Mode2, CommandMode.Mode3);
-        minecraftArguments = GameArgumentsUtil.UpdateArguments("userPropertiesEx", GetUserPropertiesEx(), minecraftArguments, CommandMode.Mode2, CommandMode.Mode3);
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("userProperties", GetUserProperties(version), minecraftArguments, CommandMode.Mode3, CommandMode.Mode13);
+        minecraftArguments = GameArgumentsUtil.UpdateArguments("userPropertiesEx", GetUserPropertiesEx(), minecraftArguments, CommandMode.Mode3, CommandMode.Mode13);
 
         _cmd = GameArgumentsUtil.AddArguments(jvmArguments, minecraftArguments);
     }
