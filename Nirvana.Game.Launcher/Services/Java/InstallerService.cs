@@ -50,7 +50,7 @@ public static class InstallerService {
         }
 
         var progress = new SyncProgressBarUtil.ProgressBar();
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => { progress.Update(update.Percent, update.Message); });
+        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(progress.Update);
         await DownloadUtil.DownloadAsync(url, zipPath, label, uiProgress);
         await CompressionUtil.ExtractAsync(zipPath, extractTo, label, uiProgress);
         await File.WriteAllTextAsync(md5Path, md5);
@@ -158,9 +158,7 @@ public static class InstallerService {
         var modList = new EntityModsList();
 
         var progress = new SyncProgressBarUtil.ProgressBar();
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => {
-            progress.Update(update.Percent, update.Message);
-        });
+        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(progress.Update);
         
         foreach (var entityComponentDownloadInfoResponse in entities) {
             foreach (var subEntity in entityComponentDownloadInfoResponse.SubEntities) {

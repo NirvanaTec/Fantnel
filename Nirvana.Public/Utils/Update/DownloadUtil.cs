@@ -66,7 +66,7 @@ public static class DownloadUtil {
         // 下载插件 进度条 初始化
         var progressBar = new SyncProgressBarUtil.ProgressBar();
         // 下载插件 进度条 回调
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => progressBar.Update(update.Percent, update.Message));
+        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(progressBar.Update);
         await DownloadAsync(url, path, name, uiProgress);
     }
 

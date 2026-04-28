@@ -60,7 +60,7 @@ public static class CompressionUtil {
             // 解压 进度条 初始化
             var progressBar = new SyncProgressBarUtil.ProgressBar();
             // 解压 进度条 回调
-            uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => progressBar.Update(update.Percent, update.Message));
+            uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(progressBar.Update);
         }
 
         await ExtractAsync(archivePath, outPath, dp => {

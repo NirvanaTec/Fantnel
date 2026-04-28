@@ -84,7 +84,12 @@ public static class SyncProgressBarUtil {
             GC.SuppressFinalize(this);
         }
 
-        public void Update(double current, string action)
+        public void Update(ProgressReport update)
+        {
+            Update(update.Percent, update.Message);
+        }
+
+        private void Update(double current, string action)
         {
             if (_disposed) {
                 return;
