@@ -157,6 +157,11 @@ public static class InstallerService {
         var entities = await NPFLauncher.GetGameCoreModDetailsListAsync(entity.IidList);
         var modList = new EntityModsList();
 
+        var progress = new SyncProgressBarUtil.ProgressBar();
+        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => {
+            progress.Update(update.Percent, update.Message);
+        });
+        
         foreach (var entityComponentDownloadInfoResponse in entities) {
             foreach (var subEntity in entityComponentDownloadInfoResponse.SubEntities) {
                 modList.Mods.Add(new EntityModsInfo {
@@ -170,8 +175,6 @@ public static class InstallerService {
             }
         }
 
-        var progress = new SyncProgressBarUtil.ProgressBar();
-        var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(update => { progress.Update(update.Percent, update.Message); });
         var corePath = Path.Combine(PathUtil.GameModsPath, gameId);
         if (Directory.Exists(corePath)) {
             Directory.Delete(corePath, true);
