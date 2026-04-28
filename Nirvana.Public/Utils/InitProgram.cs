@@ -15,7 +15,7 @@ namespace Nirvana.Public.Utils;
 
 public static class InitProgram {
 
-    public static void NelInit(string[] args, Action logInit)
+    public static void CheckUpdate(string[] args, Action logInit)
     {
         // 日志初始化
         logInit.Invoke();
@@ -33,8 +33,6 @@ public static class InitProgram {
      */
     public static void NelInit1()
     {
-        // Fantnel 服务器信息 初始化
-        FantnelInit().Wait();
 
         // 插件初始化
         // 避免插件过早加载，因为这是没必要的
@@ -85,9 +83,16 @@ public static class InitProgram {
             Log.Error("调试版，已跳过版本检测！");
             return;
         }
+        
+        if (InfoManager.FantnelInfo == null) {
+            Log.Error("无法连接至服务器！");
+            Thread.Sleep(6000);
+            Environment.Exit(1);
+            return;
+        }
 
-        if (InfoManager.FantnelInfo?.Versions == null) {
-            Log.Error("该版本已被禁用，请前往 https://npyyds.top/ 查看最新版本！");
+        if (InfoManager.FantnelInfo.Versions == null) {
+            Log.Error("检测版本失败，无法检查版本！");
             Thread.Sleep(6000);
             Environment.Exit(1);
         }
@@ -96,19 +101,6 @@ public static class InitProgram {
         foreach (var version in InfoManager.FantnelInfo.Versions) {
             if (version == PublicProgram.Version) {
                 isVersion = true;
-            }
-        }
-
-        foreach (var version in InfoManager.FantnelInfo.DisabledVersions) {
-            // x64_1.3.0
-            if (version == PublicProgram.Arch + "_" + PublicProgram.Version) {
-                isVersion = false;
-            } else if (version == PublicProgram.Mode + "_" + PublicProgram.Arch + "_" + PublicProgram.Version) {
-                // win_x64_1.3.0
-                isVersion = false;
-            } else if (version == PublicProgram.Mode + "_" + PublicProgram.Version) {
-                // win_1.3.0
-                isVersion = false;
             }
         }
 
@@ -151,7 +143,7 @@ public static class InitProgram {
         }
     }
 
-    private static async Task FantnelInit()
+    public static async Task FantnelInit()
     {
         for (var i = 0; i < 3; i++) {
             try {

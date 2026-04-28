@@ -16,7 +16,9 @@ public static class RestartTools {
         // 初始化日志
         logoInit.Invoke();
 
-        Task.Run(() => { Maintenance(args); });
+        _= Task.Run(() => {
+            Maintenance(args);
+        });
 
         var mode = Get("mode", args);
         if ("proxy".Equals(mode)) {

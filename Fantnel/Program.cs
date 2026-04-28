@@ -14,11 +14,14 @@ public static class Program {
     public static void Main(string[] args)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // 注册编码
-
+        
         Logger.LogoInit(); // 初始化日志
         LogoInit(); // 初始化日志
 
-        InitProgram.NelInit(args, LogoInit);
+        // Fantnel 服务器信息 初始化
+        InitProgram.FantnelInit().Wait();
+        // 检查更新
+        InitProgram.CheckUpdate(args, LogoInit);
 
         // 检查是否开启web服务
         if (!RestartTools.Main(args, LogoInit)) {

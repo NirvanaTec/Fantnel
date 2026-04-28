@@ -18,11 +18,12 @@ public class EntityResponse<T> : EntityResponseBase {
 }
 
 public class EntityInfo {
+    
+    [JsonPropertyName("update_versions")]
+    public string? UpdateVersions { get; init; }
+    
     [JsonPropertyName("versions")]
     public string[]? Versions { get; init; }
-
-    [JsonPropertyName("disabled_version")]
-    public string[] DisabledVersions { get; init; } = [];
 
     [JsonPropertyName("ad1")]
     public Advertisement? Ad1 { get; init; }

@@ -3,11 +3,16 @@ using System.Runtime.InteropServices;
 namespace NirvanaAPI.Utils;
 
 public static class PathUtil {
-    public static readonly string CachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".game_cache");
+    
+    // 系统架构 - win.x64
+    public static readonly string DetectOperating = Tools.DetectOperatingSystemMode();
+    public static readonly string SystemArch = DetectOperating + "." + Tools.DetectArchitectureMode();
 
+    public static readonly string CachePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".game_cache");
     public static readonly string ResourcePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resources");
 
-    public static readonly string UpdaterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "updater");
+    public static readonly string UpdaterBasePath = AppDomain.CurrentDomain.BaseDirectory;
+    public static readonly string UpdaterPath = Path.Combine(UpdaterBasePath, "updater");
 
     // 脚本后缀
     public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" :
@@ -48,13 +53,6 @@ public static class PathUtil {
         }
 
         return "java";
-    }
-
-    // javaw 是否存在
-    public static bool ExistJava(string path)
-    {
-        return File.Exists(Path.Combine(path, "jdk17", "bin", JavaExePath)) &&
-               File.Exists(Path.Combine(path, "jre8", "bin", JavaExePath));
     }
 
     // public static void OpenDirectory(string path)

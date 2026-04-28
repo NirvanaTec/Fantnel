@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Nirvana.Public.Entities.EntitiesUpdate;
 using Nirvana.Public.Utils;
 using Nirvana.Public.Utils.Update;
 using NirvanaAPI.Entities.EntitiesNirvana;
@@ -43,11 +44,17 @@ public class HomeController : ControllerBase {
             return Ok(Code.ToJson(ErrorCode.ParamError));
         }
 
+        // 检查主题是否存在
         if (InitProgram.SafeTheme(entity.Value).Result) {
             ConfigUtil.SaveConfig("themeValue", entity.Value);
         }
 
-        UpdateTools.CheckUpdate("ui." + entity.Value).Wait();
+        // 更新主题文件
+        new EntityUpdate {
+            Mode = "ui." + entity.Value,
+            Name = "Fantnel UI",
+        }.CheckUpdateSafe().Wait();
+        
         return Ok(Code.ToJson(ErrorCode.Success));
     }
 

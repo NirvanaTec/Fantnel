@@ -8,9 +8,7 @@ public static class PublicProgram {
     public const int VersionId = 7;
 
     // 是最新版本
-#pragma warning disable CA2211
     public static bool LatestVersion = true;
-#pragma warning restore CA2211
 
     // 检查更新的模式 win | linux | mac
     public static readonly string Mode = Tools.DetectOperatingSystemMode();
