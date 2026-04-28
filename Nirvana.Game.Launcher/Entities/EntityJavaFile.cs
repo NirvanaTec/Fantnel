@@ -56,11 +56,12 @@ public class EntityJavaFile {
         var it = FixPath(value);
         return _filePath1.Contains(it) || it.Contains(_filePath1);
     }
-
-    public bool StartsWith(string value)
+    
+    public static bool Contains(string value, string path)
     {
-        var it = FixPath(value);
-        return _filePath1.StartsWith(it);
+        var it = FixPath(path);
+        var it1 = FixPath(value);
+        return it.Contains(it1);
     }
 
     private bool IsNullOrEmptyByUrl()

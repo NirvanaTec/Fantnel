@@ -474,7 +474,7 @@ public class CommandService {
             }
 
             // 是 lwjgl 文件，不用添加
-            if (_minecraft.Count > 0 && filePath.Contains(EntityJavaFile.FixPath("org/lwjgl/"))) {
+            if (_minecraft.Count > 0 && EntityJavaFile.Contains("org/lwjgl/", filePath)) {
                 Log.Warning("Fix Natives Continue {0}", fullPath);
                 continue;
             }
@@ -487,9 +487,11 @@ public class CommandService {
         }
 
         // 修复 lwjgl
-        foreach (var item in _minecraft.Where(item => item.StartsWith("org/lwjgl/") && item.DownloadAuto())) {
-            Log.Warning("Fix Natives {0}", item.GetPath1());
-            combinedPaths.Append(item.GetPathSeparator());
+        foreach (var item in _minecraft.Where(item => item.Contains("org/lwjgl/"))) {
+            Log.Warning("Fix Natives Auto {0}", item.GetPath1());
+            if (item.DownloadAuto()) {
+                combinedPaths.Append(item.GetPathSeparator());   
+            }
         }
 
         return text.Replace(sourceText.Item1, " -" + name + " \"" + combinedPaths + "\"");
