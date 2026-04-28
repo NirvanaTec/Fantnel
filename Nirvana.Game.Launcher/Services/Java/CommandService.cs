@@ -56,7 +56,7 @@ public class CommandService {
         _protocolVersion = protocolVersion;
 
         // windows 不需要修复 lwjgl
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             // 获取原版信息
             var minecraft = X19Extensions.Bmcl.Api<Dictionary<string, JsonElement>>($"/version/{_version}/json").Result;
             if (minecraft != null) {
@@ -138,6 +138,8 @@ public class CommandService {
         foreach (var file in files) {
             File.Copy(file, Path.Combine(nativesPath, Path.GetFileName(file)));
         }
+        
+        Directory.Delete(fantNativesPath, true);
         
     }
 
