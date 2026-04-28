@@ -33,9 +33,7 @@ public class Skip32Cipher(byte[] key) {
         58, 1, 5, 89, 42, 70
     ];
 
-    private readonly byte[] _key = key.Length == 10
-        ? key
-        : throw new ArgumentOutOfRangeException(nameof(key), "Key must be {10} bytes.");
+    private readonly byte[] _key = key.Length == 10 ? key : throw new ArgumentOutOfRangeException(nameof(key), "Key must be {10} bytes.");
 
     public uint Encrypt(uint value)
     {

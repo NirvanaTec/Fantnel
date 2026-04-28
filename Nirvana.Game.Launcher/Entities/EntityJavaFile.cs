@@ -1,25 +1,52 @@
-﻿using Nirvana.Game.Launcher.Utils;
+﻿using System.Runtime.InteropServices;
+using Nirvana.Game.Launcher.Services.Java;
+using Nirvana.Game.Launcher.Utils;
 using NirvanaAPI.Utils;
 using Serilog;
 
 namespace Nirvana.Game.Launcher.Entities;
 
 public class EntityJavaFile {
+    private readonly bool _isNative; // 是否为 natives 库 [适用于低版本]
+
+    private readonly string? _name = string.Empty; // 名称
+    public readonly string? Url = string.Empty; // 下载地址
+
     private string _filePath = string.Empty; // 完整路径
     private string _filePath1 = string.Empty; // 相对路径，不保证是相对路径
-    public bool IsNative = false; // 是 Native 文件, 不保证是 Native 文件
-    public string? Url = string.Empty; // 下载定制
 
     public EntityJavaFile(string path)
     {
         SetPath(path);
     }
 
-    private string GetPath()
+    public EntityJavaFile(string path, string? url, string? name, bool isNative = false)
+    {
+        SetPath(path);
+        Url = url;
+        _name = name;
+        _isNative = isNative;
+    }
+
+    public bool IsNative()
+    {
+        return _isNative || CommandService.GetRunOs().Any(os => EndsWithByName(":natives-" + os) || GetRunArch().Any(arch => EndsWithByName(":natives-" + os + "-" + arch)));
+    }
+
+    private static string[] GetRunArch()
+    {
+        return RuntimeInformation.ProcessArchitecture switch {
+            Architecture.X86 => ["x86"],
+            Architecture.X64 => ["x64"], // 排除作用
+            _ => ["arm64"]
+        };
+    }
+
+    public string GetPath()
     {
         return _filePath;
     }
-    
+
     public string GetPath1()
     {
         return _filePath1;
@@ -57,6 +84,17 @@ public class EntityJavaFile {
         return _filePath1.Contains(it) || it.Contains(_filePath1);
     }
     
+    public bool StartsWith(string value)
+    {
+        var it = FixPath(value);
+        return _filePath1.StartsWith(it) || _filePath.StartsWith(value);
+    }
+
+    private bool EndsWithByName(string value)
+    {
+        return _name != null && _name.EndsWith(value);
+    }
+
     public static bool Contains(string value, string path)
     {
         var it = FixPath(path);

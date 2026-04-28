@@ -31,7 +31,6 @@ public class ConfigService {
                 auth_server_url = ""
             }
         });
-        File.WriteAllTextAsync(Path.Combine(PathUtil.CppGamePath, "launch.cppconfig"), contents).GetAwaiter()
-            .GetResult();
+        File.WriteAllTextAsync(Path.Combine(PathUtil.CppGamePath, "launch.cppconfig"), contents).GetAwaiter().GetResult();
     }
 }

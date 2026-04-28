@@ -72,9 +72,7 @@ public static class PluginMessage {
         // 插件文件 文件路径数组
         var filesPath = Directory.GetFiles(pluginsPath);
         // 过滤后的插件文件 文件路径数组
-        return filesPath.Where(filePath =>
-            PluginExtensions.Any(filePath.EndsWith) ||
-            PluginExtensions.Any(x => filePath.EndsWith(x + ".disable"))).ToArray();
+        return filesPath.Where(filePath => PluginExtensions.Any(filePath.EndsWith) || PluginExtensions.Any(x => filePath.EndsWith(x + ".disable"))).ToArray();
     }
 
     /**
@@ -399,8 +397,7 @@ public static class PluginMessage {
      */
     public static async Task<List<EntityDependence>> GetDependenceList(string? id, string? version)
     {
-        var entity = await X19Extensions.Nirvana.Api<EntityResponse<List<EntityDependence>>>(
-            "/api/fantnel/dependence?id=" + (id ?? "") + "&version=" + (version ?? ""));
+        var entity = await X19Extensions.Nirvana.Api<EntityResponse<List<EntityDependence>>>("/api/fantnel/dependence?id=" + (id ?? "") + "&version=" + (version ?? ""));
         return entity?.Data ?? throw new ErrorCodeException(ErrorCode.NotFound);
     }
 

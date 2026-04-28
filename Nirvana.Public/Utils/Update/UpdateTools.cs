@@ -7,7 +7,6 @@ using Serilog;
 namespace Nirvana.Public.Utils.Update;
 
 public static class UpdateTools {
-    
     // 检查更新
     public static async Task CheckUpdate(string[] args)
     {
@@ -17,14 +16,14 @@ public static class UpdateTools {
             Environment.Exit(1);
             return;
         }
-        
+
         if (!"1.0.0".Equals(InfoManager.FantnelInfo.UpdateVersions)) {
             Log.Error("当前版本已被禁用，请前往官网重新下载！");
             Thread.Sleep(6000);
             Environment.Exit(1);
             return;
         }
-        
+
         // --- Fantnel ---
         var update = 0; // 0:正常检查 1:不检查 2:已被检查
         if (args.Any(arg => arg == "--update_false")) {
@@ -40,7 +39,7 @@ public static class UpdateTools {
                 Command = ""
             }.CheckUpdateSafe();
         }
-        
+
         // --- Fantnel UI ---
         update = 0; // 0:正常检查 1:不检查 2:已被检查
         if (args.Any(arg => arg == "--update_ui_false")) {
@@ -50,10 +49,10 @@ public static class UpdateTools {
         if (update == 0) {
             await new EntityUpdate {
                 Mode = "ui." + ConfigUtil.GetConfig("themeValue", RestartTools.Get("default_skin_id", args, "nirvana")),
-                Name = "Fantnel UI",
+                Name = "Fantnel UI"
             }.CheckUpdateSafe();
         }
-        
+
         // --- Static ---
         update = 0; // 0:正常检查 1:不检查 2:已被检查
         if (args.Any(arg => arg == "--update_static_false")) {
@@ -62,10 +61,10 @@ public static class UpdateTools {
 
         if (update == 0) {
             await new EntityUpdate {
-                Mode = "static",
+                Mode = "static"
             }.CheckUpdateSafe();
         }
-        
+
         // --- Static System ---
         update = 0; // 0:正常检查 1:不检查 2:已被检查
         if (args.Any(arg => arg == "--update_static_system_false")) {
@@ -75,10 +74,10 @@ public static class UpdateTools {
         if (update == 0) {
             await new EntityUpdate {
                 Mode = "static." + PathUtil.DetectOperating,
-                Name = "Resource System",
+                Name = "Resource System"
             }.CheckUpdateSafe();
         }
-        
+
         // --- Static Linux System ---
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
             update = 0; // 0:正常检查 1:不检查 2:已被检查
@@ -89,12 +88,9 @@ public static class UpdateTools {
             if (update == 0) {
                 await new EntityUpdate {
                     Mode = "static." + PathUtil.SystemArch,
-                    Name = "Resource Linux",
+                    Name = "Resource Linux"
                 }.CheckUpdateSafe();
             }
         }
-
     }
-    
-
 }

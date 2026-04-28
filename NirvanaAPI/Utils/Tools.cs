@@ -68,8 +68,7 @@ public static class Tools {
     {
         switch (exception) {
             case AggregateException aggregateException: {
-                var message1 = aggregateException.InnerExceptions.Aggregate("",
-                    (current, innerException) => current + GetMessage(innerException) + ", ");
+                var message1 = aggregateException.InnerExceptions.Aggregate("", (current, innerException) => current + GetMessage(innerException) + ", ");
                 return message1.TrimEnd(',', ' ');
             }
             case ErrorCodeException errorCodeException: {
@@ -256,17 +255,16 @@ public static class Tools {
             FileUtil.SetUnixFilePermissions(filePath);
         }
     }
-    
+
     public static void CreateSymbolicLink(string linkPath, string targetPath)
     {
         Log.Warning("{0} -> {1}", targetPath, linkPath);
-        
+
         // 安全判断：这个路径是不是 符号链接
-        if (IsSymbolicLink(linkPath))
-        {
+        if (IsSymbolicLink(linkPath)) {
             Directory.Delete(linkPath, false);
         } else if (File.Exists(linkPath)) {
-            File.Delete(linkPath); 
+            File.Delete(linkPath);
         } else if (Directory.Exists(linkPath)) {
             Directory.Delete(linkPath, true);
         }
@@ -281,8 +279,8 @@ public static class Tools {
         if (!Directory.Exists(path)) {
             return false;
         }
+
         var dirInfo = new DirectoryInfo(path);
         return dirInfo.Attributes.HasFlag(FileAttributes.ReparsePoint);
     }
-    
 }

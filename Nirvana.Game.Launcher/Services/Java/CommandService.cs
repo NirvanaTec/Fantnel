@@ -45,9 +45,7 @@ public class CommandService {
 
     private string _workPath = "";
 
-    public void Init(EnumGameVersion gameVersion, EntityLaunchGame entity, string workPath, string uuid,
-        int socketPort,
-        string protocolVersion = "", int rpcPort = 11413)
+    public void Init(EnumGameVersion gameVersion, EntityLaunchGame entity, string workPath, string uuid, int socketPort, string protocolVersion = "", int rpcPort = 11413)
     {
         _launcherGame = entity;
         _version = GameVersionUtil.GetGameVersionFromEnum(gameVersion);
@@ -58,7 +56,7 @@ public class CommandService {
         _protocolVersion = protocolVersion;
 
         // windows 不需要修复 lwjgl
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             // 获取原版信息
             var minecraft = X19Extensions.Bmcl.Api<Dictionary<string, JsonElement>>($"/version/{_version}/json").Result;
             if (minecraft != null) {
@@ -73,8 +71,7 @@ public class CommandService {
             throw new Exception("Game version JSON not found, please go to Setting to fix the game file and try again.");
         }
 
-        var cfg = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(options: Options,
-            json: File.ReadAllText(path));
+        var cfg = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(options: Options, json: File.ReadAllText(path));
 
         if (cfg == null) {
             throw new Exception("Game version JSON deserialize failed.");
@@ -83,11 +80,13 @@ public class CommandService {
         BuildCommand(cfg, _version, socketPort);
         // 修复 natives
         InstallNatives().Wait();
+        // 安装 验证库
+        InstallNativeDll();
 
         // 保存到文件，方便调试
         var scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "command" + PathUtil.ScriptSuffix);
         Tools.SaveShellScript(scriptPath, GetJavaCommand()).Wait();
-        
+
         var optionsPath = Path.Combine(_workPath, "options.txt");
         if (!File.Exists(optionsPath)) {
             File.WriteAllText(optionsPath, "guiScale:2\nlang:zh_cn\nmaxFps:120\n");
@@ -102,12 +101,54 @@ public class CommandService {
 
         // 删除 linux/mac 下的 natives[win库]
         var nativesPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", _version, "natives");
-        Directory.Delete(nativesPath, true);
+        if (Directory.Exists(nativesPath)) {
+            Directory.Delete(nativesPath, true);
+        }
 
-        foreach (var item in _minecraft.Where(item => item.IsNative && item.DownloadAuto())) {
-            var path = item.GetPath1();
-            Log.Warning("Fix Natives Extract {0}", path);
-            await CompressionUtil.ExtractAsync(path, nativesPath);
+        // 删除 缓存目录
+        var fantNativesPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", _version, "fant-natives");
+        if (Directory.Exists(fantNativesPath)) {
+            Directory.Delete(fantNativesPath, true);
+        }
+
+        // 解压 natives 库
+        foreach (var item in _minecraft.Where(item => item.IsNative())) {
+            Log.Warning("Fix Native Extract {0}", item.GetPath1());
+            if (item.DownloadAuto()) {
+                await CompressionUtil.ExtractAsync(item.GetPath(), fantNativesPath);
+            }
+        }
+
+        Directory.CreateDirectory(nativesPath);
+
+        var pattern = "*.dll";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+            pattern = "*.so";
+        }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+            pattern = "*.dylib";
+        }
+        
+        var files = Directory.GetFiles(
+            fantNativesPath,
+            pattern,
+            SearchOption.AllDirectories
+        );
+
+        foreach (var file in files) {
+            File.Copy(file, Path.Combine(nativesPath, Path.GetFileName(file)));
+        }
+        
+    }
+
+    private void InstallNativeDll()
+    {
+        try {
+            var path = Path.Combine(PathUtil.ResourcePath, "api-ms-win-crt-utility-l1-1-1.dll");
+            var runtimePath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", _version, "natives", "runtime");
+            FileUtil.CopyFileSafe(path, Path.Combine(runtimePath, "api-ms-win-crt-utility-l1-1-1.dll"));
+        } catch (Exception ex) {
+            Log.Error("Failed to install native dll: {0}", ex);
         }
     }
 
@@ -129,8 +170,7 @@ public class CommandService {
 
     private static string GetJavaPath(EnumGameVersion gameVersion)
     {
-        return Path.Combine(gameVersion >= EnumGameVersion.V_1_16 ? PathUtil.Jre17Path : PathUtil.Jre8Path,
-            "bin", PathUtil.JavaExePath);
+        return Path.Combine(gameVersion >= EnumGameVersion.V_1_16 ? PathUtil.Jre17Path : PathUtil.Jre8Path, "bin", PathUtil.JavaExePath);
     }
 
 
@@ -155,14 +195,10 @@ public class CommandService {
                 var name = nameElement.GetString(); // 系统名称
 
                 switch (action) {
-                    // name != os
-                    // osx != osx
-                    case "allow" when GetRunOs().Any(name1 => name1.Equals(name)):
-                        return true;
-                    // name == os
-                    // osx == osx
-                    case "disallow" when GetRunOs().Any(name1 => name1.Equals(name)):
-                        return false;
+                    case "allow":
+                        return GetRunOs().Any(name1 => name1.Equals(name));
+                    case "disallow":
+                        return !GetRunOs().Any(name1 => name1.Equals(name));
                 }
             }
         }
@@ -185,13 +221,18 @@ public class CommandService {
                 continue;
             }
 
+            var name = string.Empty;
+            if (item.TryGetProperty("name", out var nameElement)) {
+                name = nameElement.GetString();
+            }
+
             // artifact
             if (downElement.TryGetProperty("artifact", out var artiElement)) {
                 if (artiElement.TryGetProperty("path", out var pathElement)) {
                     var path = pathElement.GetString();
                     if (path != null) {
                         path = Path.Combine("libraries", path);
-                        jarList = AddJarList(jarList, path, artiElement.TryGetProperty("url", out var urlElement) ? urlElement.GetString() : string.Empty);
+                        jarList = AddJarList(jarList, path, artiElement.TryGetProperty("url", out var urlElement) ? urlElement.GetString() : string.Empty, name);
                     }
                 }
             }
@@ -206,6 +247,7 @@ public class CommandService {
                             if (string.IsNullOrEmpty(osName)) {
                                 continue;
                             }
+
                             var runArch = GetRunArch();
                             foreach (var archName in runArch) {
                                 var osNameArch = osName.Replace("${arch}", archName);
@@ -214,7 +256,7 @@ public class CommandService {
                                         var path = path1Element.GetString();
                                         if (path != null) {
                                             path = Path.Combine("libraries", path);
-                                            jarList = AddJarList(jarList, path, nativesElement.TryGetProperty("url", out var urlElement) ? urlElement.GetString() : string.Empty, true);
+                                            jarList = AddJarList(jarList, path, nativesElement.TryGetProperty("url", out var urlElement) ? urlElement.GetString() : string.Empty, name, true);
                                         }
                                     }
                                 }
@@ -240,29 +282,20 @@ public class CommandService {
         };
     }
 
-    private static List<EntityJavaFile> AddJarList(List<EntityJavaFile> jarList, string path, string? url,
-        bool isNative = false)
+    private static List<EntityJavaFile> AddJarList(List<EntityJavaFile> jarList, string path, string? url, string? name, bool isNative = false)
     {
-        if (jarList.Any(jar => jar.Equals(path))) {
-            // 获取已存在的值的url
-            var value = string.Empty;
-            foreach (var jar in jarList.Where(jar => jar.Equals(path))) {
-                value = jar.Url;
-            }
-
+        // 优先采用已存在url的jar
+        foreach (var jar in jarList.Where(jar => jar.Equals(path)).ToList()) {
             // 已存在的值为空，移除
-            if (string.IsNullOrEmpty(value)) {
-                jarList.RemoveAll(jar => jar.Equals(path));
+            if (string.IsNullOrEmpty(jar.Url)) {
+                jarList.Remove(jar);
             } else {
                 // 已存在的值不为空，跳过
                 return jarList;
             }
         }
 
-        jarList.Add(new EntityJavaFile(path) {
-            Url = url,
-            IsNative = isNative
-        });
+        jarList.Add(new EntityJavaFile(path, url, name, isNative));
         return jarList;
     }
 
@@ -271,18 +304,37 @@ public class CommandService {
         var jarList = new List<string>();
         if (cfg.TryGetValue("libraries", out var value)) {
             foreach (var item in value.EnumerateArray()) {
+                // 获取名称
                 if (!item.TryGetProperty("name", out var value2)) {
                     continue;
                 }
 
-                var array = value2.GetString()?.Split(':');
-                if (array is not { Length: >= 3 } || array[1].Contains("platform")) {
+                // 解析名称
+                var name = value2.GetString();
+                if (string.IsNullOrEmpty(name)) {
                     continue;
                 }
 
-                var path = array[0].Replace('.', Path.DirectorySeparatorChar);
-                var path2 = array[1] + "-" + array[2] + ".jar";
-                jarList.Add(Path.Combine("libraries", path, array[1], array[2], path2));
+                // org.lwjgl:lwjgl-openal:3.3.1 > org/lwjgl/lwjgl-openal/3.3.1/lwjgl-openal-3.3.1.jar
+                // org.lwjgl:lwjgl-glfw:3.3.1:natives-windows-x86 > org/lwjgl/lwjgl-glfw/3.3.1/natives-windows-x86
+
+                var parts = name.Split(':');
+                if (parts.Length is < 3 or > 4) {
+                    Log.Warning("Invalid name format: {0}", name);
+                    continue;
+                }
+
+                var groupId = parts[0];
+                var artifactId = parts[1];
+                var version = parts[2];
+                var classifier = parts.Length == 4 ? parts[3] : null;
+
+                var groupPath = groupId.Replace('.', '/');
+
+                // artifactId-version[-classifier].jar
+                var fileName = classifier != null ? $"{artifactId}-{version}-{classifier}.jar" : $"{artifactId}-{version}.jar";
+
+                jarList.Add(Path.Combine("libraries", groupPath, artifactId, version, fileName));
             }
         }
 
@@ -307,7 +359,7 @@ public class CommandService {
         return jarList.Where(item => item.DownloadAuto()).ToList();
     }
 
-    private static string[] GetRunOs()
+    public static string[] GetRunOs()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
             return ["windows"];
@@ -359,12 +411,12 @@ public class CommandService {
             }
 
             classPaths = FilterFile(classPaths);
-            jvmArguments = GameArgumentsUtil.UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)), jvmArguments,  CommandMode.Mode12, CommandMode.Mode13);
+            jvmArguments = GameArgumentsUtil.UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)), jvmArguments, CommandMode.Mode12, CommandMode.Mode13);
         }
 
         if (string.IsNullOrEmpty(jvmArguments)) {
             jvmArguments ??= "";
-            jvmArguments = GameArgumentsUtil.UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)), jvmArguments,  CommandMode.Mode12, CommandMode.Mode13);
+            jvmArguments = GameArgumentsUtil.UpdateArguments("cp", string.Join(PathUtil.PathSeparator, EntityJavaFile.ToList(classPaths)), jvmArguments, CommandMode.Mode12, CommandMode.Mode13);
         }
 
         if (cfg.TryGetValue("mainClass", out var mainClassElement)) {
@@ -375,25 +427,16 @@ public class CommandService {
             }
         }
 
-        jvmArguments = jvmArguments.Replace("${library_directory}",
-            Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries"));
-        jvmArguments = GameArgumentsUtil.UpdateArguments("libraryDirectory",
-            Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries"), jvmArguments, CommandMode.Mode5, CommandMode.Mode6);
+        jvmArguments = jvmArguments.Replace("${library_directory}", Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries"));
+        jvmArguments = GameArgumentsUtil.UpdateArguments("libraryDirectory", Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries"), jvmArguments, CommandMode.Mode5, CommandMode.Mode6);
         jvmArguments = GameArgumentsUtil.DeleteArguments("Xmx", jvmArguments, CommandMode.Mode14);
-        
+
         if (_launcherGame == null) {
             throw new Exception("No Launcher Game Found");
         }
 
         // 添加 验证信息
-        var stringBuilder = new StringBuilder().Append(" -Xmx").Append(NirvanaConfig.GetString("gameMemory")).Append("M ")
-            .Append(NirvanaConfig.GetString("jvmArgs"))
-            .Append($" -DlauncherControlPort={socketPort}")
-            .Append($" -DlauncherGameId={_launcherGame.GameId}")
-            .Append($" -DuserId={_launcherGame.Account.GetUserId()}")
-            .Append($" -DToken={TokenUtil.GenerateEncryptToken(_launcherGame.Account.GetToken())}")
-            .Append(" -DServer=RELEASE")
-            .Append(AddNativePath());
+        var stringBuilder = new StringBuilder().Append(" -Xmx").Append(NirvanaConfig.GetString("gameMemory")).Append("M ").Append(NirvanaConfig.GetString("jvmArgs")).Append($" -DlauncherControlPort={socketPort}").Append($" -DlauncherGameId={_launcherGame.GameId}").Append($" -DuserId={_launcherGame.Account.GetUserId()}").Append($" -DToken={TokenUtil.GenerateEncryptToken(_launcherGame.Account.GetToken())}").Append(" -DServer=RELEASE").Append(AddNativePath());
 
         jvmArguments = GameArgumentsUtil.AddArguments(stringBuilder.ToString(), jvmArguments); // 添加 修复参数
 
@@ -423,12 +466,10 @@ public class CommandService {
         minecraftArguments = minecraftArguments.Replace("${auth_player_name}", _launcherGame.RoleName);
         minecraftArguments = minecraftArguments.Replace("${auth_uuid}", _uuid);
         minecraftArguments = minecraftArguments.Replace("--versionType ${version_type}", string.Empty);
-        minecraftArguments = minecraftArguments.Replace("${assets_root}",
-            Path.Combine(PathUtil.GameBasePath, ".minecraft", "assets"));
+        minecraftArguments = minecraftArguments.Replace("${assets_root}", Path.Combine(PathUtil.GameBasePath, ".minecraft", "assets"));
         minecraftArguments = minecraftArguments.Replace("${assets_index_name}", version);
 
-        minecraftArguments = minecraftArguments.Replace("${auth_access_token}",
-            _gameVersion >= EnumGameVersion.V_1_18 ? "0" : RandomUtil.GetRandomString(32, "ABCDEF0123456789"));
+        minecraftArguments = minecraftArguments.Replace("${auth_access_token}", _gameVersion >= EnumGameVersion.V_1_18 ? "0" : RandomUtil.GetRandomString(32, "ABCDEF0123456789"));
 
         minecraftArguments = GameArgumentsUtil.UpdateArguments("server", _launcherGame.ServerIp, minecraftArguments, CommandMode.Mode3, CommandMode.Mode13);
         minecraftArguments = GameArgumentsUtil.UpdateArguments("port", _launcherGame.ServerPort.ToString(), minecraftArguments, CommandMode.Mode3, CommandMode.Mode13);
@@ -442,8 +483,7 @@ public class CommandService {
     private List<EntityJavaFile> FilterFile(List<EntityJavaFile> classPaths)
     {
         // 是 natives 文件，不用添加
-        return _minecraft.Count <= 0 ? classPaths :
-            classPaths.Where(classPath => !classPath.Contains("-natives-")).ToList();
+        return _minecraft.Count <= 0 ? classPaths : classPaths.Where(classPath => !classPath.Contains("-natives-")).ToList();
     }
 
     // 修复 -cp 路径
@@ -473,22 +513,28 @@ public class CommandService {
                 continue;
             }
 
-            // 是 lwjgl 文件，不用添加
-            if (_minecraft.Count > 0 && EntityJavaFile.Contains("org/lwjgl/", filePath)) {
-                Log.Warning("Fix Natives Continue {0}", fullPath);
-                continue;
+            // 是 native/lwjgl 文件，不用添加
+            if (_minecraft.Count > 0) {
+                if (EntityJavaFile.Contains("-natives", filePath)) {
+                    Log.Warning("Fix Native Continue {0}", filePath);
+                    continue;
+                }
+                if (EntityJavaFile.Contains("org/lwjgl/", filePath)) {
+                    Log.Warning("Fix Lwjgl Continue {0}", filePath);
+                    continue;
+                }
             }
-            
+
             combinedPaths.Append(fullPath);
         }
-
+        
         if (_minecraft.Count == 0) {
             return text.Replace(sourceText.Item1, " -" + name + " \"" + combinedPaths + "\"");
         }
 
         // 修复 lwjgl
-        foreach (var item in _minecraft.Where(item => item.Contains("org/lwjgl/"))) {
-            Log.Warning("Fix Natives Auto {0}", item.GetPath1());
+        foreach (var item in _minecraft.Where(item => item.StartsWith("org/lwjgl/"))) {
+            Log.Warning("Fix Lwjgl Auto {0}", item.GetPath1());
             if (item.DownloadAuto()) {
                 combinedPaths.Append(item.GetPathSeparator());   
             }
@@ -545,9 +591,7 @@ public class CommandService {
             throw new Exception("No Launcher Game Found");
         }
 
-        var format = version == "1.7.10"
-            ? "\"uid\":[{0}],\"gameid\":[{1}],\"launcherport\":[{2}],\\\"filterkey\\\":[\\\"{3}\\\",\\\"0\\\"],\\\"filterpath\\\":[\\\"\\\",\\\"0\\\"],\\\"timedelta\\\":[0,0],\\\"launchversion\\\":[\\\"{3}\\\",\\\"0\\\"]"
-            : "\\\"uid\\\":[{0},0],\\\"gameid\\\":[{1},0],\\\"launcherport\\\":[{2},0],\\\"filterkey\\\":[\\\"{3}\\\",\\\"0\\\"],\\\"filterpath\\\":[\\\"\\\",\\\"0\\\"],\\\"timedelta\\\":[0,0],\\\"launchversion\\\":[\\\"{4}\\\",\\\"0\\\"]";
+        var format = version == "1.7.10" ? "\"uid\":[{0}],\"gameid\":[{1}],\"launcherport\":[{2}],\\\"filterkey\\\":[\\\"{3}\\\",\\\"0\\\"],\\\"filterpath\\\":[\\\"\\\",\\\"0\\\"],\\\"timedelta\\\":[0,0],\\\"launchversion\\\":[\\\"{3}\\\",\\\"0\\\"]" : "\\\"uid\\\":[{0},0],\\\"gameid\\\":[{1},0],\\\"launcherport\\\":[{2},0],\\\"filterkey\\\":[\\\"{3}\\\",\\\"0\\\"],\\\"filterpath\\\":[\\\"\\\",\\\"0\\\"],\\\"timedelta\\\":[0,0],\\\"launchversion\\\":[\\\"{4}\\\",\\\"0\\\"]";
         object?[] args = [
             _launcherGame.Account.GetUserId(), 0, _rpcPort, RandomUtil.GetRandomString(32, "abcdefghijklmnopqrstuvwxyz"),
             _protocolVersion

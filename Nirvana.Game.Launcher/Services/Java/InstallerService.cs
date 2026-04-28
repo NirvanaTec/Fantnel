@@ -32,20 +32,17 @@ public static class InstallerService {
         var versionZip = Path.Combine(PathUtil.CachePath, versionName + ".zip");
 
         var versionResult = await NPFLauncher.GetMinecraftClientLibsAsync(gameVersion);
-        await ProcessPackage(versionResult.Url, versionZip, PathUtil.GameBasePath, versionMd5File, versionResult.Md5,
-            versionName + " package");
+        await ProcessPackage(versionResult.Url, versionZip, PathUtil.GameBasePath, versionMd5File, versionResult.Md5, versionName + " package");
 
         var libMd5File = Path.Combine(PathUtil.GameBasePath, versionName + "_Lib.MD5");
         var libZip = Path.Combine(PathUtil.CachePath, versionName + "_Lib.7z");
 
-        await ProcessPackage(versionResult.CoreLibUrl, libZip, PathUtil.CachePath, libMd5File, versionResult.CoreLibMd5,
-            versionName + " libraries");
+        await ProcessPackage(versionResult.CoreLibUrl, libZip, PathUtil.CachePath, libMd5File, versionResult.CoreLibMd5, versionName + " libraries");
 
         InstallCoreLibs(Path.Combine(PathUtil.CachePath, versionName + "_libs"), gameVersion);
     }
 
-    private static async Task ProcessPackage(string url, string zipPath, string extractTo, string md5Path, string md5,
-        string label)
+    private static async Task ProcessPackage(string url, string zipPath, string extractTo, string md5Path, string md5, string label)
     {
         // 已经下载过，且md5匹配，直接返回
         if (File.Exists(md5Path) && await File.ReadAllTextAsync(md5Path) == md5) {
@@ -90,8 +87,7 @@ public static class InstallerService {
             } else if (fileName.StartsWith(text2)) {
                 text2 = Path.GetFileNameWithoutExtension(text6);
                 var path2 = text2.Replace("launchwrapper-", "");
-                var text9 = Path.Combine(PathUtil.GameBasePath, ".minecraft",
-                    "libraries", "net", "minecraft", "launchwrapper", path2);
+                var text9 = Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries", "net", "minecraft", "launchwrapper", path2);
                 var text10 = Path.Combine(text9, text2 + ".jar");
                 if (!Directory.Exists(text9)) {
                     Directory.CreateDirectory(text9);
@@ -103,8 +99,7 @@ public static class InstallerService {
             } else if (fileName.StartsWith(text3)) {
                 text3 = Path.GetFileNameWithoutExtension(text6);
                 var path3 = text3.Replace("MercuriusUpdater-", "");
-                var text11 = Path.Combine(PathUtil.GameBasePath, ".minecraft",
-                    "libraries", "net", "minecraftforge", "MercuriusUpdater", path3);
+                var text11 = Path.Combine(PathUtil.GameBasePath, ".minecraft", "libraries", "net", "minecraftforge", "MercuriusUpdater", path3);
                 var text12 = Path.Combine(text11, text3 + ".jar");
                 if (!Directory.Exists(text11)) {
                     Directory.CreateDirectory(text11);
@@ -114,12 +109,10 @@ public static class InstallerService {
 
                 File.Copy(text6, text12, true);
             } else if (fileName.Equals(text4)) {
-                var destFileName = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", gameVersionFromEnum,
-                    text4);
+                var destFileName = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", gameVersionFromEnum, text4);
                 File.Copy(text6, destFileName, true);
             } else if (fileName.Equals(text5)) {
-                var destFileName2 = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", gameVersionFromEnum,
-                    text5);
+                var destFileName2 = Path.Combine(PathUtil.GameBasePath, ".minecraft", "versions", gameVersionFromEnum, text5);
                 File.Copy(text6, destFileName2, true);
             } else if (fileName.StartsWith("modlauncher-") && fileName.Contains("9.1.0")) {
                 var destFileName3 = Path.Combine(new[] {
@@ -154,8 +147,7 @@ public static class InstallerService {
         FileUtil.DeleteDirectorySafe(libPath);
     }
 
-    public static async Task<EntityModsList?> InstallGameMods(EnumGameVersion gameVersion, string gameId,
-        bool isRental = false)
+    public static async Task<EntityModsList?> InstallGameMods(EnumGameVersion gameVersion, string gameId, bool isRental = false)
     {
         var entity = await NPFLauncher.GetGameCoreModListAsync(gameVersion, isRental);
         if (entity?.IidList == null) {
@@ -168,10 +160,8 @@ public static class InstallerService {
         foreach (var entityComponentDownloadInfoResponse in entities) {
             foreach (var subEntity in entityComponentDownloadInfoResponse.SubEntities) {
                 modList.Mods.Add(new EntityModsInfo {
-                    ModPath =
-                        $"{entityComponentDownloadInfoResponse.ItemId}@{entityComponentDownloadInfoResponse.MTypeId}@0.jar",
-                    Id =
-                        $"{entityComponentDownloadInfoResponse.ItemId}@{entityComponentDownloadInfoResponse.MTypeId}@0.jar",
+                    ModPath = $"{entityComponentDownloadInfoResponse.ItemId}@{entityComponentDownloadInfoResponse.MTypeId}@0.jar",
+                    Id = $"{entityComponentDownloadInfoResponse.ItemId}@{entityComponentDownloadInfoResponse.MTypeId}@0.jar",
                     Iid = entityComponentDownloadInfoResponse.ItemId,
                     Md5 = subEntity.JarMd5.ToUpper(),
                     Name = "",
@@ -191,10 +181,8 @@ public static class InstallerService {
         foreach (var entityComponentDownloadInfoResponse2 in entities) {
             var i = idx;
             idx = i + 1;
-            var fileNameWithoutExtension =
-                Path.GetFileNameWithoutExtension(entityComponentDownloadInfoResponse2.SubEntities[0].ResName);
-            var jar = Path.Combine(corePath,
-                $"{fileNameWithoutExtension}@{entityComponentDownloadInfoResponse2.MTypeId}@{entityComponentDownloadInfoResponse2.EntityId}.jar");
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(entityComponentDownloadInfoResponse2.SubEntities[0].ResName);
+            var jar = Path.Combine(corePath, $"{fileNameWithoutExtension}@{entityComponentDownloadInfoResponse2.MTypeId}@{entityComponentDownloadInfoResponse2.EntityId}.jar");
             var archive = Path.Combine(corePath, entityComponentDownloadInfoResponse2.SubEntities[0].ResName);
             var extractDir = Path.Combine(corePath, fileNameWithoutExtension);
             // 创建目录
@@ -202,18 +190,16 @@ public static class InstallerService {
                 Directory.CreateDirectory(extractDir);
             }
 
-            if (File.Exists(jar) && FileUtil.ComputeMd5FromFile(jar).Equals(entityComponentDownloadInfoResponse2.SubEntities[0].JarMd5,
-                    StringComparison.OrdinalIgnoreCase)) {
+            if (File.Exists(jar) && FileUtil.ComputeMd5FromFile(jar).Equals(entityComponentDownloadInfoResponse2.SubEntities[0].JarMd5, StringComparison.OrdinalIgnoreCase)) {
                 continue;
             }
 
-            await DownloadUtil.DownloadAsync(entityComponentDownloadInfoResponse2.SubEntities[0].ResUrl, archive,
-                dp => {
-                    uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
-                        Percent = dp,
-                        Message = $"Downloading core mod {idx}/{entities.Length}"
-                    });
+            await DownloadUtil.DownloadAsync(entityComponentDownloadInfoResponse2.SubEntities[0].ResUrl, archive, dp => {
+                uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
+                    Percent = dp,
+                    Message = $"Downloading core mod {idx}/{entities.Length}"
                 });
+            });
             var idx2 = idx;
             await CompressionUtil.ExtractAsync(archive, extractDir, p => {
                 uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
@@ -222,7 +208,10 @@ public static class InstallerService {
                 });
             });
             var array = FileUtil.EnumerateFiles(extractDir, "jar");
-            for (i = 0; i < array.Length; i++) FileUtil.CopyFileSafe(array[i], jar);
+            for (i = 0; i < array.Length; i++) {
+                FileUtil.CopyFileSafe(array[i], jar);
+            }
+
             FileUtil.DeleteDirectorySafe(extractDir);
             FileUtil.DeleteFileSafe(archive);
         }
@@ -327,9 +316,10 @@ public static class InstallerService {
             FileUtil.CopyDirectory(Path.Combine(PathUtil.CachePath, "Game", gameId, ".minecraft"), text2, false);
             InstallCustomMods(text3);
         }
-        
+
         var linkPath = Path.Combine(text2, "assets");
         var targetPath = Path.Combine(PathUtil.GameBasePath, ".minecraft", "assets");
+
         // 创建assets目录符号链接
         Tools.CreateSymbolicLink(linkPath, targetPath);
         return text;
@@ -353,30 +343,6 @@ public static class InstallerService {
 
             Directory.CreateDirectory(dir);
             FileUtil.CopyFileSafe(text2, text3);
-        }
-    }
-
-    public static void InstallNativeDll(EnumGameVersion gameVersion)
-    {
-        try {
-            var text = Path.Combine(PathUtil.ResourcePath, "api-ms-win-crt-utility-l1-1-1.dll");
-            var text2 = Path.Combine(
-                PathUtil.GameBasePath,
-                ".minecraft",
-                "versions",
-                GameVersionUtil.GetGameVersionFromEnum(gameVersion),
-                "natives",
-                "runtime"
-            );
-            Directory.CreateDirectory(text2);
-            if (!File.Exists(text)) {
-                throw new Exception("Native dll not found: " + text);
-            }
-
-            var destPath = Path.Combine(text2, "api-ms-win-crt-utility-l1-1-1.dll");
-            FileUtil.CopyFileSafe(text, destPath);
-        } catch (Exception ex) {
-            Log.Error("Failed to install native dll:{0}", ex);
         }
     }
 }

@@ -8,8 +8,7 @@ public static class DownloadUtil {
     /**
      * 异步下载文件
      */
-    public static async Task<bool> DownloadAsync(string url, string destinationPath,
-        Action<double>? downloadProgress = null)
+    public static async Task<bool> DownloadAsync(string url, string destinationPath, Action<double>? downloadProgress = null)
     {
         try {
             var downloadOpt = new DownloadConfiguration {
@@ -86,5 +85,4 @@ public static class DownloadUtil {
             });
         });
     }
-    
 }

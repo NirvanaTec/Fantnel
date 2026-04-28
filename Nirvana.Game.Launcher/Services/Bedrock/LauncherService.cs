@@ -100,9 +100,7 @@ public sealed class LauncherService : IDisposable {
         var remoteAddress = $"{Entity.ServerIp}:{Entity.ServerPort}";
         var isRental = Entity.GameType == EnumGType.ServerGame;
         try {
-            _rakNet = RakNetLoader.ConstructLoader()?.Create(remoteAddress, Entity.AccessToken, Entity.GameId,
-                Convert.ToUInt32(Entity.UserId), Entity.AccessToken, Entity.GameName, Entity.RoleName, availablePort,
-                availablePort2, isRental);
+            _rakNet = RakNetLoader.ConstructLoader()?.Create(remoteAddress, Entity.AccessToken, Entity.GameId, Convert.ToUInt32(Entity.UserId), Entity.AccessToken, Entity.GameName, Entity.RoleName, availablePort, availablePort2, isRental);
         } catch (Exception ex) {
             Log.Error(ex, "Bedrock interceptor failed to launch for {0}", Entity.GameId);
             throw new InvalidOperationException("Failed to initialize RakNet proxy", ex);

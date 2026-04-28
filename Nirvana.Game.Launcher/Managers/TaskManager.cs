@@ -5,9 +5,7 @@ public class TaskManager {
 
     private TaskFactory? _factory;
 
-    private TaskManager()
-    {
-    }
+    private TaskManager() { }
 
     public static TaskManager Instance => _instance ??= new TaskManager();
 

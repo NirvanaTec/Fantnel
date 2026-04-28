@@ -7,12 +7,7 @@ using QueryBuilder = Nirvana.WPFLauncher.Utils.QueryBuilder;
 namespace Nirvana.WPFLauncher.Protocol;
 
 public static class N4399 {
-    
-    public static async Task<string> LoginWithPasswordAsync(
-        string username,
-        string password,
-        string sessionId,
-        string captcha)
+    public static async Task<string> LoginWithPasswordAsync(string username, string password, string sessionId, string captcha)
     {
         // 构建登录参数
         var parameters = BuildLoginParameters();
@@ -27,8 +22,7 @@ public static class N4399 {
         });
 
         // 执行登录请求
-        var loginResponse = await client.PostAsync("https://ptlogin.4399.com/ptlogin/login.do?v=1",
-            new FormUrlEncodedContent(parameters.GetAll()));
+        var loginResponse = await client.PostAsync("https://ptlogin.4399.com/ptlogin/login.do?v=1", new FormUrlEncodedContent(parameters.GetAll()));
 
         var loginText = await loginResponse.Content.ReadAsStringAsync();
 
@@ -38,9 +32,7 @@ public static class N4399 {
             throw new Exception(errText);
         }
 
-        var cookieString = string.Join("; ", loginResponse.Headers.GetValues("Set-Cookie")
-            .Select(cookie => cookie.Split(';')[0].Trim())
-            .ToArray());
+        var cookieString = string.Join("; ", loginResponse.Headers.GetValues("Set-Cookie").Select(cookie => cookie.Split(';')[0].Trim()).ToArray());
 
         // 生成SAuth令牌
         var sAuthToken = await GenerateSAuthAsync(client, cookieString);
@@ -70,18 +62,7 @@ public static class N4399 {
         var unixTimeSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         // 检查登录状态
-        var checkUrl = "https://ptlogin.4399.com/ptlogin/checkKidLoginUserCookie.do?" +
-                       "appId=kid_wdsj&gameUrl=http://cdn.h5wan.4399sj.com/microterminal-h5-frame?" +
-                       "game_id=500352&rand_time=" + unixTimeSeconds + "&nick=null&onLineStart=false&" +
-                       "show=1&isCrossDomain=1&retUrl=http%253A%252F%252Fptlogin.4399.com" +
-                       "%252Fresource%252Fucenter.html%253Faction%253Dlogin%2526appId%253Dkid_wdsj%2526" +
-                       "loginLevel%253D8%2526regLevel%253D8%2526bizId%253D2100001792%2526externalLogin%253D" +
-                       "qq%2526qrLogin%253Dtrue%2526layout%253Dvertical%2526level%253D101%2526" +
-                       "css%253Dhttp%253A%252F%252Fmicrogame.5054399.net%252Fv2%252Fresource%252F" +
-                       "cssSdk%252Fdefault%252Flogin.css%2526v%253D2018_11_26_16%2526" +
-                       "postLoginHandler%253Dredirect%2526checkLoginUserCookie%253Dtrue%2526" +
-                       "redirectUrl%253Dhttp%25253A%25252F%25252Fcdn.h5wan.4399sj.com%25252F" +
-                       "microterminal-h5-frame%25253Fgame_id%25253D500352%252526rand_time%25253D" + unixTimeSeconds;
+        var checkUrl = "https://ptlogin.4399.com/ptlogin/checkKidLoginUserCookie.do?" + "appId=kid_wdsj&gameUrl=http://cdn.h5wan.4399sj.com/microterminal-h5-frame?" + "game_id=500352&rand_time=" + unixTimeSeconds + "&nick=null&onLineStart=false&" + "show=1&isCrossDomain=1&retUrl=http%253A%252F%252Fptlogin.4399.com" + "%252Fresource%252Fucenter.html%253Faction%253Dlogin%2526appId%253Dkid_wdsj%2526" + "loginLevel%253D8%2526regLevel%253D8%2526bizId%253D2100001792%2526externalLogin%253D" + "qq%2526qrLogin%253Dtrue%2526layout%253Dvertical%2526level%253D101%2526" + "css%253Dhttp%253A%252F%252Fmicrogame.5054399.net%252Fv2%252Fresource%252F" + "cssSdk%252Fdefault%252Flogin.css%2526v%253D2018_11_26_16%2526" + "postLoginHandler%253Dredirect%2526checkLoginUserCookie%253Dtrue%2526" + "redirectUrl%253Dhttp%25253A%25252F%25252Fcdn.h5wan.4399sj.com%25252F" + "microterminal-h5-frame%25253Fgame_id%25253D500352%252526rand_time%25253D" + unixTimeSeconds;
 
 
         HttpResponseMessage? checkResponse = null;
@@ -101,40 +82,19 @@ public static class N4399 {
         }
 
         var redirectUri = checkResponse.RequestMessage.RequestUri.ToString();
-        
+
         var queryParams = QueryBuilder.FromParameters(redirectUri);
 
         // 获取统一认证信息
         var uniAuth = await GetUniAuthAsync(queryParams, client);
 
         // 生成SAuth令牌
-        return MgbSdk.GenerateSAuth(
-            uniAuth.Get("uid"),
-            uniAuth.Get("token"),
-            "4399pc",
-            "pc",
-            uniAuth.Get("username"),
-            uniAuth.Get("time")
-        );
+        return MgbSdk.GenerateSAuth(uniAuth.Get("uid"), uniAuth.Get("token"), "4399pc", "pc", uniAuth.Get("username"), uniAuth.Get("time"));
     }
 
     private static async Task<QueryBuilder> GetUniAuthAsync(QueryBuilder queryParams, HttpClient client)
     {
-        var sdkUrl = new StringBuilder("https://microgame.5054399.net/v2/service/sdk/info?")
-            .Append("callback=&queryStr=game_id%3D500352%26nick%3Dnull%26sig%3D")
-            .Append(queryParams.Get("sig"))
-            .Append("%26uid%3D")
-            .Append(queryParams.Get("uid"))
-            .Append("%26fcm%3D0%26show%3D1%26isCrossDomain%3D1%26rand_time%3D")
-            .Append(queryParams.Get("rand_time"))
-            .Append("%26ptusertype%3D4399%26time%3D")
-            .Append(queryParams.Get("time"))
-            .Append("%26validateState%3D")
-            .Append(queryParams.Get("validateState"))
-            .Append("%26username%3D")
-            .Append(queryParams.Get("username"))
-            .Append("&_=")
-            .Append(queryParams.Get("time"));
+        var sdkUrl = new StringBuilder("https://microgame.5054399.net/v2/service/sdk/info?").Append("callback=&queryStr=game_id%3D500352%26nick%3Dnull%26sig%3D").Append(queryParams.Get("sig")).Append("%26uid%3D").Append(queryParams.Get("uid")).Append("%26fcm%3D0%26show%3D1%26isCrossDomain%3D1%26rand_time%3D").Append(queryParams.Get("rand_time")).Append("%26ptusertype%3D4399%26time%3D").Append(queryParams.Get("time")).Append("%26validateState%3D").Append(queryParams.Get("validateState")).Append("%26username%3D").Append(queryParams.Get("username")).Append("&_=").Append(queryParams.Get("time"));
 
         var response = await client.GetAsync(sdkUrl.ToString());
 

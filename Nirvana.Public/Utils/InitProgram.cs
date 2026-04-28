@@ -1,7 +1,6 @@
 ﻿using Nirvana.Public.Manager;
 using Nirvana.Public.Message;
 using Nirvana.Public.Utils.Update;
-using Nirvana.Public.Utils.ViewLogger;
 using Nirvana.WPFLauncher.Http;
 using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI;
@@ -9,12 +8,10 @@ using NirvanaAPI.Entities;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using Serilog;
-using Serilog.Events;
 
 namespace Nirvana.Public.Utils;
 
 public static class InitProgram {
-
     public static void CheckUpdate(string[] args, Action logInit)
     {
         // 日志初始化
@@ -33,7 +30,6 @@ public static class InitProgram {
      */
     public static void NelInit1()
     {
-
         // 插件初始化
         // 避免插件过早加载，因为这是没必要的
         // await InitializeSystemComponentsAsync();
@@ -83,7 +79,7 @@ public static class InitProgram {
             Log.Error("调试版，已跳过版本检测！");
             return;
         }
-        
+
         if (InfoManager.FantnelInfo == null) {
             Log.Error("无法连接至服务器！");
             Thread.Sleep(6000);
@@ -128,13 +124,13 @@ public static class InitProgram {
                     for (var i = 0; i < 180; i++) {
                         await Task.Delay(1000);
                     }
-                    await X19Extensions.Nirvana.Api<EntityResponse<string>>("/api/tick?mode=fantnel",
-                        new Dictionary<string, string> {
-                            { "system", PublicProgram.Mode },
-                            { "arch", PublicProgram.Arch },
-                            { "version", PublicProgram.Version },
-                            { "versionId", PublicProgram.VersionId.ToString() }
-                        });
+
+                    await X19Extensions.Nirvana.Api<EntityResponse<string>>("/api/tick?mode=fantnel", new Dictionary<string, string> {
+                        { "system", PublicProgram.Mode },
+                        { "arch", PublicProgram.Arch },
+                        { "version", PublicProgram.Version },
+                        { "versionId", PublicProgram.VersionId.ToString() }
+                    });
                 } catch (Exception e) {
                     Log.Warning(" 在线检测异常! 错误信息: {0}", e.Message);
                 }
@@ -165,8 +161,7 @@ public static class InitProgram {
     // 创建服务
     private static void CreateServices()
     {
-        if (InfoManager.FantnelInfo == null || InfoManager.FantnelInfo.CrcSalt == null ||
-            InfoManager.FantnelInfo.GameVersion == null) {
+        if (InfoManager.FantnelInfo == null || InfoManager.FantnelInfo.CrcSalt == null || InfoManager.FantnelInfo.GameVersion == null) {
             Log.Error("CRC Salt 计算失败!");
             Thread.Sleep(6000);
             Environment.Exit(1);

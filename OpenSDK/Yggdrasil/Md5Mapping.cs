@@ -13,9 +13,7 @@ public static class Md5Mapping {
 
     public static Md5Pair GetMd5FromGameVersion(string version)
     {
-        return !Mapping.TryGetValue(version, out var pair)
-            ? throw new ArgumentException($"不受支持的游戏版本: {version}")
-            : pair;
+        return !Mapping.TryGetValue(version, out var pair) ? throw new ArgumentException($"不受支持的游戏版本: {version}") : pair;
     }
 
     public class Md5Pair(string bootstrapMd5, string datFileMd5) {

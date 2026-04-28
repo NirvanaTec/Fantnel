@@ -8,16 +8,19 @@ namespace NirvanaAPI.Utils;
 public static class FileUtil {
     public static string[] EnumerateFiles(string path, string? fileType = null)
     {
-        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) return [];
-        var searchPattern = string.IsNullOrWhiteSpace(fileType)
-            ? "*"
-            : "*." + fileType.TrimStart('.').ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) {
+            return [];
+        }
+
+        var searchPattern = string.IsNullOrWhiteSpace(fileType) ? "*" : "*." + fileType.TrimStart('.').ToLowerInvariant();
         return Directory.EnumerateFiles(path, searchPattern, SearchOption.AllDirectories).ToArray();
     }
 
     public static string ComputeMd5FromFile(string path)
     {
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) {
+            return string.Empty;
+        }
         try {
             using var inputStream = File.OpenRead(path);
             using var mD = MD5.Create();
@@ -31,30 +34,36 @@ public static class FileUtil {
 
     public static void CleanDirectorySafe(string path)
     {
-        if (string.IsNullOrWhiteSpace(path)) return;
+        if (string.IsNullOrWhiteSpace(path)) {
+            return;
+        }
         DeleteDirectorySafe(path);
         Directory.CreateDirectory(path);
     }
 
     public static void DeleteDirectorySafe(string path)
     {
-        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) return;
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) {
+            return;
+        }
         try {
             Directory.Delete(path, true);
-        } catch (IOException)
-        {
-        } catch (UnauthorizedAccessException)
-        {
-        }
+        } catch (IOException) { } catch (UnauthorizedAccessException) { }
     }
 
     public static bool CopyFileSafe(string sourcePath, string destPath)
     {
-        if (string.IsNullOrWhiteSpace(sourcePath) || string.IsNullOrWhiteSpace(destPath)) return false;
+        if (string.IsNullOrWhiteSpace(sourcePath) || string.IsNullOrWhiteSpace(destPath)) {
+            return false;
+        }
+
         try {
             var directoryName = Path.GetDirectoryName(destPath);
-            if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName))
-                Directory.CreateDirectory(directoryName);
+            if (string.IsNullOrEmpty(directoryName)) {
+                return false;
+            }
+
+            Directory.CreateDirectory(directoryName);
             File.Copy(sourcePath, destPath, true);
             return true;
         } catch (IOException) {
@@ -64,10 +73,12 @@ public static class FileUtil {
         }
     }
 
-    public static void CopyDirectory(string sourceDir, string targetDir, bool includeRoot = true,
-        bool deleteSource = false)
+    public static void CopyDirectory(string sourceDir, string targetDir, bool includeRoot = true, bool deleteSource = false)
     {
-        if (string.IsNullOrWhiteSpace(sourceDir) || !Directory.Exists(sourceDir)) return;
+        if (string.IsNullOrWhiteSpace(sourceDir) || !Directory.Exists(sourceDir)) {
+            return;
+        }
+
         var name = new DirectoryInfo(sourceDir).Name;
         var text = includeRoot ? Path.Combine(targetDir, name) : targetDir;
         Directory.CreateDirectory(text);
@@ -101,40 +112,6 @@ public static class FileUtil {
             return false;
         }
     }
-
-    public static bool IsFileReadable(string filePath)
-    {
-        try {
-            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return fileStream.Length > 0;
-        } catch {
-            return false;
-        }
-    }
-
-    public static async Task WriteFileSafelyAsync(string? filePath, byte[] buffer)
-    {
-        var tempFile = filePath + ".tmp";
-        try {
-            await File.WriteAllBytesAsync(tempFile, buffer);
-            if (File.Exists(tempFile) && new FileInfo(tempFile).Length > 0) {
-                if (File.Exists(filePath)) {
-                    File.Delete(filePath);
-                }
-
-                if (filePath != null) {
-                    File.Move(tempFile, filePath);
-                }
-            }
-        } catch {
-            if (File.Exists(tempFile)) {
-                File.Delete(tempFile);
-            }
-
-            throw;
-        }
-    }
-
 
     /**
      * 设置文件权限

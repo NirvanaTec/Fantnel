@@ -116,8 +116,7 @@ public sealed class LauncherService : IDisposable {
 
     private async Task<EntityModsList?> InstallGameModsAsync(EnumGameVersion enumVersion)
     {
-        return await InstallerService.InstallGameMods(enumVersion, Entity.GameId,
-            Entity.GameType == EnumGType.ServerGame);
+        return await InstallerService.InstallGameMods(enumVersion, Entity.GameId, Entity.GameType == EnumGType.ServerGame);
     }
 
     private static async Task PrepareMinecraftClientAsync(EnumGameVersion enumVersion)
@@ -128,7 +127,6 @@ public sealed class LauncherService : IDisposable {
     private string SetupGameRuntime()
     {
         var path = InstallerService.PrepareGameRuntime(Entity.GameId, Entity.RoleName, Entity.GameType);
-        InstallerService.InstallNativeDll(GameVersionConverter.Convert(Entity.GameVersionId));
         return Path.Combine(path, ".minecraft");
     }
 
@@ -151,8 +149,7 @@ public sealed class LauncherService : IDisposable {
         }
     }
 
-    private (CommandService commandService, int rpcPort) InitializeLauncher(EnumGameVersion enumVersion,
-        string workingDirectory)
+    private (CommandService commandService, int rpcPort) InitializeLauncher(EnumGameVersion enumVersion, string workingDirectory)
     {
         var commandService = new CommandService();
         var availablePort = Tools.GetUnusedPort(11413);
@@ -161,9 +158,7 @@ public sealed class LauncherService : IDisposable {
             throw new NoNullAllowedException(nameof(_skip32));
         }
 
-        commandService.Init(enumVersion, Entity,
-            workingDirectory, _skip32.GenerateRoleUuid(Entity.RoleName, Convert.ToUInt32(Entity.Account.GetUserId())), _socketPort,
-            X19.GameVersion, availablePort);
+        commandService.Init(enumVersion, Entity, workingDirectory, _skip32.GenerateRoleUuid(Entity.RoleName, Convert.ToUInt32(Entity.Account.GetUserId())), _socketPort, X19.GameVersion, availablePort);
 
         return (commandService, rpcPort: availablePort);
     }
@@ -178,8 +173,7 @@ public sealed class LauncherService : IDisposable {
 
     private void StartAuthenticationService()
     {
-        _authLibProtocol = new AuthLibProtocol(IPAddress.Parse("127.0.0.1"), _socketPort,
-            JsonSerializer.Serialize(_modList), Entity.GameVersion, Entity.Account);
+        _authLibProtocol = new AuthLibProtocol(IPAddress.Parse("127.0.0.1"), _socketPort, JsonSerializer.Serialize(_modList), Entity.GameVersion, Entity.Account);
         _authLibProtocol.Start();
     }
 
@@ -200,8 +194,7 @@ public sealed class LauncherService : IDisposable {
         GameProcess.Exited += OnGameProcessExited;
         SyncProgressBarUtil.ProgressBar.ClearCurrent();
         Console.WriteLine();
-        Log.Information("Game launched successfully. Game Version: {0}, Process ID: {1}, Role: {2}",
-            Entity.GameVersion, process.Id, Entity.RoleName);
+        Log.Information("Game launched successfully. Game Version: {0}, Process ID: {1}, Role: {2}", Entity.GameVersion, process.Id, Entity.RoleName);
         return Task.CompletedTask;
     }
 

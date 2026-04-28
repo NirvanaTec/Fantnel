@@ -10,8 +10,7 @@ namespace Fantnel.Servlet.GameController;
 [Route("[controller]")]
 public class GameSkinController : ControllerBase {
     [HttpGet("/api/gameskin/get")]
-    public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10,
-        [FromQuery] string? name = null)
+    public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10, [FromQuery] string? name = null)
     {
         var entity = name == null ? SkinMessage.GetSkinList(offset, pageSize).Result : SkinMessage.GetSkinListByName(name, offset, pageSize).Result;
         return Ok(Code.ToJson(ErrorCode.Success, entity));

@@ -208,9 +208,7 @@ public static class AccountMessage {
         }
     }
 
-    private static string GenerateCookie(
-        EntityMPayUserResponse user,
-        EntityDevice device)
+    private static string GenerateCookie(EntityMPayUserResponse user, EntityDevice device)
     {
         return JsonSerializer.Serialize(new EntityX19Cookie {
             SdkUid = user.User.Id,
@@ -414,6 +412,7 @@ public static class AccountMessage {
         if (randomAccount == null) {
             throw new ErrorCodeException(ErrorCode.Failure);
         }
+
         var entityResponse = JsonSerializer.Deserialize<EntityResponseBase>(randomAccount);
         if (entityResponse == null) {
             throw new ErrorCodeException(ErrorCode.Failure);
@@ -428,7 +427,7 @@ public static class AccountMessage {
             case 42:
                 throw new ErrorCodeException(ErrorCode.NoTimes);
         }
-        
+
         if (entityResponse.Code != 1) {
             throw new ErrorCodeException(ErrorCode.Failure, entityResponse.Msg);
         }
@@ -437,13 +436,12 @@ public static class AccountMessage {
         if (account == null) {
             throw new ErrorCodeException(ErrorCode.Failure, entityResponse.Msg);
         }
-        
+
         account.Type = "4399com";
         account.Name = GetSuffix("Nac");
         SaveAccount(account);
-        
+
         AutoLogin1(account);
-        
     }
 
     private static string GetSuffix(string prefix)
@@ -456,9 +454,10 @@ public static class AccountMessage {
             if (accountList.Any(entityAccount => context.Equals(entityAccount.Name))) {
                 continue;
             }
+
             return context;
         }
+
         return date.ToUnixTimeSeconds().ToString();
     }
-    
 }

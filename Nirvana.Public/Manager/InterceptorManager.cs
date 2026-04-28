@@ -24,60 +24,24 @@ public class InterceptorManager {
     private readonly string _versionName;
     public readonly Interceptor Interceptor;
 
-    public InterceptorManager(
-        EntityQueryNetGameDetailItem server,
-        EntityGameCharacter character,
-        EntityMcVersion version,
-        EntityNetGameServerAddress address,
-        string mods, int port)
+    public InterceptorManager(EntityQueryNetGameDetailItem server, EntityGameCharacter character, EntityMcVersion version, EntityNetGameServerAddress address, string mods, int port)
     {
         _mods = mods;
         _versionName = version.Name;
         _entityId = server.EntityId;
         _availableUser = InfoManager.GetGameAccount();
         // 创建代理
-        Interceptor = Interceptor.CreateInterceptor(
-            false,
-            new EntitySocks5 { Enabled = false },
-            mods,
-            server.EntityId,
-            server.Name,
-            version.Name,
-            address.Host,
-            address.Port,
-            character.Name,
-            _availableUser.GetUserId(),
-            _availableUser.GetToken(),
-            YggdrasilCallback,
-            "0.0.0.0",
-            port
-        );
+        Interceptor = Interceptor.CreateInterceptor(false, new EntitySocks5 { Enabled = false }, mods, server.EntityId, server.Name, version.Name, address.Host, address.Port, character.Name, _availableUser.GetUserId(), _availableUser.GetToken(), YggdrasilCallback, "0.0.0.0", port);
     }
 
-    public InterceptorManager(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName,
-        EntityRentalGameServerAddress address, string mods, int port)
+    public InterceptorManager(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName, EntityRentalGameServerAddress address, string mods, int port)
     {
         _mods = mods;
         _versionName = versionName;
         _entityId = server.EntityId;
         _availableUser = InfoManager.GetGameAccount();
         // 创建代理
-        Interceptor = Interceptor.CreateInterceptor(
-            true,
-            new EntitySocks5 { Enabled = false },
-            mods,
-            server.EntityId,
-            server.ServerName,
-            versionName,
-            address.McServerHost,
-            address.McServerPort,
-            character.Name,
-            _availableUser.GetUserId(),
-            _availableUser.GetToken(),
-            YggdrasilCallback,
-            "0.0.0.0",
-            port
-        );
+        Interceptor = Interceptor.CreateInterceptor(true, new EntitySocks5 { Enabled = false }, mods, server.EntityId, server.ServerName, versionName, address.McServerHost, address.McServerPort, character.Name, _availableUser.GetUserId(), _availableUser.GetToken(), YggdrasilCallback, "0.0.0.0", port);
     }
 
     private void YggdrasilCallback(InterceptorConfig config, string serverId)

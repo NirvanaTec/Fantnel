@@ -4,8 +4,7 @@ using System.Text;
 namespace Nirvana.WPFLauncher.Http;
 
 public static class HttpUtil {
-    private const string SKeys =
-        "MK6mipwmOUedplb6,OtEylfId6dyhrfdn,VNbhn5mvUaQaeOo9,bIEoQGQYjKd02U0J,fuaJrPwaH2cfXXLP,LEkdyiroouKQ4XN1,jM1h27H4UROu427W,DhReQada7gZybTDk,ZGXfpSTYUvcdKqdY,AZwKf7MWZrJpGR5W,amuvbcHw38TcSyPU,SI4QotspbjhyFdT0,VP4dhjKnDGlSJtbB,UXDZx4KhZywQ2tcn,NIK73ZNvNqzva4kd,WeiW7qU766Q1YQZI";
+    private const string SKeys = "MK6mipwmOUedplb6,OtEylfId6dyhrfdn,VNbhn5mvUaQaeOo9,bIEoQGQYjKd02U0J,fuaJrPwaH2cfXXLP,LEkdyiroouKQ4XN1,jM1h27H4UROu427W,DhReQada7gZybTDk,ZGXfpSTYUvcdKqdY,AZwKf7MWZrJpGR5W,amuvbcHw38TcSyPU,SI4QotspbjhyFdT0,VP4dhjKnDGlSJtbB,UXDZx4KhZywQ2tcn,NIK73ZNvNqzva4kd,WeiW7qU766Q1YQZI";
 
     private static Aes Aes {
         get {
@@ -32,8 +31,7 @@ public static class HttpUtil {
 
         var keyIndex = (byte)((Random.Shared.Next(0, HttpKeys.Length - 1) << 4) | 2);
 
-        var encryptedData = Aes.CreateEncryptor(HttpKeys[(keyIndex >> 4) & 0xF], initVector)
-            .TransformFinalBlock(body, 0, body.Length);
+        var encryptedData = Aes.CreateEncryptor(HttpKeys[(keyIndex >> 4) & 0xF], initVector).TransformFinalBlock(body, 0, body.Length);
 
         var result = new byte[16 + encryptedData.Length + 1];
 
@@ -51,8 +49,7 @@ public static class HttpUtil {
 
         var encryptedData = body.Skip(16).Take(body.Length - 1 - 16).ToArray();
 
-        var decryptedData = Aes.CreateDecryptor(HttpKeys[(body[^1] >> 4) & 0xF], body.Take(16).ToArray())
-            .TransformFinalBlock(encryptedData, 0, encryptedData.Length);
+        var decryptedData = Aes.CreateDecryptor(HttpKeys[(body[^1] >> 4) & 0xF], body.Take(16).ToArray()).TransformFinalBlock(encryptedData, 0, encryptedData.Length);
 
         var scissor = 0;
         var scissorPos = decryptedData.Length - 1;

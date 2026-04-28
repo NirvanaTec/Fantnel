@@ -5,7 +5,6 @@ using Nirvana.WPFLauncher.Http;
 namespace Nirvana.WPFLauncher.Protocol;
 
 public class MgbSdk(string gameId) : IDisposable {
-
     private readonly HttpWrapper _sdk = new("https://mgbsdk.matrix.netease.com");
 
     public void Dispose()
@@ -14,13 +13,7 @@ public class MgbSdk(string gameId) : IDisposable {
         GC.SuppressFinalize(this);
     }
 
-    public static string GenerateSAuth(
-        string sdkUid,
-        string sessionId,
-        string channel,
-        string platform,
-        string userId = "",
-        string timestamp = "")
+    public static string GenerateSAuth(string sdkUid, string sessionId, string channel, string platform, string userId = "", string timestamp = "")
     {
         var str = Guid.NewGuid().ToString("N");
         return JsonSerializer.Serialize(new EntityMgbSdkSAuthJson {
@@ -47,6 +40,7 @@ public class MgbSdk(string gameId) : IDisposable {
         if (dictionary == null) {
             throw new HttpRequestException("Response is empty");
         }
+
         if (!"200".Equals(dictionary["code"].ToString())) {
             throw new HttpRequestException(dictionary["status"].ToString());
         }

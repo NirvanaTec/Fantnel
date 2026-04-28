@@ -8,8 +8,7 @@ public static class SkinMessage {
     // 皮肤列表 - 缓存
     public static readonly List<EntityQueryNetSkinItem> SkinList = [];
 
-    public static async Task<EntityQueryNetSkinItem[]> GetSkinList(int offset = 0, int pageSize = 10,
-        bool safeImage = true)
+    public static async Task<EntityQueryNetSkinItem[]> GetSkinList(int offset = 0, int pageSize = 10, bool safeImage = true)
     {
         var index = -pageSize; // 循环次数
         var count = offset + pageSize;

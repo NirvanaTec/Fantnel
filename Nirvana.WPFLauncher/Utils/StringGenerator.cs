@@ -20,12 +20,6 @@ public static class StringGenerator {
 
         var format = uppercase ? "X2" : "x2";
 
-        return string.Join(separator,
-            mac[0].ToString(format),
-            mac[1].ToString(format),
-            mac[2].ToString(format),
-            mac[3].ToString(format),
-            mac[4].ToString(format),
-            mac[5].ToString(format));
+        return string.Join(separator, mac[0].ToString(format), mac[1].ToString(format), mac[2].ToString(format), mac[3].ToString(format), mac[4].ToString(format), mac[5].ToString(format));
     }
 }

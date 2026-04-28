@@ -6,17 +6,12 @@ using Nirvana.WPFLauncher.Utils;
 namespace Nirvana.WPFLauncher.Protocol;
 
 public static class NCom4399 {
-    
     private static readonly HttpClient Client = new(new HttpClientHandler {
         UseCookies = true,
         CookieContainer = new CookieContainer()
     });
 
-    public static async Task<string> LoginWithPasswordAsync(
-        string username,
-        string password,
-        string sessionId,
-        string captcha)
+    public static async Task<string> LoginWithPasswordAsync(string username, string password, string sessionId, string captcha)
     {
         var oauthResp = await Client.GetAsync("https://m.4399api.com/openapi/oauth-callback.html?gamekey=44770&game_key=115716");
         var oauthText = await oauthResp.Content.ReadAsStringAsync();
@@ -29,17 +24,16 @@ public static class NCom4399 {
         var clientId = queryParams.Get("client_id");
         var state = queryParams.Get("state");
         var ref1 = queryParams.Get("ref");
-        
+
         // 构建登录参数
         var parameters = BuildLoginParameters(clientId, state, ref1);
         parameters.Add("username", username);
         parameters.Add("password", password);
         parameters.Add("captcha_id", captcha);
         parameters.Add("captcha", sessionId);
-        
+
         // 执行登录请求
-        var loginResponse = await Client.PostAsync("https://ptlogin.4399.com/oauth2/loginAndAuthorize.do?channel=&sdk=op&sdk_version=3.14.5.577",
-            new FormUrlEncodedContent(parameters.GetAll()));
+        var loginResponse = await Client.PostAsync("https://ptlogin.4399.com/oauth2/loginAndAuthorize.do?channel=&sdk=op&sdk_version=3.14.5.577", new FormUrlEncodedContent(parameters.GetAll()));
 
         var loginText = await loginResponse.Content.ReadAsStringAsync();
 
@@ -65,12 +59,7 @@ public static class NCom4399 {
         }
 
         // 生成SAuth令牌
-        return MgbSdk.GenerateSAuth(
-            entity4399UserInfoResult.Uid.ToString(),
-            entity4399UserInfoResult.State,
-            "4399com",
-            "ad"
-        );
+        return MgbSdk.GenerateSAuth(entity4399UserInfoResult.Uid.ToString(), entity4399UserInfoResult.State, "4399com", "ad");
     }
 
     private static string ExtractErrorTip(string html)
@@ -107,5 +96,4 @@ public static class NCom4399 {
         queryBuilder.Add("redirect_uri", "https://m.4399api.com/openapi/oauth-callback.html?gamekey=44770&game_key=115716");
         return queryBuilder;
     }
-
 }

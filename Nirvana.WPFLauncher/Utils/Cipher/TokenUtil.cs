@@ -19,10 +19,8 @@ public static class TokenUtil {
 
     public static string GenerateEncryptToken(string userToken)
     {
-        var upper1 = RandomUtil.GetRandomString(8)
-            .ToUpper();
-        var upper2 = RandomUtil.GetRandomString(8)
-            .ToUpper();
+        var upper1 = RandomUtil.GetRandomString(8).ToUpper();
+        var upper2 = RandomUtil.GetRandomString(8).ToUpper();
         var bytes = Encoding.ASCII.GetBytes(upper1 + userToken + upper2);
         return Convert.ToHexString(Aes.CreateEncryptor().TransformFinalBlock(bytes, 0, bytes.Length)).ToUpper();
     }

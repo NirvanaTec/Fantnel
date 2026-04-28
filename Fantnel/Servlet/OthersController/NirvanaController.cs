@@ -31,7 +31,7 @@ public class NirvanaController : ControllerBase {
         var entity = NirvanaAccountManager.GetLoginInfo().Result;
         return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
-    
+
     // 添加配置选项
     [HttpGet("/api/nirvana/add")]
     public IActionResult AddConfig(string name, string? value, string? property)

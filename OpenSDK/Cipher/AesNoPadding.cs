@@ -10,9 +10,7 @@ public static class AesNoPadding {
         aesNoPadding.Mode = CipherMode.ECB;
         aesNoPadding.Padding = PaddingMode.None;
 
-        var transform = encryption
-            ? aesNoPadding.CreateEncryptor()
-            : aesNoPadding.CreateDecryptor();
+        var transform = encryption ? aesNoPadding.CreateEncryptor() : aesNoPadding.CreateDecryptor();
 
         return transform.TransformFinalBlock(data, 0, data.Length);
     }

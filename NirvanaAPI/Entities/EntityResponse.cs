@@ -18,10 +18,9 @@ public class EntityResponse<T> : EntityResponseBase {
 }
 
 public class EntityInfo {
-    
     [JsonPropertyName("update_versions")]
     public string? UpdateVersions { get; init; }
-    
+
     [JsonPropertyName("versions")]
     public string[]? Versions { get; init; }
 

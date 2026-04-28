@@ -4,9 +4,7 @@ public class QueryBuilder {
     private readonly Dictionary<string, string> _parameters = new();
     private string? _baseUrl;
 
-    public QueryBuilder()
-    {
-    }
+    public QueryBuilder() { }
 
     public QueryBuilder(string urlOrQuery)
     {
@@ -161,10 +159,7 @@ public class QueryBuilder {
 
     public string BuildQueryString()
     {
-        return _parameters.Count == 0
-            ? string.Empty
-            : string.Join("&",
-                _parameters.Where(p => !string.IsNullOrEmpty(p.Value)).Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+        return _parameters.Count == 0 ? string.Empty : string.Join("&", _parameters.Where(p => !string.IsNullOrEmpty(p.Value)).Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
     }
 
     public string BuildUrl()

@@ -35,9 +35,7 @@ public static class StandardYggdrasil {
                 return initiated.IsSuccess ? Result.Success() : Result.Clone(initiated);
             }
 
-            return initiated.IsFailure
-                ? Result.Clone(initiated)
-                : await MakeRequest(stream, profile, serverId, initiated.Value!);
+            return initiated.IsFailure ? Result.Clone(initiated) : await MakeRequest(stream, profile, serverId, initiated.Value!);
         } catch (SocketException ex) {
             return Result.Failure($"Network error: {ex.Message}");
         } catch (Exception ex) {
@@ -69,13 +67,10 @@ public static class StandardYggdrasil {
 
         var status = (byte)response.ReadByte();
 
-        return status != 0x00
-            ? Result<byte[]>.Failure($"Initialization failed with status: 0x{status:X2}")
-            : Result<byte[]>.Success(loginSeed);
+        return status != 0x00 ? Result<byte[]>.Failure($"Initialization failed with status: 0x{status:X2}") : Result<byte[]>.Success(loginSeed);
     }
 
-    private static async Task<Result> MakeRequest(NetworkStream stream, GameProfile profile, string serverId,
-        byte[] loginSeed)
+    private static async Task<Result> MakeRequest(NetworkStream stream, GameProfile profile, string serverId, byte[] loginSeed)
     {
         var token = profile.User.GetAuthToken();
 
@@ -95,8 +90,7 @@ public static class StandardYggdrasil {
     private static YggdrasilServer[] RandomAuthServer()
     {
         var http = new HttpWrapper();
-        var servers = http.GetAsync<YggdrasilServer[]>("https://x19.update.netease.com/authserver.list").GetAwaiter()
-            .GetResult();
+        var servers = http.GetAsync<YggdrasilServer[]>("https://x19.update.netease.com/authserver.list").GetAwaiter().GetResult();
 
         if (servers == null || servers.Length == 0) {
             throw new Exception("No servers found.");

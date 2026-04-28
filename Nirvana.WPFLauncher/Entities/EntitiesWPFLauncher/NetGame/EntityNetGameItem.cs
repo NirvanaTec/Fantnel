@@ -16,7 +16,7 @@ public class EntityNetGameItem {
     [JsonPropertyName("online_count")]
     [JsonConverter(typeof(NetEaseIntConverter))]
     public string OnlineCount { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("title_image_url")] // 来自详细信息
     public string TitleImageUrl { get; set; } = string.Empty;
 

@@ -5,8 +5,7 @@ using Serilog;
 namespace Nirvana.Game.Launcher.Utils;
 
 public static class DownloadUtil {
-    public static async Task<bool> DownloadAsync(string url, string destinationPath,
-        Action<double>? downloadProgress = null, int maxConcurrentSegments = 4)
+    public static async Task<bool> DownloadAsync(string url, string destinationPath, Action<double>? downloadProgress = null, int maxConcurrentSegments = 4)
     {
         try {
             var downloadOpt = new DownloadConfiguration {

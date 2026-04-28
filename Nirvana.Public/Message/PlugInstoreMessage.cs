@@ -31,8 +31,7 @@ public static class PlugInstoreMessage {
         }
 
         // 没有 就从 插件商店 获取
-        var plugins = await X19Extensions.Nirvana.Api<EntityResponse<EntityComponents[]>>(
-            $"/api/fantnel/plugin/get?offset={offset}&limit={limit}");
+        var plugins = await X19Extensions.Nirvana.Api<EntityResponse<EntityComponents[]>>($"/api/fantnel/plugin/get?offset={offset}&limit={limit}");
         if (plugins?.Data == null) {
             throw new ErrorCodeException(ErrorCode.FormatError);
         }
@@ -67,8 +66,7 @@ public static class PlugInstoreMessage {
 
     private static EntityResponse<EntityPluginDownResponse>? GetDownloadInfoUrl(string id)
     {
-        return X19Extensions.Nirvana
-            .Api<EntityResponse<EntityPluginDownResponse>>($"/api/fantnel/plugin/get/download?id={id}").Result;
+        return X19Extensions.Nirvana.Api<EntityResponse<EntityPluginDownResponse>>($"/api/fantnel/plugin/get/download?id={id}").Result;
     }
 
     private static string GetDownloadUrl(string id)

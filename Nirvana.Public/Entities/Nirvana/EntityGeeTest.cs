@@ -3,7 +3,6 @@
 namespace Nirvana.Public.Entities.Nirvana;
 
 public class EntityGeeTest {
-
     [JsonPropertyName("lot_number")]
     public required string LotNumber { get; set; }
 

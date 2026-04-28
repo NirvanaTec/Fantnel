@@ -1,13 +1,10 @@
-﻿using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
-
-namespace NirvanaAPI.Entities;
+﻿namespace NirvanaAPI.Entities;
 
 public class ConfigValue {
-
-    public required string Name;
     private string? _value;
     public string Default = string.Empty;
+
+    public required string Name;
     public string PropertyName = "string";
 
     public void SetValue(string? value)
@@ -19,7 +16,7 @@ public class ConfigValue {
     {
         return _value ?? Default;
     }
-    
+
     public bool IsProperty(string propertyName)
     {
         return PropertyName.Equals(propertyName, StringComparison.OrdinalIgnoreCase);
@@ -29,5 +26,4 @@ public class ConfigValue {
     {
         return _value == null || Default.Equals(_value);
     }
-
 }

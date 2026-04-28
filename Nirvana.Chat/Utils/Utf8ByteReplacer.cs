@@ -65,8 +65,7 @@ public class Utf8ByteReplacer {
         Array.Copy(newBytes, 0, result, startIndex, newBytes.Length);
 
         // 复制索引之后的部分
-        Array.Copy(data, startIndex + oldLength, result, startIndex + newBytes.Length,
-            data.Length - startIndex - oldLength);
+        Array.Copy(data, startIndex + oldLength, result, startIndex + newBytes.Length, data.Length - startIndex - oldLength);
 
         return result;
     }

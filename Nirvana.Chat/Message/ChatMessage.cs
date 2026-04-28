@@ -115,8 +115,7 @@ public static class ChatMessage {
 
         try {
             if (_webSocket.State == WebSocketState.Open) {
-                await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing",
-                    CancellationToken.None);
+                await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", CancellationToken.None);
             }
         } catch (Exception e) {
             Log.Error("[IRC] 关闭连接失败\n{0}", e.Message);

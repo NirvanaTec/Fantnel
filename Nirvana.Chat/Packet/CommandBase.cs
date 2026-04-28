@@ -14,9 +14,7 @@ public class CommandBase : APacket {
 
     private byte[]? _rawBytes;
 
-    protected CommandBase(EnumConnectionState state, EnumPacketDirection direction, int packetId, EnumProtocolVersion version, bool skip = false) : base(state, direction, packetId, version, skip)
-    {
-    }
+    protected CommandBase(EnumConnectionState state, EnumPacketDirection direction, int packetId, EnumProtocolVersion version, bool skip = false) : base(state, direction, packetId, version, skip) { }
 
     public override void ReadFromBuffer(IByteBuffer buffer)
     {

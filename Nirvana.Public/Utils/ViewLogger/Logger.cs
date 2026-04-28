@@ -6,10 +6,7 @@ namespace Nirvana.Public.Utils.ViewLogger;
 public class Logger : LoggerConfiguration {
     private void SetColor(LogEventLevel level, ConsoleColor color)
     {
-        WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(evt => evt.Level == level).WriteTo.Console(
-            outputTemplate: "[{Timestamp:HH:mm:ss}] {Message:lj}{NewLine}{Exception}",
-            theme: new CustomConsoleTheme(color)
-        ));
+        WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(evt => evt.Level == level).WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss}] {Message:lj}{NewLine}{Exception}", theme: new CustomConsoleTheme(color)));
     }
 
     public static void LogoInit()
@@ -28,5 +25,4 @@ public class Logger : LoggerConfiguration {
         // 清空框架信息
         InMemorySink.Clear();
     }
-    
 }

@@ -3,7 +3,6 @@
 namespace Nirvana.Game.Launcher.Utils;
 
 public class GameArgumentsUtil {
-    
     private static readonly List<string> StartList = [
         " --", // 0--cp="123" | 1--cp=123 | 2--cp "123" | 3--cp 123 | 4--Xmx123
         " -D", // 5-Dcp="123" | 6-Dcp=123 | 7-Dcp "123" | 8-Dcp 123 | 9-DXmx123
@@ -29,7 +28,7 @@ public class GameArgumentsUtil {
     public static string AddArguments(string text, string tex1)
     {
         string value;
-        
+
         // 最后1个字符是空格
         if (text.EndsWith(' ')) {
             value = text + tex1;
@@ -86,9 +85,11 @@ public class GameArgumentsUtil {
             if (!text.Contains(context)) {
                 continue;
             }
-            var value = Tools.GetBetweenStrings(text,  context, commandMode.Item3 + " ");
+
+            var value = Tools.GetBetweenStrings(text, context, commandMode.Item3 + " ");
             return (context + value + commandMode.Item3, value);
         }
+
         return (string.Empty, string.Empty);
     }
 
@@ -102,7 +103,7 @@ public class GameArgumentsUtil {
                 }
             }
         }
+
         throw new ArgumentOutOfRangeException(nameof(mode), mode, "Not Supported Mode");
     }
-    
 }

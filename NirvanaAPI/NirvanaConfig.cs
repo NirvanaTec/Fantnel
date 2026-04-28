@@ -8,7 +8,6 @@ using NirvanaAPI.Utils.CodeTools;
 namespace NirvanaAPI;
 
 public class NirvanaConfig {
-    
     private static readonly string FilePath = Path.Combine(PathUtil.ResourcePath, "nirvanaAccount.json");
 
     private static List<ConfigValue> ConfigValues { get; } = [
@@ -58,6 +57,7 @@ public class NirvanaConfig {
             if (entity == null) {
                 return;
             }
+
             foreach (var configValue in entity) {
                 try {
                     SetValue(configValue.Key, configValue.Value?.ToString());
@@ -90,6 +90,7 @@ public class NirvanaConfig {
         if (configValue == null) {
             throw new Exception($"Config {name} not found");
         }
+
         configValue.SetValue(value);
         SaveConfig();
     }
@@ -110,9 +111,10 @@ public class NirvanaConfig {
                 _ => configValue.PropertyName
             };
         }
+
         ConfigValues.Add(configValue);
     }
-    
+
     public static void AddValue(string name, string? defaultValue, string? propertyName)
     {
         var findValue = GetValueTo(name);
@@ -120,6 +122,7 @@ public class NirvanaConfig {
             if (defaultValue != null) {
                 findValue.Default = defaultValue;
             }
+
             if (propertyName != null) {
                 findValue.PropertyName = propertyName;
             }
@@ -145,6 +148,7 @@ public class NirvanaConfig {
             if (!showDefault && configValue.IsDefault()) {
                 continue;
             }
+
             var value = configValue.GetValue();
             if (configValue.IsProperty("bool")) {
                 jsonObj.Add(configValue.Name, bool.Parse(value));
@@ -158,6 +162,7 @@ public class NirvanaConfig {
                 jsonObj.Add(configValue.Name, value);
             }
         }
+
         return jsonObj;
     }
 

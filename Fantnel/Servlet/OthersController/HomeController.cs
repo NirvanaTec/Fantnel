@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Nirvana.Public.Entities.EntitiesUpdate;
 using Nirvana.Public.Utils;
-using Nirvana.Public.Utils.Update;
 using NirvanaAPI.Entities.EntitiesNirvana;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
@@ -52,9 +51,9 @@ public class HomeController : ControllerBase {
         // 更新主题文件
         new EntityUpdate {
             Mode = "ui." + entity.Value,
-            Name = "Fantnel UI",
+            Name = "Fantnel UI"
         }.CheckUpdateSafe().Wait();
-        
+
         return Ok(Code.ToJson(ErrorCode.Success));
     }
 

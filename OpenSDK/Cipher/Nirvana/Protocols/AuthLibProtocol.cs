@@ -7,8 +7,7 @@ using Serilog;
 
 namespace OpenSDK.Cipher.Nirvana.Protocols;
 
-public class AuthLibProtocol(IPAddress address, int port, string modList, string version, EntityUserInfo account)
-    : IDisposable {
+public class AuthLibProtocol(IPAddress address, int port, string modList, string version, EntityUserInfo account) : IDisposable {
     private readonly CancellationTokenSource _cts = new();
 
     private Task? _acceptLoopTask;
@@ -78,8 +77,7 @@ public class AuthLibProtocol(IPAddress address, int port, string modList, string
             }
     }
 
-    private static async Task ReadExactAsync(NetworkStream stream, byte[] buffer, int offset, int count,
-        CancellationToken token)
+    private static async Task ReadExactAsync(NetworkStream stream, byte[] buffer, int offset, int count, CancellationToken token)
     {
         int num;
         for (var read = 0; read < count; read += num) {

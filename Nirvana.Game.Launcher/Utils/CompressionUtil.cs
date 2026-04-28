@@ -10,8 +10,7 @@ using SharpCompress.Common;
 namespace Nirvana.Game.Launcher.Utils;
 
 public static class CompressionUtil {
-    private static async Task ExtractZipAsync(string archivePath, string outPath,
-        Action<int>? progress = null)
+    private static async Task ExtractZipAsync(string archivePath, string outPath, Action<int>? progress = null)
     {
         try {
             // 1. 打开压缩包并获取所有条目
@@ -23,7 +22,10 @@ public static class CompressionUtil {
             // 只处理非目录条目
             var allEntries = archive.Entries.Where(entry => !entry.IsDirectory).ToList();
             var totalEntries = allEntries.Count;
-            foreach (var entry in allEntries) entriesQueue.Enqueue(entry);
+            foreach (var entry in allEntries) {
+                entriesQueue.Enqueue(entry);
+            }
+
             if (totalEntries == 0) {
                 progress?.Invoke(100);
                 return; // 没有文件需要解压
@@ -42,8 +44,7 @@ public static class CompressionUtil {
         }
     }
 
-    public static async Task ExtractAsync(string archivePath, string outPath,
-        Action<int>? progress = null)
+    public static async Task ExtractAsync(string archivePath, string outPath, Action<int>? progress = null)
     {
         if (Is7ZipFormat(archivePath)) {
             await Extract7ZAsync(archivePath, outPath, progress);
@@ -52,8 +53,7 @@ public static class CompressionUtil {
         }
     }
 
-    public static async Task ExtractAsync(string archivePath, string outPath,
-        string name, SyncCallback<SyncProgressBarUtil.ProgressReport>? progress = null)
+    public static async Task ExtractAsync(string archivePath, string outPath, string name, SyncCallback<SyncProgressBarUtil.ProgressReport>? progress = null)
     {
         var uiProgress = progress;
         if (uiProgress == null) {
@@ -87,7 +87,10 @@ public static class CompressionUtil {
         var fileInfo = new FileInfo(archivePath);
         // 超过 14mb 的 7z
         if (fileInfo.Length > 14 * 1024 * 1024) {
-            if (Extract7Z_7ZIP(archivePath, outPath, progress)) return;
+            if (Extract7Z_7ZIP(archivePath, outPath, progress)) {
+                return;
+            }
+
             Log.Warning("使用通用模式解压7z文件中....");
             Log.Warning("Path: {0}", archivePath);
         }
@@ -133,8 +136,7 @@ public static class CompressionUtil {
 
     private static string Get7ZipPath()
     {
-        var path = Path.Combine(PathUtil.ResourcePath,
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "7z.exe" : "7zz");
+        var path = Path.Combine(PathUtil.ResourcePath, RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "7z.exe" : "7zz");
         return File.Exists(path) ? path : throw new Exception("未找到 7-Zip 可执行文件");
     }
 
@@ -143,11 +145,7 @@ public static class CompressionUtil {
      * @entriesQueue 待处理的条目队列
      * @destinationPath 解压目标路径
      */
-    private static async Task ProcessEntriesFromQueueAsync(
-        ConcurrentQueue<IArchiveEntry> entriesQueue,
-        string destinationPath,
-        Action<int>? progress,
-        ProgressState progressState) // 传入封装了状态的对象
+    private static async Task ProcessEntriesFromQueueAsync(ConcurrentQueue<IArchiveEntry> entriesQueue, string destinationPath, Action<int>? progress, ProgressState progressState) // 传入封装了状态的对象
     {
         while (entriesQueue.TryDequeue(out var entry))
             try {
@@ -170,14 +168,19 @@ public static class CompressionUtil {
      */
     private static async Task ExtractSingleEntryAsync(IArchiveEntry entry, string destinationPath)
     {
-        if (entry.Key == null) return;
+        if (entry.Key == null) {
+            return;
+        }
 
         // 计算目标文件的完整路径
         var fullPath = Path.Combine(destinationPath, entry.Key.Replace('/', Path.DirectorySeparatorChar));
 
         // 确保目标文件的目录存在
         var dirPath = Path.GetDirectoryName(fullPath);
-        if (dirPath == null) return;
+        if (dirPath == null) {
+            return;
+        }
+
         Directory.CreateDirectory(dirPath);
 
         // 使用 WriteEntryToFile 方法进行解压

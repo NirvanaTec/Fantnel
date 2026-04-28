@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 namespace NirvanaAPI.Utils;
 
 public static class PathUtil {
-    
     // 系统架构 - win.x64
     public static readonly string DetectOperating = Tools.DetectOperatingSystemMode();
     public static readonly string SystemArch = DetectOperating + "." + Tools.DetectArchitectureMode();
@@ -15,8 +14,7 @@ public static class PathUtil {
     public static readonly string UpdaterPath = Path.Combine(UpdaterBasePath, "updater");
 
     // 脚本后缀
-    public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" :
-        RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ".command" : ".sh";
+    public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ".command" : ".sh";
 
     public static readonly string ScriptPath = Path.Combine(UpdaterPath, "update" + ScriptSuffix);
 

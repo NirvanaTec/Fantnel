@@ -28,10 +28,7 @@ public class ServerHandler(GameConnection connection) : ChannelHandlerAdapter {
         return HandlePacketReceived(connection, buffer, EnumPacketDirection.ServerBound);
     }
 
-    public static IByteBuffer? HandlePacketReceived(
-        GameConnection gameConnection,
-        IByteBuffer buffer,
-        EnumPacketDirection direction)
+    public static IByteBuffer? HandlePacketReceived(GameConnection gameConnection, IByteBuffer buffer, EnumPacketDirection direction)
     {
         buffer.MarkReaderIndex();
 

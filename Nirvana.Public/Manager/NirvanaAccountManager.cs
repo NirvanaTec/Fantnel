@@ -13,8 +13,7 @@ public static class NirvanaAccountManager {
     // 登录账号
     public static async Task Login(string account, string password)
     {
-        var entity = await X19Extensions.Nirvana.Api<EntityNirvanaLogin>("/api/login?mode=fantnel&account=" + account +
-                                                                         "&password=" + password);
+        var entity = await X19Extensions.Nirvana.Api<EntityNirvanaLogin>("/api/login?mode=fantnel&account=" + account + "&password=" + password);
         if (entity == null) {
             throw new Exception();
         }
@@ -39,10 +38,12 @@ public static class NirvanaAccountManager {
             if (entity == null) {
                 throw new Exception();
             }
+
             if (entity.Code == 22) {
                 NirvanaConfig.Logout();
                 throw new ErrorCodeException(ErrorCode.OnlineStatusExpired);
             }
+
             _days = entity.Days;
         }
 

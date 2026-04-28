@@ -16,10 +16,7 @@ using Serilog;
 
 namespace Nirvana.Game.Launcher.Services.Java.RPC;
 
-public class GameRpcService(
-    int port,
-    EntityLaunchGame launchGame,
-    EnumGameVersion gameVersion) {
+public class GameRpcService(int port, EntityLaunchGame launchGame, EnumGameVersion gameVersion) {
     private readonly HttpClient _httpClient = new();
 
     private readonly SocketCallback _mSocketCallbackFuc = new();

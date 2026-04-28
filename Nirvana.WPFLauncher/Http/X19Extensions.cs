@@ -12,8 +12,7 @@ public class X19Extensions(string url, bool token = true) {
     public static readonly X19Extensions Nirvana = new("http://110.42.70.32:13423", false);
     public static readonly X19Extensions Bmcl = new("https://bmclapi2.bangbang93.com", false);
 
-    public readonly HttpWrapper HttpWrapper = new(url,
-        options => { options.UserAgent("WPFLauncher/0.0.0.0"); });
+    public readonly HttpWrapper HttpWrapper = new(url, options => { options.UserAgent("WPFLauncher/0.0.0.0"); });
 
     private async Task<HttpResponseMessage> Api(string url, string? body, string? userId, string? userToken)
     {
@@ -21,14 +20,13 @@ public class X19Extensions(string url, bool token = true) {
             return await HttpWrapper.GetAsync(url);
         }
 
-        return await HttpWrapper.PostAsync(url, body, "application/json",
-            options => {
-                if (userId != null && userToken != null) {
-                    options.AddHeaders(TokenUtil.Compute(url, body, userId, userToken));
-                } else if (token) {
-                    options.AddHeaders(TokenUtil.Compute(url, body));
-                }
-            });
+        return await HttpWrapper.PostAsync(url, body, "application/json", options => {
+            if (userId != null && userToken != null) {
+                options.AddHeaders(TokenUtil.Compute(url, body, userId, userToken));
+            } else if (token) {
+                options.AddHeaders(TokenUtil.Compute(url, body));
+            }
+        });
     }
 
     public async Task<T?> Api<T>(string url)

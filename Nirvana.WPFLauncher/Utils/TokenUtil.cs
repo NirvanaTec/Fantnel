@@ -4,27 +4,17 @@ using NirvanaAPI.Manager;
 namespace Nirvana.WPFLauncher.Utils;
 
 public static class TokenUtil {
-    public static Dictionary<string, string> Compute(
-        string requestPath,
-        string sendBody)
+    public static Dictionary<string, string> Compute(string requestPath, string sendBody)
     {
         return Compute(requestPath, sendBody, InfoManager.GetUserId(), InfoManager.GetToken());
     }
 
-    public static Dictionary<string, string> Compute(
-        string requestPath,
-        string sendBody,
-        string userId,
-        string userToken)
+    public static Dictionary<string, string> Compute(string requestPath, string sendBody, string userId, string userToken)
     {
         return ComputeHttpRequestToken(requestPath, Encoding.UTF8.GetBytes(sendBody), userId, userToken);
     }
 
-    private static Dictionary<string, string> ComputeHttpRequestToken(
-        string requestPath,
-        byte[] sendBody,
-        string userId,
-        string userToken)
+    private static Dictionary<string, string> ComputeHttpRequestToken(string requestPath, byte[] sendBody, string userId, string userToken)
     {
         requestPath = requestPath.StartsWith('/') ? requestPath : "/" + requestPath;
         using var memoryStream = new MemoryStream();

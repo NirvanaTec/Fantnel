@@ -98,9 +98,7 @@ public static class ProxiesMessage {
             var version = server.McVersionList[0]; // 1.20
             var gameVersion = GameVersionUtil.GetEnumFromGameVersion(version.Name);
 
-            var serverModInfo = await InstallerService.InstallGameMods(
-                gameVersion,
-                server.EntityId);
+            var serverModInfo = await InstallerService.InstallGameMods(gameVersion, server.EntityId);
 
             var mods = JsonSerializer.Serialize(serverModInfo);
 
@@ -141,9 +139,7 @@ public static class ProxiesMessage {
             var versionName = server.McVersion; // 1.20
             var gameVersion = GameVersionUtil.GetEnumFromGameVersion(versionName);
 
-            var serverModInfo = await InstallerService.InstallGameMods(
-                gameVersion,
-                server.EntityId, true);
+            var serverModInfo = await InstallerService.InstallGameMods(gameVersion, server.EntityId, true);
 
             var mods = JsonSerializer.Serialize(serverModInfo);
 

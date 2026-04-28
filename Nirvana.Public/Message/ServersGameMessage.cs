@@ -18,8 +18,7 @@ public static class ServersGameMessage {
      * @param safeImage 是否安全获取图片
      * @return 服务器列表[普通信息]
      */
-    private static async Task<EntityNetGameItem[]> GetServerList(int offset = 0, int pageSize = 10,
-        bool safeImage = true)
+    private static async Task<EntityNetGameItem[]> GetServerList(int offset = 0, int pageSize = 10, bool safeImage = true)
     {
         var index = -pageSize;
         var count = pageSize + offset;
@@ -71,8 +70,7 @@ public static class ServersGameMessage {
         }
     }
 
-    public static async Task<EntityNetGameItem[]> GetServerListTo(int offset = 0, int pageSize = 10,
-        bool safeImage = true, string version = "")
+    public static async Task<EntityNetGameItem[]> GetServerListTo(int offset = 0, int pageSize = 10, bool safeImage = true, string version = "")
     {
         // 没有版本号, 直接获取
         if (string.IsNullOrEmpty(version)) {
@@ -82,8 +80,7 @@ public static class ServersGameMessage {
         return await GetServerListTo(offset, pageSize, safeImage, item => item.Version == version);
     }
 
-    private static async Task<EntityNetGameItem[]> GetServerListTo(int offset, int pageSize,
-        bool safeImage, Func<EntityNetGameItem, bool> filter)
+    private static async Task<EntityNetGameItem[]> GetServerListTo(int offset, int pageSize, bool safeImage, Func<EntityNetGameItem, bool> filter)
     {
         var index = -pageSize;
         var count = pageSize + offset;

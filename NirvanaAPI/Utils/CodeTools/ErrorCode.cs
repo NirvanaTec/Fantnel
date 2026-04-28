@@ -33,5 +33,5 @@ public enum ErrorCode {
     ParamError = 29,
     VerifyFailed = 30,
     OnlineStatusExpired = 31,
-    NoTimes = 32,
+    NoTimes = 32
 }
