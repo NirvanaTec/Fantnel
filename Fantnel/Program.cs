@@ -15,7 +15,7 @@ public static class Program {
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // 注册编码
 
-        InitProgram.LogoInit(); // 初始化日志
+        Logger.LogoInit(); // 初始化日志
         LogoInit(); // 初始化日志
 
         InitProgram.NelInit(args, LogoInit);

@@ -14,22 +14,6 @@ using Serilog.Events;
 namespace Nirvana.Public.Utils;
 
 public static class InitProgram {
-    public static void LogoInit()
-    {
-        // 配置 Serilog 日志记录
-        var logger = new Logger();
-        logger.MinimumLevel.Information();
-        logger.SetColor(LogEventLevel.Information, ConsoleColor.Yellow);
-        logger.SetColor(LogEventLevel.Warning, ConsoleColor.DarkYellow);
-        logger.SetColor(LogEventLevel.Error, ConsoleColor.Red);
-        logger.SetColor(LogEventLevel.Fatal, ConsoleColor.DarkRed);
-        logger.SetColor(LogEventLevel.Debug, ConsoleColor.Cyan);
-        logger.WriteTo.Sink(InMemorySink.Instance);
-        Log.Logger = logger.CreateLogger();
-
-        // 清空框架信息
-        InMemorySink.Clear();
-    }
 
     public static void NelInit(string[] args, Action logInit)
     {
@@ -53,7 +37,7 @@ public static class InitProgram {
         FantnelInit().Wait();
 
         // 插件初始化
-        // 避免插件过早的加载，因为这是没必要的
+        // 避免插件过早加载，因为这是没必要的
         // await InitializeSystemComponentsAsync();
 
         // 版本安全检测

@@ -59,7 +59,6 @@ public class CacheManager {
                     thread.Start();
                     Thread.Sleep(500);
                 }
-
                 foreach (var thread in threads) {
                     thread.Join();
                 }

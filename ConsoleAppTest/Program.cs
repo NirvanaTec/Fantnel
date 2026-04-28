@@ -2,6 +2,7 @@
 
 using Nirvana.Public.Message;
 using Nirvana.Public.Utils;
+using Nirvana.Public.Utils.ViewLogger;
 using Nirvana.WPFLauncher.Entities.EntitiesWPFLauncher.NetGame.GameCharacters;
 using Nirvana.WPFLauncher.Protocol;
 using NirvanaAPI.Entities.Login;
@@ -9,7 +10,7 @@ using NirvanaAPI.Manager;
 using Serilog;
 
 // Fantnel 日志初始化
-InitProgram.LogoInit();
+Logger.LogoInit();
 // Fantnel 初始化
 InitProgram.NelInit1();
 

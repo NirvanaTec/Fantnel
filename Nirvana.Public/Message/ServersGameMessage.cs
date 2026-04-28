@@ -112,7 +112,7 @@ public static class ServersGameMessage {
                 }
 
                 AddServerList(items);
-                Thread.Sleep(500);
+                Thread.Sleep(510);
             }
         }
     }

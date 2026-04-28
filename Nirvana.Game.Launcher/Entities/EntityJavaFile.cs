@@ -15,9 +15,14 @@ public class EntityJavaFile {
         SetPath(path);
     }
 
-    public string GetPath()
+    private string GetPath()
     {
         return _filePath;
+    }
+    
+    public string GetPath1()
+    {
+        return _filePath1;
     }
 
     public string GetPathSeparator()
@@ -80,7 +85,7 @@ public class EntityJavaFile {
         }
 
         if (IsNullOrEmptyByUrl()) {
-            Log.Warning("jar {0} url is empty", GetPath());
+            Log.Warning("jar {0} url is empty", GetPath1());
             return false;
         }
 
@@ -91,7 +96,7 @@ public class EntityJavaFile {
     private async Task DownloadAsync()
     {
         if (Url == null) {
-            Log.Warning("jar {0} url is empty", GetPath());
+            Log.Warning("jar {0} url is empty", GetPath1());
             return;
         }
 

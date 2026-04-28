@@ -105,7 +105,9 @@ public class CommandService {
         Directory.Delete(nativesPath, true);
 
         foreach (var item in _minecraft.Where(item => item.IsNative && item.DownloadAuto())) {
-            await CompressionUtil.ExtractAsync(item.GetPath(), nativesPath);
+            var path = item.GetPath1();
+            Log.Warning("Fix Natives Extract {0}", path);
+            await CompressionUtil.ExtractAsync(path, nativesPath);
         }
     }
 
@@ -473,9 +475,10 @@ public class CommandService {
 
             // 是 lwjgl 文件，不用添加
             if (_minecraft.Count > 0 && filePath.Contains(EntityJavaFile.FixPath("org/lwjgl/"))) {
+                Log.Warning("Fix Natives Continue {0}", fullPath);
                 continue;
             }
-
+            
             combinedPaths.Append(fullPath);
         }
 
@@ -485,6 +488,7 @@ public class CommandService {
 
         // 修复 lwjgl
         foreach (var item in _minecraft.Where(item => item.StartsWith("org/lwjgl/") && item.DownloadAuto())) {
+            Log.Warning("Fix Natives {0}", item.GetPath1());
             combinedPaths.Append(item.GetPathSeparator());
         }
 
