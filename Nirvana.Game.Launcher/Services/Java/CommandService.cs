@@ -172,7 +172,12 @@ public class CommandService {
 
     private static string GetJavaPath(EnumGameVersion gameVersion)
     {
-        return Path.Combine(gameVersion >= EnumGameVersion.V_1_16 ? PathUtil.Jre17Path : PathUtil.Jre8Path, "bin", PathUtil.JavaExePath);
+        var javaPath = gameVersion switch {
+            >= EnumGameVersion.V_1_20_6 => PathUtil.Jre21Path,
+            >= EnumGameVersion.V_1_16 => PathUtil.Jre17Path,
+            _ => PathUtil.Jre8Path
+        };
+        return Path.Combine(javaPath, "bin", PathUtil.JavaExePath);
     }
 
 
