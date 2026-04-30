@@ -53,14 +53,16 @@ public static class YggdrasilGenerator {
 
         var client = Rsa.RsaWithPkcs1(PublicKey, signContent, false);
 
-        if (client.Length < ClientKeyLength + CheckSumLength)
+        if (client.Length < ClientKeyLength + CheckSumLength) {
             throw new ArgumentException("Invalid sign content length");
+        }
 
         var clientKey = client.AsSpan(0, ClientKeyLength).ToArray();
         var checkSum = client.AsSpan(ClientKeyLength, CheckSumLength).ToArray();
 
-        if (!checkSum.SequenceEqual(loginSeed.EncodeSha256()))
+        if (!checkSum.SequenceEqual(loginSeed.EncodeSha256())) {
             throw new InvalidOperationException("CheckSum validation failed");
+        }
 
         var signData = Rsa.RsaWithPkcs1(PrivateKey, clientKey.CombineWith(sign), true);
 

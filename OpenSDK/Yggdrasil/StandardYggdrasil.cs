@@ -82,7 +82,9 @@ public static class StandardYggdrasil {
         using var messageStream = await stream.ReadSteamWithInt16Async();
         var packMessage = messageStream.ToArray();
         var (type, unpackMessage) = unpacker.UnpackMessage(packMessage);
-        if (type != 9 || unpackMessage[0] != 0x00) return Result.Failure(Convert.ToHexString([unpackMessage[0]]));
+        if (type != 9 || unpackMessage[0] != 0x00) {
+            return Result.Failure(Convert.ToHexString([unpackMessage[0]]));
+        }
 
         return Result.Success();
     }

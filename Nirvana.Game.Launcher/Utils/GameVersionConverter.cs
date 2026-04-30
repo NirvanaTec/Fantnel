@@ -73,6 +73,10 @@ public static class GameVersionConverter {
         }, {
             "24",
             EnumGameVersion.V_1_21
+        },
+        {
+            "25",
+            EnumGameVersion.V_1_21_8
         }
     };
 
@@ -81,18 +85,4 @@ public static class GameVersionConverter {
         return (from version in VersionMap where versionId == (uint)version.Value select version.Value).FirstOrDefault();
     }
 
-    public static int Convert(EnumGameVersion version)
-    {
-        foreach (var keyValuePair in VersionMap.Where(pair => pair.Value == version)) {
-            if (string.IsNullOrEmpty(keyValuePair.Key)) {
-                return 0;
-            }
-
-            if (int.TryParse(keyValuePair.Key, out var result)) {
-                return result;
-            }
-        }
-
-        return -1;
-    }
 }
