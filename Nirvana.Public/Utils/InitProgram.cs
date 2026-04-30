@@ -161,7 +161,7 @@ public static class InitProgram {
     // 创建服务
     private static void CreateServices()
     {
-        if (InfoManager.FantnelInfo == null || InfoManager.FantnelInfo.CrcSalt == null || InfoManager.FantnelInfo.GameVersion == null) {
+        if (InfoManager.FantnelInfo == null || string.IsNullOrEmpty(InfoManager.FantnelInfo.CrcSalt)) {
             Log.Error("CRC Salt 计算失败!");
             Thread.Sleep(6000);
             Environment.Exit(1);
