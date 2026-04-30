@@ -40,6 +40,8 @@ public static class PathUtil {
     public static readonly string Jre8Path = Path.Combine(JavaPath, "jre8");
 
     public static readonly string Jre17Path = Path.Combine(JavaPath, "jdk17");
+    
+    public static readonly string Jre21Path = Path.Combine(JavaPath, "jdk21");
 
     public static string JavaExePath => GetJavaExePath(); // javaw.exe
 

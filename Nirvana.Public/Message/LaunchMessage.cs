@@ -136,12 +136,20 @@ public static class LaunchMessage {
         // 检查并安装Java环境
         string javaName;
         string javaPath;
-        if (gameVersion >= EnumGameVersion.V_1_16) {
-            javaName = "jdk17";
-            javaPath = PathUtil.Jre17Path;
-        } else {
-            javaName = "jre8";
-            javaPath = PathUtil.Jre8Path;
+        
+        switch (gameVersion) {
+            case >= EnumGameVersion.V_1_20_6:
+                javaName = "jdk21";
+                javaPath = PathUtil.Jre21Path;
+                break;
+            case >= EnumGameVersion.V_1_16:
+                javaName = "jdk17";
+                javaPath = PathUtil.Jre17Path;
+                break;
+            default:
+                javaName = "jre8";
+                javaPath = PathUtil.Jre8Path;
+                break;
         }
 
         var id = PublicProgram.Mode + "." + PublicProgram.Arch + "." + javaName + ".java";
