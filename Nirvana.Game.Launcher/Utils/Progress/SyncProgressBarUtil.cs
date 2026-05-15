@@ -1,4 +1,6 @@
+using System;
 using System.Text;
+using System.Threading;
 
 namespace Nirvana.Game.Launcher.Utils.Progress;
 

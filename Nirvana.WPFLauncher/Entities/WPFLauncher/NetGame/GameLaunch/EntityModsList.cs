@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameLaunch.GameMods;
 
 namespace Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameLaunch;

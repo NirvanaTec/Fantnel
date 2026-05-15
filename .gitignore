@@ -1,28 +1,32 @@
 ﻿/Fantnel/bin/
 /Fantnel/obj/
-/Fantnel/resources/
-/Fantnel/.ug_cache
 
 /Nirvana.Chat/bin/
 /Nirvana.Chat/obj/
 
+/Nirvana.Cipher/bin/
+/Nirvana.Cipher/obj/
+
 /Nirvana.Development/bin/
 /Nirvana.Development/obj/
+
+/Nirvana.DevPlugin/bin/
+/Nirvana.DevPlugin/obj/
 
 /Nirvana.Game.Launcher/bin/
 /Nirvana.Game.Launcher/obj/
 
-/Nirvana.WPFLauncher/bin/
-/Nirvana.WPFLauncher/obj/
+/Nirvana.Heypixel/bin/
+/Nirvana.Heypixel/obj/
+
+/Nirvana.Interceptors/bin/
+/Nirvana.Interceptors/obj/
 
 /Nirvana.Public/bin/
 /Nirvana.Public/obj/
 
-/ConsoleAppTest/bin/
-/ConsoleAppTest/obj/
+/Nirvana.WPFLauncher/bin/
+/Nirvana.WPFLauncher/obj/
 
 /NirvanaAPI/bin/
 /NirvanaAPI/obj/
-
-/OpenSDK/bin/
-/OpenSDK/obj/

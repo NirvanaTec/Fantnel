@@ -1,4 +1,5 @@
-﻿using NirvanaAPI.Entities;
+﻿using System;
+using NirvanaAPI.Entities;
 
 namespace NirvanaAPI.Utils.CodeTools;
 

@@ -1,6 +1,10 @@
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Nirvana.Game.Launcher.Utils.Progress;
 using NirvanaAPI.Utils;
 using Serilog;
@@ -10,7 +14,7 @@ using SharpCompress.Common;
 namespace Nirvana.Game.Launcher.Utils;
 
 public static class CompressionUtil {
-    private static async Task ExtractZipAsync(string archivePath, string outPath, Action<int>? progress = null)
+    private static async Task ExtractPublicAsync(string archivePath, string outPath, Action<double>? progress = null)
     {
         try {
             // 1. 打开压缩包并获取所有条目
@@ -44,12 +48,13 @@ public static class CompressionUtil {
         }
     }
 
-    public static async Task ExtractAsync(string archivePath, string outPath, Action<int>? progress = null)
+    public static async Task ExtractAsync(string archivePath, string outPath, Action<double>? progress = null)
     {
-        if (Is7ZipFormat(archivePath)) {
+        var archiveType = Is7ZipFormat(archivePath);
+        if (archiveType == ArchiveType.SevenZip) {
             await Extract7ZAsync(archivePath, outPath, progress);
         } else {
-            await ExtractZipAsync(archivePath, outPath, progress);
+            await ExtractPublicAsync(archivePath, outPath, progress);
         }
     }
 
@@ -74,35 +79,30 @@ public static class CompressionUtil {
     /**
      * @Return 是否为7z格式
      */
-    private static bool Is7ZipFormat(string archivePath)
+    private static ArchiveType Is7ZipFormat(string archivePath)
     {
         using var stream = File.OpenRead(archivePath);
         using var archive = ArchiveFactory.OpenArchive(stream);
-        return archive.Type == ArchiveType.SevenZip;
+        return archive.Type;
     }
 
-    private static async Task Extract7ZAsync(string archivePath, string outPath, Action<int>? progress = null)
+    private static async Task Extract7ZAsync(string archivePath, string outPath, Action<double>? progress = null)
     {
-        // 取文件信息
-        var fileInfo = new FileInfo(archivePath);
-        // 超过 14mb 的 7z
-        if (fileInfo.Length > 14 * 1024 * 1024) {
-            if (Extract7Z_7ZIP(archivePath, outPath, progress)) {
-                return;
-            }
-
-            Log.Warning("使用通用模式解压7z文件中....");
-            Log.Warning("Path: {0}", archivePath);
+        if (Extract7Z_7ZIP(archivePath, outPath, progress)) {
+            return;
         }
 
-        await ExtractZipAsync(archivePath, outPath, progress);
+        Log.Warning("使用通用模式解压7z文件中....");
+        Log.Warning("Path: {0}", archivePath);
+
+        await ExtractPublicAsync(archivePath, outPath, progress);
     }
 
     /**
      * 单文件解压
      * @return 是否成功
      */
-    private static bool Extract7Z_7ZIP(string archivePath, string outputDirectory, Action<int>? progress = null)
+    private static bool Extract7Z_7ZIP(string archivePath, string outputDirectory, Action<double>? progress = null)
     {
         if (!File.Exists(archivePath)) {
             Log.Error("错误：压缩包文件不存在 - {0}", archivePath);
@@ -145,7 +145,7 @@ public static class CompressionUtil {
      * @entriesQueue 待处理的条目队列
      * @destinationPath 解压目标路径
      */
-    private static async Task ProcessEntriesFromQueueAsync(ConcurrentQueue<IArchiveEntry> entriesQueue, string destinationPath, Action<int>? progress, ProgressState progressState) // 传入封装了状态的对象
+    private static async Task ProcessEntriesFromQueueAsync(ConcurrentQueue<IArchiveEntry> entriesQueue, string destinationPath, Action<double>? progress, ProgressState progressState) // 传入封装了状态的对象
     {
         while (entriesQueue.TryDequeue(out var entry))
             try {
@@ -155,7 +155,7 @@ public static class CompressionUtil {
                 // 更新进度 - 必须在锁内进行
                 lock (progressState.Lock) {
                     progressState.ProcessedCount++;
-                    var currentPercentage = progressState.ProcessedCount * 100 / progressState.TotalEntries;
+                    var currentPercentage = progressState.ProcessedCount * 100.0 / progressState.TotalEntries;
                     progress?.Invoke(currentPercentage);
                 }
             }

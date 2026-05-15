@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading;
+using Microsoft.AspNetCore.Mvc;
+using Nirvana.Development.Manager;
 using Nirvana.Public.Message;
 using NirvanaAPI.Utils.CodeTools;
 
@@ -11,21 +13,21 @@ public class PluginsListController : ControllerBase {
     [HttpGet("/api/plugins/get")]
     public IActionResult GetPluginsListHttp()
     {
-        var entity = PluginMessage.GetPluginListSafe();
+        var entity = PluginManager.GetPluginStates();
         return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 
     [HttpGet("/api/plugins/toggle")]
     public IActionResult TogglePluginHttp(string id)
     {
-        PluginMessage.TogglePlugin(id);
+        PluginManager.TogglePlugin(id);
         return Ok(Code.ToJson(ErrorCode.Success));
     }
 
     [HttpGet("/api/plugins/delete")]
     public IActionResult DeletePluginHttp(string id)
     {
-        PluginMessage.DeletePlugin(id);
+        PluginManager.DeletePlugin(id);
         // 避免执行过快
         Thread.Sleep(1000);
         return Ok(Code.ToJson(ErrorCode.Success));
@@ -34,25 +36,7 @@ public class PluginsListController : ControllerBase {
     [HttpGet("/api/plugins/dependence")]
     public IActionResult GetDependenceListHttp(string? id = null, string? version = null)
     {
-        var entity = PluginMessage.GetDependenceList(id, version).Result;
-        var support = false; // 无支持插件
-        var size = 0; // 插件数量
-        foreach (var entity1 in entity.ToList()) {
-            foreach (var entity2 in entity1.Data) {
-                if (PluginMessage.IsPluginExist(entity2.Id)) {
-                    support = true; // 有支持插件
-                    entity.Remove(entity1);
-                }
-
-                size++;
-            }
-        }
-
-        // 无支持插件 并 没有可安装的插件
-        if (!support && size == 0) {
-            return Ok(Code.ToJson(ErrorCode.GamePlugin));
-        }
-
+        var entity = PluginMessage.GetDependenceList(id, version);
         return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 }

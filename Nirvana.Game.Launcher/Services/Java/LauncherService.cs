@@ -1,8 +1,15 @@
+using System;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Nirvana.Cipher.Cipher.Nirvana;
+using Nirvana.Cipher.Cipher.Nirvana.Protocols;
 using Nirvana.Game.Launcher.Entities;
+using Nirvana.Game.Launcher.Services.Java.RPC;
 using Nirvana.Game.Launcher.Utils;
 using Nirvana.Game.Launcher.Utils.Progress;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameLaunch;
@@ -10,8 +17,6 @@ using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameLaunch.Texture;
 using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
 using NirvanaAPI.Utils;
-using OpenSDK.Cipher.Nirvana;
-using OpenSDK.Cipher.Nirvana.Protocols;
 using Serilog;
 
 namespace Nirvana.Game.Launcher.Services.Java;
@@ -33,19 +38,15 @@ public sealed class LauncherService : IDisposable {
         Entity = entityLaunchGame;
         _skip32 = new Skip32Cipher((from c in "SaintSteve".ToCharArray() select (byte)c).ToArray());
         _socketPort = Tools.GetUnusedPort(9876);
-        Identifier = Guid.NewGuid();
     }
 
     public EntityLaunchGame Entity { get; }
-
-    private Guid Identifier { get; }
 
     private Process? GameProcess { get; set; }
 
     public void Dispose()
     {
         Dispose(true);
-        GC.SuppressFinalize(this);
     }
 
     private Process? GetProcess()
@@ -190,7 +191,6 @@ public sealed class LauncherService : IDisposable {
     {
         GameProcess = process;
         GameProcess.EnableRaisingEvents = true;
-        GameProcess.Exited += OnGameProcessExited;
         SyncProgressBarUtil.ProgressBar.ClearCurrent();
         Console.WriteLine();
         Log.Information("Game launched successfully. Game Version: {0}, Process ID: {1}, Role: {2}", Entity.GameVersion, process.Id, Entity.RoleName);
@@ -203,17 +203,12 @@ public sealed class LauncherService : IDisposable {
         Log.Error("Game launch failed. Game Version: {0}, Role: {1}", Entity.GameVersion, Entity.RoleName);
     }
 
-    public event Action<Guid>? Exited;
-
-    private void OnGameProcessExited(object? sender, EventArgs e)
-    {
-        Exited?.Invoke(Identifier);
-    }
-
     private void Dispose(bool disposing)
     {
-        if (_disposed) return;
-        if (disposing)
+        if (_disposed) {
+            return;
+        }
+        if (disposing) {
             try {
                 _authLibProtocol?.Dispose();
                 _gameRpcService?.CloseControlConnection();
@@ -224,12 +219,8 @@ public sealed class LauncherService : IDisposable {
             } catch (Exception ex) {
                 Log.Warning(ex, "Error occurred during disposal");
             }
-
+        }
         _disposed = true;
     }
 
-    ~LauncherService()
-    {
-        Dispose(false);
-    }
 }

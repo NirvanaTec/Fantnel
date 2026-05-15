@@ -1,8 +1,13 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Nirvana.Game.Launcher.Entities;
 using Nirvana.Game.Launcher.Utils;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.Launch;
@@ -125,22 +130,18 @@ public class CommandService {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
             pattern = "*.so";
         }
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
             pattern = "*.dylib";
         }
-        
-        var files = Directory.GetFiles(
-            fantNativesPath,
-            pattern,
-            SearchOption.AllDirectories
-        );
+
+        var files = Directory.GetFiles(fantNativesPath, pattern, SearchOption.AllDirectories);
 
         foreach (var file in files) {
             File.Copy(file, Path.Combine(nativesPath, Path.GetFileName(file)));
         }
-        
+
         Directory.Delete(fantNativesPath, true);
-        
     }
 
     private void InstallNativeDll()
@@ -458,9 +459,7 @@ public class CommandService {
         }
 
         // 没有启动参数
-        if (string.IsNullOrEmpty(minecraftArguments)) {
-            throw new ArgumentNullException(minecraftArguments);
-        }
+        ArgumentException.ThrowIfNullOrEmpty(minecraftArguments);
 
         jvmArguments = GameArgumentsUtil.AddArguments(jvmArguments, BuildCommandExFix()); // 添加 修复参数
 
@@ -526,6 +525,7 @@ public class CommandService {
                     Log.Warning("Fix Native Continue {0}", filePath);
                     continue;
                 }
+
                 if (EntityJavaFile.Contains("org/lwjgl/", filePath)) {
                     Log.Warning("Fix Lwjgl Continue {0}", filePath);
                     continue;
@@ -534,7 +534,7 @@ public class CommandService {
 
             combinedPaths.Append(fullPath);
         }
-        
+
         if (_minecraft.Count == 0) {
             return text.Replace(sourceText.Item1, " -" + name + " \"" + combinedPaths + "\"");
         }
@@ -543,7 +543,7 @@ public class CommandService {
         foreach (var item in _minecraft.Where(item => item.StartsWith("org/lwjgl/"))) {
             Log.Warning("Fix Lwjgl Auto {0}", item.GetPath1());
             if (item.DownloadAuto()) {
-                combinedPaths.Append(item.GetPathSeparator());   
+                combinedPaths.Append(item.GetPathSeparator());
             }
         }
 

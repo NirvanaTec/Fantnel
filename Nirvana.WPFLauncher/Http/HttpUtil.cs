@@ -1,4 +1,6 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Nirvana.WPFLauncher.Http;
@@ -44,8 +46,9 @@ public static class HttpUtil {
 
     public static byte[]? HttpDecrypt(byte[] body)
     {
-        if (body.Length < 0x12)
+        if (body.Length < 0x12) {
             return null;
+        }
 
         var encryptedData = body.Skip(16).Take(body.Length - 1 - 16).ToArray();
 
@@ -54,9 +57,11 @@ public static class HttpUtil {
         var scissor = 0;
         var scissorPos = decryptedData.Length - 1;
 
-        while (scissor < 16)
-            if (decryptedData[scissorPos--] != 0x00)
+        while (scissor < 16) {
+            if (decryptedData[scissorPos--] != 0x00) {
                 scissor++;
+            }
+        }
 
         return decryptedData.Take(scissorPos + 1).ToArray();
     }

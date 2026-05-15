@@ -1,4 +1,11 @@
-﻿using Nirvana.Game.Launcher.Utils;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Nirvana.Development.Manager;
+using Nirvana.Game.Launcher.Utils;
 using Nirvana.Public.Entities.Nirvana;
 using Nirvana.Public.Entities.Plugin;
 using Nirvana.WPFLauncher.Http;
@@ -11,7 +18,7 @@ namespace Nirvana.Public.Message;
 
 public static class PlugInstoreMessage {
     // 插件列表缓存 锁
-    public static readonly Lock PluginListLock = new();
+    private static readonly Lock PluginListLock = new();
 
     // 插件列表 - 缓存
     private static readonly List<EntityComponents> PluginList = [];
@@ -22,7 +29,10 @@ public static class PlugInstoreMessage {
         lock (PluginListLock) {
             // 分页 异常顺序 检测
             var size = offset + (limit - 10);
-            if (PluginList.Count < size) GetPluginList(0, size).Wait();
+            if (PluginList.Count < size) {
+                GetPluginList(0, size).Wait();
+            }
+
             // 分页
             size = (offset == 0 ? 1 : offset) * limit;
             if (PluginList.Count >= size) {
@@ -79,14 +89,11 @@ public static class PlugInstoreMessage {
      */
     public static void AutoUpdateCheck()
     {
-        // 清理相同ID的插件
-        PluginMessage.CleanSameIdPlugin();
-
         if (!NirvanaConfig.GetBool("autoUpdatePlugin")) {
             return;
         }
 
-        var plugins = PluginMessage.GetPluginList();
+        var plugins = PluginManager.GetPluginStates();
         foreach (var plugin in plugins) {
             var downloadInfo = GetDownloadInfoUrl(plugin.Id);
             if (downloadInfo?.Data == null || downloadInfo.Code != 1) {
@@ -124,7 +131,7 @@ public static class PlugInstoreMessage {
             throw new ErrorCodeException(ErrorCode.NotFound);
         }
 
-        PluginMessage.DeletePlugin(id);
+        PluginManager.DeletePlugin(id);
         // 下载插件 保存路径
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
         // 自动插件 插件 文件夹
@@ -152,18 +159,17 @@ public static class PlugInstoreMessage {
      */
     private static bool NoEqualsPlugin(string? fileMd5, long? fileSize)
     {
-        // 获取 插件目录数组 和 md5数组
-        var filesPath = PluginMessage.GetPluginDirectoryAndMd5List();
-        for (var i = 0; i < filesPath.Item2.Length; i++) {
+        // 获取 插件文件路径 和 md5
+        foreach (var item in PluginManager.GetPluginPathAndMd5()) {
             // MD5 不匹配 则跳过
             if (fileMd5 is { Length: > 31 }) {
-                if (!filesPath.Item2[i].Equals(fileMd5)) {
+                if (!item.Value.Equals(fileMd5)) {
                     continue;
                 }
             }
 
             // 文件大小 匹配 则返回
-            var file = new FileInfo(filesPath.Item1[i]);
+            var file = new FileInfo(item.Key);
             if (fileSize == file.Length) {
                 return false;
             }

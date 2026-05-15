@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Nirvana.Public.Entities.Login;
 using Nirvana.Public.Entities.Nirvana;
 using Nirvana.Public.Message;
@@ -45,7 +46,7 @@ public class GameAccountController : ControllerBase {
     [HttpGet("/api/gameaccount/captcha4399/content")]
     public IActionResult GetCaptcha4399ContentHttp()
     {
-        var captcha = AccountMessage.GetCaptcha4399Content().Result;
+        var captcha = AccountMessage.GetCaptcha4399Content();
         return Ok(Code.ToJson(ErrorCode.Success, captcha));
     }
 

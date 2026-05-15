@@ -1,12 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using NirvanaAPI.Utils;
 using Serilog;
 
 namespace Nirvana.Public.Utils.Update;
 
 public static class FileUtil {
-
     private static string GenerateUpdateScript(string command = "", string? filePath = null)
     {
         var updateScript = GenerateCopyScript(PathUtil.UpdaterPath, PathUtil.UpdaterBasePath);

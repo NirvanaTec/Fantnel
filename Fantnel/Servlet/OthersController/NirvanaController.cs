@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Nirvana.Public.Manager;
 using NirvanaAPI;
 using NirvanaAPI.Utils.CodeTools;
@@ -28,7 +29,7 @@ public class NirvanaController : ControllerBase {
     [HttpGet("/api/nirvana/account/get")]
     public IActionResult GetAccount()
     {
-        var entity = NirvanaAccountManager.GetLoginInfo().Result;
+        var entity = NirvanaAccountManager.GetLoginInfo();
         return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 

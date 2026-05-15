@@ -1,10 +1,11 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Nirvana.Game.Launcher.Services.Java;
 using Nirvana.Game.Launcher.Utils;
 using Nirvana.Public.Entities.NEL;
 using Nirvana.Public.Manager;
 using Nirvana.WPFLauncher.Protocol;
-using NirvanaAPI.Manager;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
 using Serilog;
@@ -19,52 +20,12 @@ public static class ProxiesMessage {
      */
     public static async Task<EntityProxyBase> StartProxyAsync(string id, string name, string mode = "net")
     {
+        Log.Information("--------------");
         Log.Information("正在启动本地代理...");
         Log.Information("名称：{0}", name);
         ActiveGameAndProxies.Close(id, name); // 清理旧代理
-
-        // 子窗口的方式启动代理
         var port = Tools.GetUnusedPort(); // 获取没被占用的端口
-
-        // 插件未初始化
-        if (!PluginMessage.IsPluginChanged()) {
-            return await StartProxyAsyncTo(id, name, port, mode);
-        }
-
-        List<string> arguments = ["--mode", "proxy", "--id", id, "--name", name];
-        if (port != 25565) {
-            arguments.Add("--port");
-            arguments.Add(port.ToString());
-        }
-
-        if (mode != "net") {
-            arguments.Add("--proxyMode");
-            arguments.Add(mode);
-        }
-
-        // 避免 在 linux 上，控制台关闭导致，子进程控制台被隐藏
-        arguments.Add("--MainPid");
-        arguments.Add(Environment.ProcessId.ToString());
-
-        var gameAccountId = InfoManager.GetGameAccount().Id;
-        if (gameAccountId == null) {
-            throw new ErrorCodeException(ErrorCode.LoadAccountError);
-        }
-
-        var gameAccountIdString = gameAccountId.ToString();
-        if (gameAccountIdString == null) {
-            throw new ErrorCodeException(ErrorCode.LoadAccountError);
-        }
-
-        arguments.Add("--account");
-        arguments.Add(gameAccountIdString);
-
-        var process = Tools.Restart(false, arguments);
-        if (process == null) {
-            throw new ErrorCodeException(ErrorCode.RestartFailed);
-        }
-
-        return await ActiveGameAndProxies.Add(process, id, name, port);
+        return await StartProxyAsyncTo(id, name, port, mode);
     }
 
     /**

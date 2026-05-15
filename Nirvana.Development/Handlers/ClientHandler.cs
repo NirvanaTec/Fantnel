@@ -1,27 +1,25 @@
-﻿using Codexus.Development.SDK.Connection;
-using Codexus.Development.SDK.Enums;
 using DotNetty.Buffers;
 using DotNetty.Transport.Channels;
+using Nirvana.Development.Connection;
+using Nirvana.Development.Utils;
 
 namespace Nirvana.Development.Handlers;
 
 public class ClientHandler(GameConnection connection) : ChannelHandlerAdapter {
-    public override void ChannelRead(IChannelHandlerContext context, object message)
+    public override void ChannelActive(IChannelHandlerContext context)
     {
-        if (message is not IByteBuffer buffer) {
-            return;
-        }
-
-        var processedBuffer = OnServerReceived(buffer);
-        if (processedBuffer == null) {
-            return;
-        }
-
-        base.ChannelRead(context, processedBuffer);
+        context.Channel.GetAttribute(ChannelAttribute.Connection).Set(connection);
     }
 
-    private IByteBuffer? OnServerReceived(IByteBuffer buffer)
+    public override void ChannelRead(IChannelHandlerContext context, object message)
     {
-        return ServerHandler.HandlePacketReceived(connection, buffer, EnumPacketDirection.ClientBound);
+        if (message is IByteBuffer buffer) {
+            connection.OnServerReceived(buffer);
+        }
+    }
+
+    public override void ChannelInactive(IChannelHandlerContext context)
+    {
+        context.Channel.GetAttribute(ChannelAttribute.Connection).Remove();
     }
 }

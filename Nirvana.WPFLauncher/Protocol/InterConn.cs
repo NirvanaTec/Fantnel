@@ -1,4 +1,5 @@
-﻿using Nirvana.WPFLauncher.Entities.WPFLauncher;
+﻿using System.Threading.Tasks;
+using Nirvana.WPFLauncher.Entities.WPFLauncher;
 using Nirvana.WPFLauncher.Http;
 using Serilog;
 

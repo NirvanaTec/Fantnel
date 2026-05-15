@@ -20,10 +20,4 @@
         <ProjectReference Include="..\NirvanaAPI\NirvanaAPI.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Reference Include="Codexus.Development.SDK">
-            <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
 </Project>

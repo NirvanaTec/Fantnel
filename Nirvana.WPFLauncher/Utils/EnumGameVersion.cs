@@ -90,7 +90,7 @@ public enum EnumGameVersion : uint {
     // ReSharper disable once InconsistentNaming
     [XmlEnum(Name = "1.21.8")]
     V_1_21_8 = 1021008, // 0x000F9448
-    
+
     // ReSharper disable once InconsistentNaming
     [XmlEnum(Name = "100.0.0")]
     V_CPP = 100000000, // 0x05F5E100
@@ -101,6 +101,5 @@ public enum EnumGameVersion : uint {
 
     [XmlEnum(Name = "300.0.0")]
     // ReSharper disable once InconsistentNaming
-    V_X64_CPP = 300000000, // 0x11E1A300
-    
+    V_X64_CPP = 300000000 // 0x11E1A300
 }

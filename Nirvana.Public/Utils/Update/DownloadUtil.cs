@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Downloader;
 using Nirvana.Game.Launcher.Utils.Progress;
 using Serilog;

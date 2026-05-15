@@ -13,7 +13,7 @@ public class GameRentalController : ControllerBase {
     [HttpGet("/api/gamerental/get")]
     public IActionResult GetRentalGameListHttp([FromQuery] int offset, [FromQuery] int pageSize)
     {
-        var entity = RentalGameMessage.GetServerList(offset, pageSize).Result;
+        var entity = RentalGameMessage.GetServerList(offset, pageSize);
         return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 

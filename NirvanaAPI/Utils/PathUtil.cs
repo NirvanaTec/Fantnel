@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace NirvanaAPI.Utils;
@@ -12,6 +14,7 @@ public static class PathUtil {
 
     public static readonly string UpdaterBasePath = AppDomain.CurrentDomain.BaseDirectory;
     public static readonly string UpdaterPath = Path.Combine(UpdaterBasePath, "updater");
+    public static readonly string PluginsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
 
     // 脚本后缀
     public static readonly string ScriptSuffix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".bat" : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ".command" : ".sh";
@@ -40,7 +43,7 @@ public static class PathUtil {
     public static readonly string Jre8Path = Path.Combine(JavaPath, "jre8");
 
     public static readonly string Jre17Path = Path.Combine(JavaPath, "jdk17");
-    
+
     public static readonly string Jre21Path = Path.Combine(JavaPath, "jdk21");
 
     public static string JavaExePath => GetJavaExePath(); // javaw.exe

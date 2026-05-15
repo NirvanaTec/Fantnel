@@ -1,6 +1,11 @@
-﻿using System.Text.Json;
-using Codexus.Development.SDK.Entities;
-using Codexus.Interceptors;
+﻿using System;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Nirvana.Cipher.Entities.Yggdrasil;
+using Nirvana.Cipher.Yggdrasil;
+using Nirvana.Development;
+using Nirvana.DevPlugin.Entities;
+using Nirvana.Heypixel;
 using Nirvana.Public.Message;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameCharacters;
@@ -10,13 +15,12 @@ using Nirvana.WPFLauncher.Entities.WPFLauncher.RentalGame.GameCharacters;
 using NirvanaAPI.Entities.Login;
 using NirvanaAPI.Manager;
 using NirvanaAPI.Utils.CodeTools;
-using OpenSDK.Entities.Yggdrasil;
-using OpenSDK.Yggdrasil;
 using Serilog;
 
 namespace Nirvana.Public.Manager;
 
 public class InterceptorManager {
+    
     private readonly EntityAccount _availableUser;
 
     private readonly string _entityId;
@@ -24,6 +28,11 @@ public class InterceptorManager {
     private readonly string _versionName;
     public readonly Interceptor Interceptor;
 
+    static InterceptorManager()
+    {
+        HeypixelProtocol.Init();
+    }
+    
     public InterceptorManager(EntityQueryNetGameDetailItem server, EntityGameCharacter character, EntityMcVersion version, EntityNetGameServerAddress address, string mods, int port)
     {
         _mods = mods;
@@ -31,7 +40,7 @@ public class InterceptorManager {
         _entityId = server.EntityId;
         _availableUser = InfoManager.GetGameAccount();
         // 创建代理
-        Interceptor = Interceptor.CreateInterceptor(false, new EntitySocks5 { Enabled = false }, mods, server.EntityId, server.Name, version.Name, address.Host, address.Port, character.Name, _availableUser.GetUserId(), _availableUser.GetToken(), YggdrasilCallback, "0.0.0.0", port);
+        Interceptor = Interceptor.CreateInterceptor(false, mods, server.EntityId, server.Name, version.Name, address.Host, address.Port, character.Name, _availableUser, YggdrasilCallback, port);
     }
 
     public InterceptorManager(EntityRentalGameDetails server, EntityRentalGamePlayerList character, string versionName, EntityRentalGameServerAddress address, string mods, int port)
@@ -41,7 +50,7 @@ public class InterceptorManager {
         _entityId = server.EntityId;
         _availableUser = InfoManager.GetGameAccount();
         // 创建代理
-        Interceptor = Interceptor.CreateInterceptor(true, new EntitySocks5 { Enabled = false }, mods, server.EntityId, server.ServerName, versionName, address.McServerHost, address.McServerPort, character.Name, _availableUser.GetUserId(), _availableUser.GetToken(), YggdrasilCallback, "0.0.0.0", port);
+        Interceptor = Interceptor.CreateInterceptor(true, mods, server.EntityId, server.ServerName, versionName, address.McServerHost, address.McServerPort, character.Name, _availableUser, YggdrasilCallback, port);
     }
 
     private void YggdrasilCallback(InterceptorConfig config, string serverId)

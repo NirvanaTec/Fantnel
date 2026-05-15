@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using System;
+using Serilog;
 using Serilog.Events;
 
 namespace Nirvana.Public.Utils.ViewLogger;

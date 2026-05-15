@@ -1,7 +1,13 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Nirvana.WPFLauncher.Http;
 
@@ -73,9 +79,11 @@ public class HttpWrapper : IDisposable {
         if (httpRequestOptions.HttpVersion != null) {
             httpRequestMessage.Version = httpRequestOptions.HttpVersion;
         }
+
         foreach (var header in httpRequestOptions.Headers) {
             httpRequestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
         }
+
         return httpRequestMessage;
     }
 
@@ -85,6 +93,7 @@ public class HttpWrapper : IDisposable {
         if (queryParams.Count == 0) {
             return text;
         }
+
         var text2 = string.Join("&", queryParams.Select(kv => Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value)));
         var text3 = text.Contains('?') ? "&" : "?";
         return text + text3 + text2;
@@ -96,5 +105,4 @@ public class HttpWrapper : IDisposable {
             Client.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
         }
     }
-    
 }

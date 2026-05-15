@@ -1,4 +1,8 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Nirvana.Game.Launcher.Services.Java;
 using Nirvana.Game.Launcher.Utils;
 using NirvanaAPI.Utils;
@@ -83,7 +87,7 @@ public class EntityJavaFile {
         var it = FixPath(value);
         return _filePath1.Contains(it) || it.Contains(_filePath1);
     }
-    
+
     public bool StartsWith(string value)
     {
         var it = FixPath(value);

@@ -360,22 +360,13 @@ status == 0 时 status 变成 1
 /api/server/get : 获取已启动的代理信息
 {
   "data": {
-    "ip": "10.62.8.45",
     "proxies": [
       {
-        "Interceptor": {
-          "IsRental": false,
-          "LocalPort": 25565,
-          "NickName": "我喜欢你呀嗡嗡嗡",
-          "ForwardAddress": "pc.bjd-mc.com",
-          "ForwardPort": 25565,
-          "ServerName": "布吉岛·新玩法上线",
-          "ServerVersion": "1.20",
-          "CurrentConfig": {
-            "game_id": "4661334467366178884",
-            "user_id": "861518622"
-          }
-        },
+        "is_rental": false,
+        "nick_name": "我喜欢你呀嗡嗡嗡",
+        "local_port": 25565,
+        "local_address": "localhost",
+        "server_name": "布吉岛·新玩法上线",
         "id": 1
       }
     ]

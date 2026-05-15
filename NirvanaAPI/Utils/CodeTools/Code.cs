@@ -1,16 +1,9 @@
+using System;
 using NirvanaAPI.Entities;
 
 namespace NirvanaAPI.Utils.CodeTools;
 
 public static class Code {
-    public static EntityResponse<string> ToJson(Exception t)
-    {
-        var json = new EntityResponse<string> {
-            Code = -1,
-            Msg = t.Message
-        };
-        return json;
-    }
 
     public static EntityResponse<object> ToJson(ErrorCode code, object? data = null)
     {

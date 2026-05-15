@@ -1,6 +1,9 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Nirvana.WPFLauncher.Entities;
 using Nirvana.WPFLauncher.Entities.WPFLauncher;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.Login;
@@ -189,7 +192,6 @@ public static class NPFLauncher {
         }
 
         // await InterConn.LoginStart();
-        // await Task.Run((Func<Task>) (async () => await Http.GetAsync($"https://service.codexus.today/interconnection/report?id={user.EntityId}&token={user.Token}&version={this.MPay.GameVersion}")));
         return await AuthenticationOtpAsync(cookie, otp);
     }
 

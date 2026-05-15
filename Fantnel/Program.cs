@@ -1,6 +1,11 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
+using System.Text;
 using Fantnel.Servlet;
 using Fantnel.Servlet.OthersController;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Nirvana.Public;
 using Nirvana.Public.Utils;
@@ -101,7 +106,7 @@ public static class Program {
             Log.Information("------");
             Log.Information("官方网址: https://npyyds.top/");
             Log.Information("最终解释权归于 涅槃科技 所有!");
-            Log.Information("-------- 涅槃科技 & Codexus [OpenSDK] ----------");
+            Log.Information("-------- 涅槃科技 ----------");
 
             // Fantnel 初始化
             InitProgram.NelInit1();

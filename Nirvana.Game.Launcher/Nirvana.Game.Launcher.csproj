@@ -1,40 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
-        <AssemblyName>Nirvana.Game.Launcher</AssemblyName>
-        <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
         <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Copyright>Nirvana And Codexus</Copyright>
-        <Authors/>
+        <Copyright>涅槃科技 © 版权所有</Copyright>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <DebugType>embedded</DebugType>
-    </PropertyGroup>
+
     <ItemGroup>
-        <PackageReference Include="Downloader" Version="5.4.0" />
+        <PackageReference Include="Downloader" Version="5.5.0"/>
         <PackageReference Include="Serilog" Version="4.3.1"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
         <PackageReference Include="Serilog.Sinks.Console.LogThemes" Version="0.4.0"/>
-        <PackageReference Include="SharpCompress" Version="0.48.0" />
+        <PackageReference Include="SharpCompress" Version="0.48.0"/>
         <PackageReference Include="System.Management" Version="10.0.7"/>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.7"/>
     </ItemGroup>
+
     <ItemGroup>
-        <Folder Include="Services\"/>
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Nirvana.Development\Nirvana.Development.csproj"/>
+        <ProjectReference Include="..\Nirvana.Cipher\Nirvana.Cipher.csproj"/>
         <ProjectReference Include="..\NirvanaAPI\NirvanaAPI.csproj"/>
-        <ProjectReference Include="..\OpenSDK\OpenSDK.csproj"/>
         <ProjectReference Include="..\Nirvana.WPFLauncher\Nirvana.WPFLauncher.csproj"/>
     </ItemGroup>
-    <ItemGroup>
-        <Reference Include="Codexus.Development.SDK">
-            <HintPath>..\SDK\Codexus.Development.SDK.dll</HintPath>
-        </Reference>
-        <Reference Include="Codexus.Game.Launcher">
-            <HintPath>..\SDK\Codexus.Game.Launcher.dll</HintPath>
-        </Reference>
-    </ItemGroup>
+
 </Project>

@@ -13,7 +13,7 @@ public class GameServerController : ControllerBase {
     [HttpGet("/api/gameserver/get")]
     public IActionResult GetServerHttp([FromQuery] int offset = 0, [FromQuery] int pageSize = 10, [FromQuery] string version = "")
     {
-        var entity = ServersGameMessage.GetServerListTo(offset, pageSize, true, version).Result;
+        var entity = ServersGameMessage.GetServerListTo(offset, pageSize, true, version);
         return Ok(Code.ToJson(ErrorCode.Success, entity));
     }
 

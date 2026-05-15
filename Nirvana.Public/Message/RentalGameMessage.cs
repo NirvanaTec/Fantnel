@@ -1,4 +1,9 @@
-﻿using Nirvana.Public.Manager;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Nirvana.Public.Manager;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.RentalGame;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.RentalGame.GameCharacters;
 using Nirvana.WPFLauncher.Protocol;
@@ -12,12 +17,23 @@ public static class RentalGameMessage {
     public static Dictionary<string, EntityRentalGameDetails> ServerList = [];
 
     /**
+     * * 获取服务器列表[普通信息]
+     * * @param offset 偏移量
+     * * @param pageSize 每页数量
+     * * @return 服务器列表[普通信息]
+     */
+    public static EntityRentalGameDetails[] GetServerList(int offset = 0, int pageSize = 10)
+    {
+        return GetServerListAsync(offset, pageSize).GetAwaiter().GetResult();
+    }
+
+    /**
      * 获取服务器列表[普通信息]
      * @param offset 偏移量
      * @param pageSize 每页数量
      * @return 服务器列表[普通信息]
      */
-    public static async Task<EntityRentalGameDetails[]> GetServerList(int offset = 0, int pageSize = 10)
+    private static async Task<EntityRentalGameDetails[]> GetServerListAsync(int offset = 0, int pageSize = 10)
     {
         var index = -pageSize; // 循环次数
         var count = offset + pageSize;

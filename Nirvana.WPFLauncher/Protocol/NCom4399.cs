@@ -1,5 +1,8 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
+using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Nirvana.WPFLauncher.Entities.Pc4399.Com4399;
 using Nirvana.WPFLauncher.Utils;
 

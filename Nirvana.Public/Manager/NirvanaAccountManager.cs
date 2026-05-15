@@ -1,4 +1,5 @@
-﻿using Nirvana.Chat.Message;
+﻿using System;
+using System.Threading.Tasks;
 using Nirvana.Public.Entities.Nirvana;
 using Nirvana.WPFLauncher.Http;
 using NirvanaAPI;
@@ -25,11 +26,17 @@ public static class NirvanaAccountManager {
         _days = null;
         NirvanaConfig.SetValue("account", account);
         NirvanaConfig.SetValue("token", entity.Token);
-        await ChatMessage.AuthenticateAsync();
+        // await ChatMessage.AuthenticateAsync();
     }
 
     // 获取信息
-    public static async Task<EntityAccountNirvanaConfig> GetLoginInfo()
+    public static EntityAccountNirvanaConfig GetLoginInfo()
+    {
+        return GetLoginInfoAsync().GetAwaiter().GetResult();
+    }
+
+    // 获取信息
+    private static async Task<EntityAccountNirvanaConfig> GetLoginInfoAsync()
     {
         NirvanaConfig.IsLogin(); // 检查是否登录
 
@@ -86,9 +93,8 @@ public static class NirvanaAccountManager {
     {
         NirvanaConfig.SetValue("chatEnable", value);
         if (NirvanaConfig.GetBool("chatEnable")) {
-            _ = ChatMessage.StartAsync();
-        } else {
-            ChatMessage.Shutdown();
+            // _ = ChatMessage.StartAsync();
         }
+        // ChatMessage.Shutdown();
     }
 }

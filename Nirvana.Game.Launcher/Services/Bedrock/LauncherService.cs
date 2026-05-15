@@ -1,8 +1,9 @@
+using System;
 using System.Diagnostics;
-using Codexus.Development.SDK.RakNet;
+using System.IO;
+using System.Threading.Tasks;
 using Nirvana.Game.Launcher.Entities;
 using Nirvana.Game.Launcher.Utils.Progress;
-using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameLaunch.Texture;
 using NirvanaAPI.Utils;
 using Serilog;
 
@@ -15,8 +16,6 @@ public sealed class LauncherService : IDisposable {
     private volatile bool _disposed;
 
     private Process? _gameProcess;
-
-    private IRakNet? _rakNet;
 
     private LauncherService(EntityLaunchPeGame entityLaunchGame)
     {
@@ -37,9 +36,15 @@ public sealed class LauncherService : IDisposable {
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed) {
+            return;
+        }
+
         lock (_disposeLock) {
-            if (_disposed) return;
+            if (_disposed) {
+                return;
+            }
+
             _disposed = true;
         }
 
@@ -48,7 +53,9 @@ public sealed class LauncherService : IDisposable {
                 _gameProcess.Exited -= OnGameProcessExited;
                 if (!_gameProcess.HasExited) {
                     _gameProcess.CloseMainWindow();
-                    if (!_gameProcess.WaitForExit(5000)) _gameProcess.Kill();
+                    if (!_gameProcess.WaitForExit(5000)) {
+                        _gameProcess.Kill();
+                    }
                 }
 
                 _gameProcess.Dispose();
@@ -56,13 +63,6 @@ public sealed class LauncherService : IDisposable {
             }
         } catch (Exception ex) {
             Log.Warning(ex, "Error disposing game process for {0}", Entity.GameId);
-        }
-
-        try {
-            _rakNet?.Shutdown();
-            _rakNet = null;
-        } catch (Exception ex2) {
-            Log.Warning(ex2, "Error shutting down RakNet for {0}", Entity.GameId);
         }
     }
 
@@ -75,7 +75,9 @@ public sealed class LauncherService : IDisposable {
             await DownloadGameResourcesAsync().ConfigureAwait(false);
             if (!_disposed) {
                 var port = await LaunchProxyAsync().ConfigureAwait(false);
-                if (!_disposed) await StartGameProcessAsync(port).ConfigureAwait(false);
+                if (!_disposed) {
+                    await StartGameProcessAsync(port).ConfigureAwait(false);
+                }
             }
         } catch (OperationCanceledException) {
             UpdateProgress(100, "Launch cancelled");
@@ -88,24 +90,15 @@ public sealed class LauncherService : IDisposable {
     private async Task DownloadGameResourcesAsync()
     {
         UpdateProgress(5, "Installing game resources");
-        if (!await InstallerService.DownloadMinecraftAsync().ConfigureAwait(false))
+        if (!await InstallerService.DownloadMinecraftAsync().ConfigureAwait(false)) {
             throw new InvalidOperationException("Failed to download Minecraft resources");
+        }
     }
 
     private Task<int> LaunchProxyAsync()
     {
         UpdateProgress(60, "Launching proxy");
         var availablePort = Tools.GetUnusedPort();
-        var availablePort2 = Tools.GetUnusedPort();
-        var remoteAddress = $"{Entity.ServerIp}:{Entity.ServerPort}";
-        var isRental = Entity.GameType == EnumGType.ServerGame;
-        try {
-            _rakNet = RakNetLoader.ConstructLoader()?.Create(remoteAddress, Entity.AccessToken, Entity.GameId, Convert.ToUInt32(Entity.UserId), Entity.AccessToken, Entity.GameName, Entity.RoleName, availablePort, availablePort2, isRental);
-        } catch (Exception ex) {
-            Log.Error(ex, "Bedrock interceptor failed to launch for {0}", Entity.GameId);
-            throw new InvalidOperationException("Failed to initialize RakNet proxy", ex);
-        }
-
         return Task.FromResult(availablePort);
     }
 

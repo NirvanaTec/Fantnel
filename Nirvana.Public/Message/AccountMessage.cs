@@ -1,9 +1,14 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.Json;
-using Codexus.Cipher.Entities.MPay;
-using Codexus.Cipher.Protocol;
+using System.Threading;
+using System.Threading.Tasks;
 using Nirvana.Public.Entities.Nirvana;
 using Nirvana.Public.Manager;
+using Nirvana.WPFLauncher.Entities.MPay;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.Login;
 using Nirvana.WPFLauncher.Http;
 using Nirvana.WPFLauncher.Protocol;
@@ -18,7 +23,6 @@ using Serilog;
 namespace Nirvana.Public.Message;
 
 public static class AccountMessage {
-    
     // 保存/修改 游戏账号锁
     private static readonly Lock GameSaveAccountLock = new();
 
@@ -159,6 +163,7 @@ public static class AccountMessage {
         if (account.Password == null) {
             throw new ErrorCodeException(ErrorCode.PasswordError);
         }
+
         lock (LoginLock) {
             EntityAuthenticationOtp? result = null; // 登录结果
 
@@ -200,6 +205,7 @@ public static class AccountMessage {
             account.Token = result.Token;
             InfoManager.AddAccount(account);
         }
+
         // 登录成功后 保存账号
         SaveAccount();
         CacheManager.CacheServer();
@@ -322,7 +328,7 @@ public static class AccountMessage {
     {
         if ("4399".Equals(account.Type) || "4399com".Equals(account.Type)) {
             UpdateCaptcha();
-            Captcha4399 = GetCaptcha4399Content().Result;
+            Captcha4399 = GetCaptcha4399Content();
         }
 
         Login(account);
@@ -391,12 +397,22 @@ public static class AccountMessage {
      * 获取4399验证码内容
      * @return 4399验证码内容
      */
-    public static async Task<string> GetCaptcha4399Content()
+    public static string GetCaptcha4399Content()
+    {
+        return GetCaptcha4399ContentAsync().GetAwaiter().GetResult();
+    }
+
+    /**
+     * 获取4399验证码内容
+     * @return 4399验证码内容
+     */
+    private static async Task<string> GetCaptcha4399ContentAsync()
     {
         if (Captcha4399Bytes == null) {
             throw new ErrorCodeException(ErrorCode.Failure);
         }
-        var response = await X19Extensions.Nirvana.Api<EntityResponse<string>>("/api/fantnel/captcha", new ByteArrayContent(Captcha4399Bytes));
+
+        var response = await X19Extensions.Nirvana.ApiBytes<EntityResponse<string>>("/api/fantnel/captcha", Captcha4399Bytes);
         return response?.Data ?? throw new ErrorCodeException(ErrorCode.Failure);
     }
 

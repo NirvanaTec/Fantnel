@@ -1,6 +1,10 @@
+using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Serilog;
 
 namespace NirvanaAPI.Utils;
@@ -21,6 +25,7 @@ public static class FileUtil {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) {
             return string.Empty;
         }
+
         try {
             using var inputStream = File.OpenRead(path);
             using var mD = MD5.Create();
@@ -37,6 +42,7 @@ public static class FileUtil {
         if (string.IsNullOrWhiteSpace(path)) {
             return;
         }
+
         DeleteDirectorySafe(path);
         Directory.CreateDirectory(path);
     }
@@ -46,6 +52,7 @@ public static class FileUtil {
         if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) {
             return;
         }
+
         try {
             Directory.Delete(path, true);
         } catch (IOException) { } catch (UnauthorizedAccessException) { }
@@ -130,6 +137,37 @@ public static class FileUtil {
             process?.WaitForExit();
         } catch (Exception e) {
             Log.Warning("警告：使用 chmod 设置 {0} 权限时出错: {1}", filePath, e.Message);
+        }
+    }
+
+    public static bool IsFileReadable(string filePath)
+    {
+        try {
+            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return fileStream.Length > 0;
+        } catch {
+            return false;
+        }
+    }
+
+    public static async Task WriteFileSafelyAsync(string filePath, byte[] buffer)
+    {
+        var tempFile = filePath + ".tmp";
+        try {
+            await File.WriteAllBytesAsync(tempFile, buffer);
+            if (File.Exists(tempFile) && new FileInfo(tempFile).Length > 0) {
+                if (File.Exists(filePath)) {
+                    File.Delete(filePath);
+                }
+
+                File.Move(tempFile, filePath);
+            }
+        } catch {
+            if (File.Exists(tempFile)) {
+                File.Delete(tempFile);
+            }
+
+            throw;
         }
     }
 }

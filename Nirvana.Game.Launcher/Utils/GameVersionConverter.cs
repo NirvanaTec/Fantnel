@@ -1,4 +1,6 @@
-﻿using Nirvana.WPFLauncher.Utils;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Nirvana.WPFLauncher.Utils;
 
 namespace Nirvana.Game.Launcher.Utils;
 
@@ -73,8 +75,7 @@ public static class GameVersionConverter {
         }, {
             "24",
             EnumGameVersion.V_1_21
-        },
-        {
+        }, {
             "25",
             EnumGameVersion.V_1_21_8
         }
@@ -84,5 +85,4 @@ public static class GameVersionConverter {
     {
         return (from version in VersionMap where versionId == (uint)version.Value select version.Value).FirstOrDefault();
     }
-
 }

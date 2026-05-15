@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Nirvana.WPFLauncher.Utils;
 
 namespace Nirvana.Game.Launcher.Utils;
@@ -49,8 +51,7 @@ public static class GameVersionUtil {
         }, {
             "1.21",
             EnumGameVersion.V_1_21
-        },
-        {
+        }, {
             "1.21.8",
             EnumGameVersion.V_1_21_8
         }

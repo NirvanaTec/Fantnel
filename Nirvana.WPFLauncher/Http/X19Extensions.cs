@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Nirvana.WPFLauncher.Protocol;
 using Nirvana.WPFLauncher.Utils;
 
@@ -12,7 +14,7 @@ public class X19Extensions(string url, bool token = true) {
     public static readonly X19Extensions Nirvana = new("http://110.42.70.32:13423", false);
     public static readonly X19Extensions Bmcl = new("https://bmclapi2.bangbang93.com", false);
     public static readonly X19Extensions Pt4399 = new("https://ptlogin.4399.com", false);
-    
+
     public readonly HttpWrapper HttpWrapper = new(url, options => { options.UserAgent("WPFLauncher/0.0.0.0"); });
 
     private async Task<HttpResponseMessage> ApiSend(string url, string? body = null, string? userId = null, string? userToken = null)
@@ -30,14 +32,37 @@ public class X19Extensions(string url, bool token = true) {
         });
     }
 
+    private async Task<HttpResponseMessage> ApiSendBytes(string url, byte[]? body = null)
+    {
+        return body == null ? await HttpWrapper.GetAsync(url) : await HttpWrapper.PostAsync(url, body);
+    }
+
+    private async Task<string> Api(string url, byte[]? body = null)
+    {
+        var response = await ApiSendBytes(url, body);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    public async Task<T?> ApiBytes<T>(string url, byte[]? body = null)
+    {
+        var response = await Api(url, body);
+        return ToType<T>(response);
+    }
+
     public async Task<T?> Api<T>(string url, object? body = null, string? userId = null, string? userToken = null)
     {
-        return await Api<T>(url, JsonSerializer.Serialize(body, NPFLauncher.DefaultOptions), userId, userToken);
+        return await Api<T>(url, body == null ? null : JsonSerializer.Serialize(body, NPFLauncher.DefaultOptions), userId, userToken);
     }
 
     private async Task<T?> Api<T>(string url, string? body = null, string? userId = null, string? userToken = null)
     {
         var response = await ApiRawByString(url, body, userId, userToken);
+        return ToType<T>(response);
+    }
+
+    private static T? ToType<T>(string? response)
+    {
         if (response == null) {
             return default;
         }
@@ -59,12 +84,11 @@ public class X19Extensions(string url, bool token = true) {
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync();
     }
-    
+
     public async Task<byte[]?> ApiRawB(string url, string? body = null, string? userId = null, string? userToken = null)
     {
         var response = await ApiSend(url, body, userId, userToken);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsByteArrayAsync();
     }
-
 }

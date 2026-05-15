@@ -1,71 +1,32 @@
-﻿using Codexus.Development.SDK.Connection;
-using Codexus.Development.SDK.Enums;
-using Codexus.Development.SDK.Extensions;
 using DotNetty.Buffers;
 using DotNetty.Transport.Channels;
-using Nirvana.Development.Manager;
-using Serilog;
+using Nirvana.Development.Connection;
+using Nirvana.Development.Utils;
+using Nirvana.DevPlugin.Entities;
 
 namespace Nirvana.Development.Handlers;
 
-public class ServerHandler(GameConnection connection) : ChannelHandlerAdapter {
+public class ServerHandler(InterceptorConfig config) : ChannelHandlerAdapter {
+    public override void ChannelActive(IChannelHandlerContext context)
+    {
+        var channel = context.Channel;
+        var gameConnection = new GameConnection {
+            Config = config,
+            ClientChannel = channel
+        };
+        channel.GetAttribute(ChannelAttribute.Connection).Set(gameConnection);
+        gameConnection.Prepare();
+    }
+
     public override void ChannelRead(IChannelHandlerContext context, object message)
     {
-        if (message is not IByteBuffer buffer) {
-            return;
+        if (message is IByteBuffer buffer) {
+            context.Channel.GetAttribute(ChannelAttribute.Connection).Get().OnClientReceived(buffer);
         }
-
-        var processedBuffer = OnClientReceived(buffer);
-        if (processedBuffer == null) {
-            return;
-        }
-
-        base.ChannelRead(context, processedBuffer);
     }
 
-    private IByteBuffer? OnClientReceived(IByteBuffer buffer)
+    public override void ChannelInactive(IChannelHandlerContext context)
     {
-        return HandlePacketReceived(connection, buffer, EnumPacketDirection.ServerBound);
-    }
-
-    public static IByteBuffer? HandlePacketReceived(GameConnection gameConnection, IByteBuffer buffer, EnumPacketDirection direction)
-    {
-        buffer.MarkReaderIndex();
-
-        var packetId = buffer.ReadVarIntFromBuffer();
-        var packets = NPacketManager.Instance.BuildPacket(gameConnection.State, direction, gameConnection.ProtocolVersion, packetId);
-
-        foreach (var packet in packets) {
-            if (packet.Skip) {
-                continue;
-            }
-
-            packet.ClientProtocolVersion = gameConnection.ProtocolVersion;
-            try {
-                packet.ReadFromBuffer(buffer);
-            } catch (Exception ex) {
-                var objArray = new object[] {
-                    direction,
-                    packetId,
-                    packet,
-                    gameConnection.ProtocolVersion
-                };
-                Log.Error(ex, "Cannot read packet from buffer, direction: {0}, Id: {1}, Packet: {2}, ProtocolVersion: {3}", objArray);
-                throw;
-            }
-
-            if (packet.HandlePacket(gameConnection)) {
-                buffer.ResetReaderIndex();
-                return null;
-            }
-
-            buffer.Clear();
-            buffer.WriteVarInt(packetId);
-            buffer.ReadVarIntFromBuffer();
-            packet.WriteToBuffer(buffer);
-        }
-
-        buffer.ResetReaderIndex();
-        return buffer;
+        context.Channel.GetAttribute(ChannelAttribute.Connection).Get().Shutdown();
     }
 }

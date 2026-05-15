@@ -19,24 +19,20 @@
             <th>ID</th>
             <th>昵称</th>
             <th>本地地址</th>
-            <th>用户ID</th>
             <th>服务器名称</th>
-            <th>服务器版本</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="proxy in proxyList" :key="proxy.id">
             <td>{{ proxy.id }}</td>
-            <td>{{ proxy.Interceptor.NickName }}</td>
-            <td>{{ serverIp }}:{{ proxy.Interceptor.LocalPort }}</td>
-            <td>{{ proxy.Interceptor.CurrentConfig.user_id }}</td>
-            <td>{{ proxy.Interceptor.ServerName }}</td>
-            <td>{{ proxy.Interceptor.ServerVersion }}</td>
+            <td>{{ proxy.nick_name }}</td>
+            <td>{{ proxy.local_address }}:{{ proxy.local_port }}</td>
+            <td>{{ proxy.server_name }}</td>
             <td>
               <div class="action-buttons">
                 <button class="copy-btn"
-                  @click="copyLocalAddress(`${serverIp}:${proxy.Interceptor.LocalPort}`)"
+                  @click="copyLocalAddress(`${proxy.local_address}:${proxy.local_port}`)"
                   title="复制本地地址">
                   复制
                 </button>
@@ -92,8 +88,6 @@ const copyLocalAddress = async (address) => {
 const proxyList = ref([])
 // 加载状态
 const loading = ref(false)
-// 服务器IP地址
-const serverIp = ref('')
 
 // 确认对话框状态
 const confirmVisible = ref(false)
@@ -107,7 +101,6 @@ const fetchProxyInfo = async () => {
   try {
     const data = await getProxyServerInfo()
     if (data.code === 1) {
-      serverIp.value = data.data.ip
       proxyList.value = data.data.proxies
     } else {
       console.error('获取代理信息失败:', data.msg)

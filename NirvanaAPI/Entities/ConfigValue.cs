@@ -1,4 +1,6 @@
-﻿namespace NirvanaAPI.Entities;
+﻿using System;
+
+namespace NirvanaAPI.Entities;
 
 public class ConfigValue {
     private string? _value;

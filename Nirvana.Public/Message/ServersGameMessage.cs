@@ -1,4 +1,9 @@
-﻿using Nirvana.Public.Manager;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Nirvana.Public.Manager;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameCharacters;
 using Nirvana.WPFLauncher.Protocol;
@@ -70,7 +75,12 @@ public static class ServersGameMessage {
         }
     }
 
-    public static async Task<EntityNetGameItem[]> GetServerListTo(int offset = 0, int pageSize = 10, bool safeImage = true, string version = "")
+    public static EntityNetGameItem[] GetServerListTo(int offset = 0, int pageSize = 10, bool safeImage = true, string version = "")
+    {
+        return GetServerListToAsync(offset, pageSize, safeImage, version).GetAwaiter().GetResult();
+    }
+
+    private static async Task<EntityNetGameItem[]> GetServerListToAsync(int offset = 0, int pageSize = 10, bool safeImage = true, string version = "")
     {
         // 没有版本号, 直接获取
         if (string.IsNullOrEmpty(version)) {

@@ -1,4 +1,6 @@
-﻿using Nirvana.Game.Launcher.Entities;
+﻿using System.IO;
+using System.Threading.Tasks;
+using Nirvana.Game.Launcher.Entities;
 using Nirvana.Game.Launcher.Services.Java;
 using Nirvana.Game.Launcher.Utils;
 using Nirvana.Public.Manager;
@@ -32,6 +34,7 @@ public static class LaunchMessage {
         // 清理旧白端
         ActiveGameAndProxies.Close(id, name);
 
+        Log.Information("--------------");
         Log.Information("正在启动白端游戏...");
         Log.Information("名称：{0}", name);
 
@@ -81,6 +84,7 @@ public static class LaunchMessage {
         // 清理旧白端
         ActiveGameAndProxies.Close(id, name);
 
+        Log.Information("--------------");
         Log.Information("正在启动白端游戏...");
         Log.Information("名称：{0}", name);
 
@@ -136,7 +140,7 @@ public static class LaunchMessage {
         // 检查并安装Java环境
         string javaName;
         string javaPath;
-        
+
         switch (gameVersion) {
             case >= EnumGameVersion.V_1_20_6:
                 javaName = "jdk21";

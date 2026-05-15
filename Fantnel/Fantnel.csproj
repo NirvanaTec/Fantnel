@@ -2,14 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Copyright>涅槃科技 © 版权所有</Copyright>
         <ApplicationIcon>../favicon.ico</ApplicationIcon>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <DebugType>embedded</DebugType>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,16 +16,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Nirvana.Public\Nirvana.Public.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="Codexus.Interceptors">
-            <HintPath>..\SDK\Codexus.Interceptors.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="resources\heypixel\enum-struct.json" />
     </ItemGroup>
 
 </Project>

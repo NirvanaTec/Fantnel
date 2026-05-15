@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace NirvanaAPI.Entities.Login;
 
@@ -14,7 +15,7 @@ public class EntityAccount : EntityUserInfo {
     public string? Type { get; set; }
 
     [JsonPropertyName("password")]
-    public string? Password { get; set; }
+    public string? Password { get; init; }
 
     // 识别信息
     [JsonPropertyName("id")]

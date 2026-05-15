@@ -1,4 +1,6 @@
-﻿using Serilog.Sinks.SystemConsole.Themes;
+﻿using System;
+using System.IO;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Nirvana.Public.Utils.ViewLogger;
 

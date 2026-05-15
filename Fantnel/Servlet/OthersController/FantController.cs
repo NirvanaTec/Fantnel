@@ -1,6 +1,8 @@
-﻿using System.Text.Json.Nodes;
+﻿using System;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using Nirvana.Public;
+using Nirvana.Public.Manager;
 using Nirvana.Public.Utils.ViewLogger;
 using NirvanaAPI.Utils;
 using NirvanaAPI.Utils.CodeTools;
@@ -36,11 +38,13 @@ public class FantController : ControllerBase {
     [HttpGet("/api/exit")]
     public IActionResult Exit()
     {
+        // 关闭程序
+        ActiveGameAndProxies.CloneAll();
         Environment.Exit(0);
         return Ok(Code.ToJson(ErrorCode.Success));
     }
 
-    // 关闭程序
+    // 获取日志
     [HttpGet("/api/logs")]
     public IActionResult GetLogs()
     {

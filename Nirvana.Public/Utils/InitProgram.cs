@@ -1,4 +1,9 @@
-﻿using Nirvana.Public.Manager;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Nirvana.Public.Manager;
 using Nirvana.Public.Message;
 using Nirvana.Public.Utils.Update;
 using Nirvana.WPFLauncher.Http;

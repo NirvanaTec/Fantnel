@@ -1,6 +1,9 @@
+using System;
+using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Codexus.Game.Launcher.Utils;
+using System.Threading.Tasks;
 using Nirvana.Game.Launcher.Utils.Progress;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameLaunch;
 using Nirvana.WPFLauncher.Entities.WPFLauncher.NetGame.GameLaunch.GameMods;
@@ -159,7 +162,7 @@ public static class InstallerService {
 
         var progress = new SyncProgressBarUtil.ProgressBar();
         var uiProgress = new SyncCallback<SyncProgressBarUtil.ProgressReport>(progress.Update);
-        
+
         foreach (var entityComponentDownloadInfoResponse in entities) {
             foreach (var subEntity in entityComponentDownloadInfoResponse.SubEntities) {
                 modList.Mods.Add(new EntityModsInfo {
@@ -174,22 +177,15 @@ public static class InstallerService {
         }
 
         var corePath = Path.Combine(PathUtil.GameModsPath, gameId);
-        if (Directory.Exists(corePath)) {
-            Directory.Delete(corePath, true);
-        }
 
         var idx = 0;
         foreach (var entityComponentDownloadInfoResponse2 in entities) {
-            var i = idx;
-            idx = i + 1;
+            idx++;
             var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(entityComponentDownloadInfoResponse2.SubEntities[0].ResName);
             var jar = Path.Combine(corePath, $"{fileNameWithoutExtension}@{entityComponentDownloadInfoResponse2.MTypeId}@{entityComponentDownloadInfoResponse2.EntityId}.jar");
             var archive = Path.Combine(corePath, entityComponentDownloadInfoResponse2.SubEntities[0].ResName);
             var extractDir = Path.Combine(corePath, fileNameWithoutExtension);
-            // 创建目录
-            if (!Directory.Exists(extractDir)) {
-                Directory.CreateDirectory(extractDir);
-            }
+            Directory.CreateDirectory(extractDir);
 
             if (File.Exists(jar) && FileUtil.ComputeMd5FromFile(jar).Equals(entityComponentDownloadInfoResponse2.SubEntities[0].JarMd5, StringComparison.OrdinalIgnoreCase)) {
                 continue;
@@ -201,70 +197,58 @@ public static class InstallerService {
                     Message = $"Downloading core mod {idx}/{entities.Length}"
                 });
             });
-            var idx2 = idx;
             await CompressionUtil.ExtractAsync(archive, extractDir, p => {
                 uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
                     Percent = p,
-                    Message = $"Extracting core mod {idx2}/{entities.Length}"
+                    Message = $"Extracting core mod {idx}/{entities.Length}"
                 });
             });
             var array = FileUtil.EnumerateFiles(extractDir, "jar");
-            for (i = 0; i < array.Length; i++) {
-                FileUtil.CopyFileSafe(array[i], jar);
+            foreach (var t in array) {
+                FileUtil.CopyFileSafe(t, jar);
             }
 
             FileUtil.DeleteDirectorySafe(extractDir);
             FileUtil.DeleteFileSafe(archive);
         }
 
-        uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
-            Percent = 100,
-            Message = "Core mods ready"
-        });
         var compDir = Path.Combine(PathUtil.CachePath, "Game", gameId);
-        var compArchive = compDir + ".7z";
         Directory.CreateDirectory(compDir);
+        var compArchive = compDir + ".7z";
 
         try {
             var netGameComponentDownloadList = await NPFLauncher.GetNetGameComponentDownloadListAsync(gameId);
             var comp = netGameComponentDownloadList.SubEntities[0];
             var extractDir = Path.Combine(compDir, gameId + ".MD5");
+            var flag = File.Exists(extractDir) && await File.ReadAllTextAsync(extractDir) == comp.ResMd5;
             var archive = Path.Combine(compDir, gameId + ".json");
-            var flag = !File.Exists(extractDir);
-            if (!flag) {
-                flag = await File.ReadAllTextAsync(extractDir) != comp.ResMd5;
-            }
 
-            if (!flag && File.Exists(archive)) {
-                var entityModsInfos = JsonSerializer.Deserialize<EntityModsList>(await File.ReadAllTextAsync(archive))?.Mods;
+            if (flag && File.Exists(archive)) {
+                var json = await File.ReadAllTextAsync(archive);
+                var entityModsInfos = JsonSerializer.Deserialize<EntityModsList>(json)?.Mods;
                 if (entityModsInfos != null) {
                     foreach (var mod in entityModsInfos) {
                         modList.Mods.Add(mod);
                     }
                 }
 
-                uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
-                    Percent = 100,
-                    Message = "Game assets ready"
-                });
                 SyncProgressBarUtil.ProgressBar.ClearCurrent();
                 return modList;
             }
 
-            FileUtil.DeleteFileSafe(compArchive);
             await DownloadUtil.DownloadAsync(comp.ResUrl, compArchive, p => {
                 uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
                     Percent = p,
                     Message = "Downloading game assets"
                 });
             });
-            FileUtil.DeleteDirectorySafe(compDir);
             await CompressionUtil.ExtractAsync(compArchive, compDir, p => {
                 uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
                     Percent = p,
                     Message = "Extracting game assets"
                 });
             });
+
             var array2 = FileUtil.EnumerateFiles(Path.Combine(compDir, ".minecraft", "mods"), "jar");
             var serverModsList = new EntityModsList();
             foreach (var path in array2) {
@@ -288,10 +272,6 @@ public static class InstallerService {
             Log.Warning("Download game Component failed");
         }
 
-        uiProgress.Report(new SyncProgressBarUtil.ProgressReport {
-            Percent = 100,
-            Message = "Game assets ready"
-        });
         SyncProgressBarUtil.ProgressBar.ClearCurrent();
         return modList;
     }
@@ -303,7 +283,7 @@ public static class InstallerService {
 
     public static string PrepareGameRuntime(string gameId, string roleName, EnumGType gameType)
     {
-        var path = HashUtil.GenerateGameRuntimeId(gameId, roleName);
+        var path = gameId + "-" + roleName;
         var text = Path.Combine(PathUtil.GamePath, "Runtime", path);
         var text2 = Path.Combine(text, ".minecraft");
 

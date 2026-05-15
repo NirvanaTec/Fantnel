@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <Copyright>涅槃科技 © 版权所有</Copyright>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2"/>
+        <PackageReference Include="Serilog" Version="4.3.1"/>
+        <PackageReference Include="System.IO.Hashing" Version="10.0.7"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Nirvana.WPFLauncher\Nirvana.WPFLauncher.csproj"/>
+        <ProjectReference Include="..\NirvanaAPI\NirvanaAPI.csproj"/>
+    </ItemGroup>
+
+</Project>
