@@ -18,32 +18,24 @@
           <div v-for="proxy in proxiesData.proxies" :key="proxy.id" class="bg-gray-700 rounded-lg p-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <span class="text-gray-400">服务器名称:</span>
-                <span class="ml-2">{{ proxy.Interceptor.ServerName }}</span>
-              </div>
-              <div>
-                <span class="text-gray-400">服务器版本:</span>
-                <span class="ml-2">{{ proxy.Interceptor.ServerVersion }}</span>
+                <span class="text-gray-400">服务器:</span>
+                <span class="ml-2">{{ proxy.server_name }}</span>
               </div>
               <div>
                 <span class="text-gray-400">角色名称:</span>
-                <span class="ml-2">{{ proxy.Interceptor.NickName }}</span>
+                <span class="ml-2">{{ proxy.nick_name }}</span>
               </div>
               <div>
                 <span class="text-gray-400">代理端口:</span>
-                <span class="ml-2">{{ proxy.Interceptor.LocalPort }}</span>
+                <span class="ml-2">{{ proxy.local_port }}</span>
               </div>
               <div>
-                <span class="text-gray-400">目标服务器:</span>
-                <span class="ml-2">{{ proxy.Interceptor.ForwardAddress }}:{{ proxy.Interceptor.ForwardPort }}</span>
-              </div>
-              <div>
-                <span class="text-gray-400">用户ID:</span>
-                <span class="ml-2">{{ proxy.Interceptor.CurrentConfig.user_id }}</span>
+                <span class="text-gray-400">代理地址:</span>
+                <span class="ml-2">{{ proxy.local_address }}:{{ proxy.local_port }}</span>
               </div>
             </div>
             <div class="mt-4 flex gap-2">
-              <button @click="copyProxyInfo(proxiesData.ip, proxy.Interceptor.LocalPort)"
+              <button @click="copyProxyInfo(proxy.local_address, proxy.local_port)"
                 class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded transition-colors">
                 复制代理信息
               </button>
