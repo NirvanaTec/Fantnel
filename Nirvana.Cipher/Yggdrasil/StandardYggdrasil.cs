@@ -7,23 +7,33 @@ using Nirvana.Cipher.Entities.Yggdrasil;
 using Nirvana.Cipher.Extensions;
 using Nirvana.Cipher.Generator;
 using Nirvana.WPFLauncher.Http;
+using Serilog;
 
 namespace Nirvana.Cipher.Yggdrasil;
 
 public static class StandardYggdrasil {
     private static readonly byte[] ChaChaNonce = "163 NetEase\n"u8.ToArray();
 
-    private static readonly YggdrasilServer[] Address = RandomAuthServer();
+    private static YggdrasilServer[]? _address;
+
+    public static async Task InitializationAsync()
+    {
+        _address = await RandomAuthServer();
+    }
 
     public static async Task<Result> JoinServerAsync(GameProfile profile, string serverId, bool login = false)
     {
+        if (_address == null) {
+            throw new Exception("Not StandardYggdrasil Servers Found.");
+        }
+
         using var client = new TcpClient();
 
         try {
             var random = new Random();
-            var server = Address[random.Next(Address.Length)];
+            var server = _address[random.Next(_address.Length)];
 
-            // var addresses = await ResolveAddressAsync(server.Ip);
+            Log.Information("StandardYggdrasil: {0}:{1}", server.Ip, server.Port);
             await client.ConnectAsync(server.Ip, server.Port);
 
             if (!client.Connected) {
@@ -91,13 +101,12 @@ public static class StandardYggdrasil {
         return Result.Success();
     }
 
-    private static YggdrasilServer[] RandomAuthServer()
+    private static async Task<YggdrasilServer[]> RandomAuthServer()
     {
-        var http = new HttpWrapper();
-        var servers = http.GetAsync<YggdrasilServer[]>("https://x19.update.netease.com/authserver.list").GetAwaiter().GetResult();
+        var servers = await X19Extensions.UpdateNetease.Api<YggdrasilServer[]>("/authserver.list");
 
         if (servers == null || servers.Length == 0) {
-            throw new Exception("No servers found.");
+            throw new Exception("Not StandardYggdrasil Servers Found.");
         }
 
         return servers;

@@ -14,8 +14,10 @@ public class X19Extensions(string url, bool token = true) {
     public static readonly X19Extensions Nirvana = new("http://110.42.70.32:13423", false);
     public static readonly X19Extensions Bmcl = new("https://bmclapi2.bangbang93.com", false);
     public static readonly X19Extensions Pt4399 = new("https://ptlogin.4399.com", false);
-
-    public readonly HttpWrapper HttpWrapper = new(url, options => { options.UserAgent("WPFLauncher/0.0.0.0"); });
+    public static readonly X19Extensions UpdateNetease = new("https://x19.update.netease.com", false);
+    public readonly HttpWrapper HttpWrapper = new(url, options => {
+        options.UserAgent("WPFLauncher/0.0.0.0");
+    });
 
     private async Task<HttpResponseMessage> ApiSend(string url, string? body = null, string? userId = null, string? userToken = null)
     {

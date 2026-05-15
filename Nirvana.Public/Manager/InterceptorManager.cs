@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Nirvana.Cipher.Cipher.Nirvana.Connection;
 using Nirvana.Cipher.Entities.Yggdrasil;
 using Nirvana.Cipher.Yggdrasil;
 using Nirvana.Development;
@@ -55,38 +56,15 @@ public class InterceptorManager {
 
     private void YggdrasilCallback(InterceptorConfig config, string serverId)
     {
-        Log.Warning("认证中: {0}", serverId);
-        Task.Run(async () => {
-            try {
-                var pair = Md5Mapping.GetMd5FromGameVersion(_versionName);
-
-                var modsJson = JsonSerializer.Deserialize<ModList>(_mods);
-                if (modsJson == null) {
-                    throw new ErrorCodeException(ErrorCode.ModsError);
+        NetEaseConnection.CreateAuthenticator(serverId, config.GameId, _versionName, _mods, _availableUser, success => {
+            if (!success) {
+                try {
+                    AccountMessage.AutoUpdateAccount(_availableUser, () => { ActiveGameAndProxies.CloseProxy(Interceptor); });
+                } catch (Exception e) {
+                    Log.Error("认证失败: {0}: {1}", _availableUser.Account, e.Message);
                 }
-
-                var success = await StandardYggdrasil.JoinServerAsync(new GameProfile {
-                    GameId = _entityId,
-                    GameVersion = _versionName,
-                    BootstrapMd5 = pair.BootstrapMd5,
-                    DatFileMd5 = pair.DatFileMd5,
-                    Mods = modsJson,
-                    User = new UserProfile(_availableUser)
-                }, serverId);
-
-                if (success.IsSuccess) {
-                    Log.Information("认证完成!");
-                } else {
-                    Log.Error("认证失败: {0}", success.Error);
-                    try {
-                        AccountMessage.AutoUpdateAccount(_availableUser, () => { ActiveGameAndProxies.CloseProxy(Interceptor); });
-                    } catch (Exception e) {
-                        Log.Error("认证失败: {0}: {1}", _availableUser.Account, e.Message);
-                    }
-                }
-            } catch (Exception ex) {
-                Log.Fatal("认证出错: {0}", ex.Message);
             }
-        }).Wait();
+        });
+
     }
 }

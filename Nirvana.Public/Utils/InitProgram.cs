@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Nirvana.Cipher.Yggdrasil;
 using Nirvana.Public.Manager;
 using Nirvana.Public.Message;
 using Nirvana.Public.Utils.Update;
@@ -72,6 +73,12 @@ public static class InitProgram {
                 // ignored
             }
         });
+        
+        // 提前获取验证服务器
+        _ = Task.Run(() => {
+            _ = StandardYggdrasil.InitializationAsync();
+        });
+        
     }
 
     /**

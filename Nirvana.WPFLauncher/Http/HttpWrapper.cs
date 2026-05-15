@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,18 +34,6 @@ public class HttpWrapper : IDisposable {
     {
         Client.Dispose();
         GC.SuppressFinalize(this);
-    }
-
-    private async Task<string> GetStringAsync(string url, Action<HttpRequestOptions>? configure = null, CancellationToken cancellationToken = default)
-    {
-        var obj = await GetAsync(url, configure, cancellationToken);
-        obj.EnsureSuccessStatusCode();
-        return await obj.Content.ReadAsStringAsync(cancellationToken);
-    }
-
-    public async Task<T?> GetAsync<T>(string url, Action<HttpRequestOptions>? configure = null, CancellationToken cancellationToken = default)
-    {
-        return JsonSerializer.Deserialize<T>(await GetStringAsync(url, configure, cancellationToken));
     }
 
     public async Task<HttpResponseMessage> GetAsync(string url, Action<HttpRequestOptions>? configure = null, CancellationToken cancellationToken = default)
