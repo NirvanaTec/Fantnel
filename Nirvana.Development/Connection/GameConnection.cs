@@ -94,7 +94,7 @@ public class GameConnection : BGameConnection {
 
         var packet = PacketManager.TriggerEvent(iPacket => {
             try {
-                Log.Information("Handle[{0}.{1}]: {2}[{3}]", direction, State, iPacket.GetType().Name, id);
+                // Log.Information("Handle[{0}.{1}]: {2}[{3}]", direction, State, iPacket.GetType().Name, id);
                 iPacket.PacketId = id;
                 iPacket.ProtocolVersion = ProtocolVersion;
                 iPacket.ReadFromBuffer(this, buffer);

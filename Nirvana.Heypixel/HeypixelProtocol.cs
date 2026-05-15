@@ -1,5 +1,6 @@
 ﻿using Nirvana.Development.Manager;
 using Nirvana.Heypixel.Configuration;
+using Nirvana.Heypixel.Play;
 using Serilog;
 
 namespace Nirvana.Heypixel;
@@ -16,5 +17,7 @@ public class HeypixelProtocol {
     static HeypixelProtocol()
     {
         PacketManager.BasePackets.Add(new C2SConfigPluginMessage(), C2SConfigPluginMessage.RegisterPacket);
+        PacketManager.BasePackets.Add(new SaClientboundSetPlayerTeamPacket(), SaClientboundSetPlayerTeamPacket.RegisterPacket);
     }
+    
 }

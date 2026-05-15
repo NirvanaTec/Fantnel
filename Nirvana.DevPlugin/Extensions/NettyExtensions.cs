@@ -173,9 +173,7 @@ public static class NettyExtensions {
             }
 
             var bytes = Encoding.UTF8.GetBytes(stringToWrite);
-            buffer.WriteVarInt(bytes.Length);
-            buffer.WriteBytes(bytes);
-            return buffer;
+            return buffer.WriteByteArrayToBuffer(bytes);
         }
 
         public IByteBuffer WriteByteArrayToBuffer(byte[] bytes)
