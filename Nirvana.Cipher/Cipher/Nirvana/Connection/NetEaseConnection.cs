@@ -49,11 +49,13 @@ public static class NetEaseConnection {
     private static async Task<bool> CreateAuthenticatorAsync(GameProfile gameProfile, string serverId)
     {
         Log.Warning("认证中: {0}", serverId);
+        Exception? exception;
         try {
             await StandardYggdrasil.JoinServerAsync(gameProfile, serverId);
             Log.Information("认证完成!");
             return true;
         } catch (Exception e) {
+            exception = e;
             Log.Error("认证失败: {0}", e.Message);
         }
         if (IsServerAuthenticated) {
@@ -69,6 +71,6 @@ public static class NetEaseConnection {
             }
             Log.Information("代理认证失败: {0}", data.Message);
         }
-        return false;
+        throw exception;
     }
 }
